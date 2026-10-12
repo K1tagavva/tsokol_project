@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ЦОКОЛЬ Lounge | Онлайн-бронирование</title>
+  
+  <!-- Защита от индексации роботами и сканерами -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="googlebot" content="noindex, nofollow, noarchive">
+  <meta name="yandex" content="none">
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --surface: #12141a;
+      --surface-hover: #181b24;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-light: rgba(255, 255, 255, 0.12);
+      
+      --accent: #d62839;
+      --accent-soft: rgba(214, 40, 57, 0.15);
+      --accent-glow: rgba(214, 40, 57, 0.3);
+      
+      --gold: #d4af37;
+      --green: #2ecc71;
+      --chair: #b89355;
+      
+      --text: #f4f5f7;
+      --text-muted: #7b808e;
+      
+      --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+    body { 
+      background: var(--bg); color: var(--text); 
+      padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); 
+      overflow-x: hidden; -webkit-font-smoothing: antialiased; 
+    }
+    .container { max-width: 440px; margin: 0 auto; padding: 18px 16px; }
+
+    /* Top Bar */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .brand-group h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .brand-group h1 span { color: var(--accent); }
+    .brand-group p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(46, 204, 113, 0.08); border: 1px solid rgba(46, 204, 113, 0.2);
+      padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: var(--green);
+    }
+    .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* 3D Flip Loyalty Card */
+    .card-perspective { perspective: 1000px; margin-bottom: 22px; }
+    .card-flipper {
+      position: relative; width: 100%; min-height: 165px;
+      transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d; cursor: pointer;
+    }
+    .card-flipper.is-flipped { transform: rotateY(180deg); }
+    .card-side {
+      width: 100%; min-height: 165px; border-radius: 16px; padding: 16px 18px;
+      border: 1px solid var(--border-light); box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .card-front { background: linear-gradient(135deg, #171822 0%, #111217 60%, #161318 100%); }
+    .card-back { background: linear-gradient(135deg, #1b1619 0%, #121319 55%, #191712 100%); transform: rotateY(180deg); position: absolute; top: 0; left: 0; }
+
+    .card-head { display: flex; justify-content: space-between; align-items: center; }
+    .card-name { font-size: 14px; font-weight: 700; color: #fff; }
+    .card-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #fff;
+    }
+    .card-body span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: block; margin-bottom: 2px; }
+    .card-body strong { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .card-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+    .card-flip-hint { font-size: 10px; font-weight: 600; color: var(--gold); display: inline-flex; align-items: center; gap: 4px; }
+
+    .progress-box { margin-bottom: 8px; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; }
+    .progress-labels span { color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .progress-labels strong { color: var(--gold); }
+    .progress-track { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 58%; background: linear-gradient(90deg, #d4af37, #f7d774); border-radius: 10px; }
+    .perks-list { display: grid; grid-template-columns: 1fr; gap: 4px; font-size: 10px; color: #e1e3e8; margin: 4px 0; }
+    .perks-item { display: flex; align-items: center; gap: 6px; }
+    .perks-item::before { content: '✓'; color: var(--green); font-weight: 800; font-size: 10px; }
+
+    /* MONTHLY CINEMA AFISHA */
+    .cinema-afisha-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px 14px 16px; margin-bottom: 22px;
+    }
+    .afisha-head {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .afisha-head h3 {
+      font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #fff; display: flex; align-items: center; gap: 6px;
+    }
+    .afisha-head span { font-size: 11px; color: var(--accent); font-weight: 700; }
+    
+    .afisha-scroll {
+      display: flex; gap: 10px; overflow-x: auto; scroll-behavior: smooth;
+      padding-bottom: 2px; scrollbar-width: none; flex: 1;
+    }
+    .afisha-scroll::-webkit-scrollbar { display: none; }
+
+    .movie-poster-card {
+      min-width: 125px; width: 125px; height: 185px; border-radius: 14px;
+      overflow: hidden; background: #161820; border: 1px solid var(--border);
+      cursor: pointer; transition: 0.25s; flex-shrink: 0; position: relative;
+    }
+    .movie-poster-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+    .movie-poster-card img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; display: block; }
+    .movie-poster-card:hover img { transform: scale(1.04); }
+    
+    .movie-poster-card.past-movie { opacity: 0.38; }
+    .movie-poster-card.past-movie::after {
+      content: 'ПРОШЁЛ'; position: absolute; bottom: 8px; left: 8px; right: 8px;
+      background: rgba(0,0,0,0.75); border-radius: 6px; font-size: 9px; font-weight: 800;
+      text-align: center; padding: 3px 0; color: #aaa;
+    }
+
+    .movie-date-tag {
+      position: absolute; top: 6px; left: 6px;
+      background: rgba(11, 12, 15, 0.88); backdrop-filter: blur(6px);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 9px; font-weight: 800; padding: 3px 7px; color: #fff; z-index: 2;
+    }
+
+    /* Lightbox Modal афиши */
+    .poster-modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+    }
+    .poster-modal-box {
+      max-width: 330px; width: 100%; text-align: center; position: relative;
+    }
+    .poster-modal-img {
+      width: 100%; max-height: 65vh; object-fit: contain; border-radius: 14px;
+      border: 1px solid var(--border-light); box-shadow: 0 12px 35px rgba(0,0,0,0.85);
+    }
+    .poster-modal-btn {
+      margin-top: 12px; background: var(--accent); color: #fff; border: none;
+      padding: 12px 18px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; width: 100%;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .poster-modal-close {
+      margin-top: 8px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border);
+      padding: 9px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%;
+    }
+
+    /* Lightbox Modal фото зала */
+    .hall-photo-modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+    }
+    .hall-photo-modal-box {
+      max-width: 420px; width: 100%; text-align: center; position: relative;
+    }
+    .hall-photo-modal-img {
+      width: 100%; max-height: 70vh; object-fit: cover; border-radius: 14px;
+      border: 1px solid var(--border-light); box-shadow: 0 12px 35px rgba(0,0,0,0.85);
+    }
+
+    /* Step Labels */
+    .step-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;
+    }
+    .step-label span { color: var(--accent); }
+
+    /* Sliders */
+    .slider-row { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+    .arrow-btn {
+      width: 32px; height: 36px; min-width: 32px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border); color: #fff;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+    }
+    .arrow-btn:hover { background: var(--surface-hover); border-color: var(--border-light); }
+    .arrow-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+    /* Dates */
+    .dates-scroll { display: flex; gap: 8px; overflow-x: auto; scroll-behavior: smooth; flex: 1; scrollbar-width: none; }
+    .dates-scroll::-webkit-scrollbar { display: none; }
+    .date-chip {
+      background: var(--surface); border: 1px solid var(--border);
+      min-width: 64px; padding: 8px 4px; border-radius: 12px; text-align: center;
+      cursor: pointer; flex-shrink: 0; transition: 0.2s;
+    }
+    .date-chip.active { border-color: var(--accent); background: var(--accent-soft); }
+    .d-w { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 2px; }
+    .date-chip.active .d-w { color: var(--accent); }
+    .d-n { font-size: 15px; font-weight: 800; color: #fff; }
+    .d-tag { font-size: 8px; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-top: 2px; }
+
+    /* Times */
+    .times-scroll { display: flex; gap: 8px; overflow-x: auto; scroll-behavior: smooth; flex: 1; scrollbar-width: none; }
+    .times-scroll::-webkit-scrollbar { display: none; }
+    .time-chip {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 9px 13px; border-radius: 10px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); white-space: nowrap; flex-shrink: 0; cursor: pointer; transition: 0.2s;
+    }
+    .time-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+    .time-chip.lunch { border-color: rgba(46, 204, 113, 0.3); color: var(--green); }
+    .time-chip.cinema-slot { border-color: var(--accent); color: #fff; background: rgba(214, 40, 57, 0.15); }
+
+    /* Floating Session Window Banner */
+    .session-window-banner {
+      background: var(--surface); border: 1px dashed var(--border-light);
+      border-radius: 10px; padding: 9px 12px; font-size: 11px; color: var(--text-muted);
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+    }
+    .session-window-banner strong { color: #fff; }
+
+    /* Map Box */
+    .map-container {
+      background: #0d0e12; border: 1px solid var(--border); border-radius: 16px;
+      padding: 14px 8px; margin-bottom: 14px;
+    }
+    .map-legend { display: flex; justify-content: center; gap: 14px; margin-bottom: 12px; font-size: 11px; color: var(--text-muted); }
+    .leg-dot { display: flex; align-items: center; gap: 5px; }
+    .leg-dot::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+
+    svg { width: 100%; height: auto; display: block; }
+    .tbl-node { cursor: pointer; }
+    .tbl-node * { transition: 0.2s; }
+    .tbl-zone { fill: #13141b; stroke: #21242e; stroke-width: 1.5; rx: 8px; }
+    .tbl-node:hover .tbl-zone { stroke: var(--accent); }
+    .tbl-node.active .tbl-zone { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 8px var(--accent-glow)); }
+
+    .tbl-body { fill: #171821; stroke: #272a36; stroke-width: 1.5; rx: 12px; }
+    .tbl-node:hover .tbl-body { stroke: var(--accent); fill: #1c1e29; }
+    .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; filter: drop-shadow(0 0 10px var(--accent-glow)); }
+
+    .tbl-chair { fill: var(--chair); rx: 2px; }
+    .tbl-bar { fill: #101116; stroke: #242732; stroke-width: 1.5; rx: 8px; }
+    .tbl-screen { fill: #13141a; stroke: var(--accent); stroke-width: 1.5; rx: 6px; }
+
+    .svg-text-bold { fill: #fff; font-size: 11px; font-weight: 700; pointer-events: none; text-anchor: middle; dominant-baseline: middle; letter-spacing: 0.04em; }
+    .svg-text-sub { fill: var(--text-muted); font-size: 8px; font-weight: 500; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
+    .svg-text-num { fill: #fff; font-size: 12px; font-weight: 800; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
+
+    /* КАРТОЧКА ФОТО */
+    .table-live-card {
+      background: var(--surface); border: 1px solid var(--border-light);
+      border-radius: 16px; overflow: hidden; margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .table-photo-wrap {
+      width: 100%; height: 165px; position: relative; overflow: hidden; background: #161820;
+      cursor: pointer;
+    }
+    .table-photo-wrap img {
+      width: 100%; height: 100%; object-fit: cover; opacity: 0.92; transition: transform 0.3s, opacity 0.3s;
+    }
+    .table-photo-wrap:hover img { transform: scale(1.03); }
+    .table-photo-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(18,20,26,0.92) 100%);
+    }
+    .table-photo-badges {
+      position: absolute; bottom: 10px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; z-index: 2;
+    }
+    .photo-tag {
+      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      background: rgba(0,0,0,0.68); backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.15); color: #fff;
+    }
+    .click-zoom-hint {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+      padding: 3px 7px; font-size: 9px; font-weight: 700; color: #fff; z-index: 2;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .table-meta-row {
+      padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .table-meta-row h4 { font-size: 14px; font-weight: 800; color: #fff; }
+    .table-meta-row p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .table-meta-price { font-size: 17px; font-weight: 800; color: var(--accent); }
+
+    /* Unified Group Panel */
+    .unified-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px; margin-bottom: 16px;
+    }
+    .card-section-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;
+    }
+    .card-section-title span { color: var(--accent); font-weight: 600; text-transform: none; }
+
+    /* Steppers */
+    .stepper-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 8px;
+    }
+    .stepper-label h6 { font-size: 12px; font-weight: 700; color: #fff; }
+    .stepper-label p { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+    .stepper-controls { display: flex; align-items: center; gap: 8px; }
+    .step-btn {
+      width: 30px; height: 30px; border-radius: 6px; background: var(--surface);
+      border: 1px solid var(--border-light); color: #fff; font-size: 15px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+    }
+    .step-btn:hover { border-color: var(--accent); background: var(--accent); }
+    .step-val { font-size: 14px; font-weight: 800; min-width: 20px; text-align: center; }
+
+    .hint-box {
+      background: rgba(214, 40, 57, 0.06); border: 1px solid rgba(214, 40, 57, 0.18);
+      border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #f19fa7; line-height: 1.4; margin-bottom: 12px;
+    }
+
+    /* Tier Buttons */
+    .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .tier-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .tier-card.active { border-color: var(--accent); background: var(--accent-soft); }
+    .tier-card h6 { font-size: 12px; font-weight: 700; color: #fff; }
+    .tier-card span { font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px; }
+
+    /* Pill Selection */
+    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .pill-btn {
+      background: var(--bg); border: 1px solid var(--border); padding: 7px 12px;
+      border-radius: 16px; font-size: 11px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: 0.2s;
+    }
+    .pill-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; font-weight: 600; }
+    .pill-btn.gold { border-color: var(--gold); background: rgba(197, 160, 89, 0.15); color: #f4d084; font-weight: 700; }
+
+    .textarea-box {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; color: #fff; font-size: 12px; outline: none; resize: vertical; min-height: 56px; line-height: 1.4;
+    }
+    .textarea-box:focus { border-color: var(--border-light); }
+
+    /* Tea & Bar Horizontal Tabs */
+    .cat-track { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; flex: 1; scrollbar-width: none; }
+    .cat-track::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s;
+    }
+    .cat-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Tea Menu Grid */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .drink-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; transition: 0.2s;
+    }
+    .drink-card.active { border-color: var(--green); background: rgba(46, 204, 113, 0.08); }
+    .drink-card h5 { font-size: 11px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .drink-card p { font-size: 9px; color: var(--text-muted); margin-top: 2px; line-height: 1.2; }
+    .drink-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .drink-price { font-size: 11px; font-weight: 800; color: var(--green); }
+    .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
+    .drink-card.active .drink-check { display: inline-block; }
+
+    /* Form Inputs */
+    .form-group { margin-bottom: 10px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
+    .form-group input:focus { border-color: var(--border-light); }
+
+    /* ЮРИДИЧЕСКИЙ ДИСКЛЕЙМЕР (ФЗ-15) */
+    .legal-disclaimer {
+      font-size: 10px; color: #5a5f6e; line-height: 1.5;
+      text-align: center; margin: 24px 8px 12px; padding: 12px;
+      border: 1px dashed rgba(255,255,255,0.06); border-radius: 10px;
+    }
+
+    /* Bottom Fixed CTA */
+    .checkout-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(11, 12, 15, 0.95); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border); 
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); 
+      z-index: 100;
+    }
+    .checkout-content { max-width: 440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .checkout-amount span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; display: block; }
+    .checkout-amount strong { font-size: 19px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .checkout-amount small { font-size: 10px; color: var(--green); display: block; font-weight: 600; }
+    .checkout-btn {
+      background: var(--accent); color: #fff; border: none; padding: 13px 20px;
+      border-radius: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 14px var(--accent-glow); transition: 0.2s;
+    }
+    .checkout-btn:hover { transform: translateY(-1px); }
+
+    /* Modal 18+ Подтверждение возраста */
+    .age-modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.96);
+      backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 16px; z-index: 2000;
+    }
+    .age-modal-box {
+      background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
+      padding: 24px 20px; max-width: 320px; width: 100%; text-align: center;
+    }
+    .age-badge-big {
+      display: inline-block; width: 48px; height: 48px; line-height: 44px;
+      border: 2px solid var(--accent); border-radius: 50%; color: var(--accent);
+      font-size: 17px; font-weight: 800; margin-bottom: 12px;
+    }
+    .age-modal-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+    .age-modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px; }
+    .age-confirm-btn {
+      background: var(--accent); color: #fff; border: none; padding: 12px;
+      border-radius: 10px; font-size: 13px; font-weight: 700; width: 100%; cursor: pointer;
+    }
+
+    /* Modal Lightbox / Checkout */
+    .poster-modal-backdrop, .hall-photo-modal-backdrop, .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+    }
+    .poster-modal-box, .hall-photo-modal-box { max-width: 380px; width: 100%; text-align: center; position: relative; }
+    .poster-modal-img, .hall-photo-modal-img { width: 100%; max-height: 65vh; object-fit: contain; border-radius: 14px; border: 1px solid var(--border-light); }
+    .poster-modal-btn { margin-top: 12px; background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 12px; font-weight: 700; width: 100%; cursor: pointer; }
+    .poster-modal-close { margin-top: 8px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); padding: 9px; border-radius: 8px; font-size: 11px; width: 100%; cursor: pointer; }
+    
+    .modal-box { background: #14161c; border: 1px solid var(--border-light); border-radius: 16px; padding: 20px; max-width: 360px; width: 100%; text-align: center; }
+    .modal-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+    .modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; text-align: left; background: var(--bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+    .modal-box button { background: var(--surface); color: #fff; border: 1px solid var(--border-light); padding: 11px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+  <!-- Модальное окно подтверждения возраста 18+ -->
+  <div class="age-modal-backdrop" id="ageModal">
+    <div class="age-modal-box">
+      <div class="age-badge-big">18+</div>
+      <h3>Вам есть 18 лет?</h3>
+      <p>Материалы и сервисы заведения предназначены исключительно для совершеннолетних гостей.</p>
+      <button class="age-confirm-btn" onclick="confirmAge()">Да, мне есть 18 лет</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-group">
+        <h1>ЦОКОЛЬ<span>.</span></h1>
+        <p>Белгород • ул. Королёва, 4Д</p>
+      </div>
+      <div class="status-badge">12:00 – 02:00</div>
+    </header>
+
+    <!-- 3D Flip Club Card -->
+    <div class="card-perspective">
+      <div class="card-flipper" id="cardFlipper" onclick="toggleCardFlip()">
+        
+        <!-- FRONT -->
+        <div class="card-side card-front">
+          <div class="card-head">
+            <div class="card-name" id="cardGuestName">Алина</div>
+            <div class="card-badge">SILVER • 3%</div>
+          </div>
+          <div class="card-body">
+            <span>Баланс привилегий</span>
+            <strong>300 ₽</strong>
+          </div>
+          <div class="card-foot">
+            <span>Списание до 50% чека</span>
+            <div class="card-flip-hint">Условия уровня ↺</div>
+          </div>
+        </div>
+
+        <!-- BACK -->
+        <div class="card-side card-back">
+          <div class="card-head">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold);">Программа лояльности</div>
+            <div class="card-badge" style="border-color: var(--gold); color: #ffd700;">GOLD • 5%</div>
+          </div>
+
+          <div class="progress-box">
+            <div class="progress-labels">
+              <span>До статуса GOLD</span>
+              <strong>Осталось 10 500 ₽</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="perks-list">
+            <div class="perks-item">Кэшбэк 5% со всех депозитов и покуров</div>
+            <div class="perks-item">Списание до 50% от суммы счёта</div>
+            <div class="perks-item">Подарочный чай ко дню рождения</div>
+          </div>
+
+          <div class="card-foot">
+            <span style="font-size: 10px;">Накоплено: 14 500 / 25 000 ₽</span>
+            <div class="card-flip-hint" style="color: var(--text-muted);">Баланс ↺</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MONTHLY CINEMA SCHEDULE BLOCK -->
+    <div class="cinema-afisha-section">
+      <div class="afisha-head">
+        <h3>🎬 Киноафиша месяца</h3>
+        <span>Сеансы • 20:00</span>
+      </div>
+
+      <div class="slider-row" style="margin-bottom: 0;">
+        <button type="button" class="arrow-btn" onclick="slideAfisha(-1)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="afisha-scroll" id="afishaContainer"></div>
+        <button type="button" class="arrow-btn" onclick="slideAfisha(1)">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 1: Calendar & Time -->
+    <div class="step-label" id="step1Anchor">1. Дата и сеанс (1.5 часа) <span>Шаг 1 из 3</span></div>
+
+    <!-- Dates (30 days generation) -->
+    <div class="slider-row">
+      <button type="button" class="arrow-btn" onclick="slideDates(-1)">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="dates-scroll" id="dateSlider"></div>
+      <button type="button" class="arrow-btn" onclick="slideDates(1)">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+
+    <!-- Time Slots (30 min step) -->
+    <div class="slider-row">
+      <button type="button" class="arrow-btn" onclick="slideTimes(-1)">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="times-scroll" id="timeSlotsContainer"></div>
+      <button type="button" class="arrow-btn" onclick="slideTimes(1)">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+
+    <!-- Floating Session Window Banner -->
+    <div class="session-window-banner">
+      <span>Время бронирования стола:</span>
+      <strong id="sessionWindowText">18:00 – 19:30 (1.5 часа)</strong>
+    </div>
+
+    <!-- Step 2: SVG Blueprint Floor Plan -->
+    <div class="step-label" id="step2Anchor">2. Выбор места на схеме зала <span>Шаг 2 из 3</span></div>
+
+    <div class="map-container">
+      <div class="map-legend">
+        <div class="leg-dot" style="--c: var(--accent);">Диваны</div>
+        <div class="leg-dot" style="--c: var(--chair);">Стулья</div>
+        <div class="leg-dot" style="--c: #171821;">VIP с PS5</div>
+      </div>
+
+      <svg viewBox="0 0 380 430">
+        <!-- Screen -->
+        <rect x="90" y="8" width="200" height="26" class="tbl-screen" />
+        <text x="190" y="21" class="svg-text-bold" style="font-size: 9px; fill: var(--accent);">ПРОЕКТОР • ЭКРАН</text>
+
+        <!-- VIP 1 -->
+        <g id="node-vip1" class="tbl-node" onclick="selectItem('vip1', 'VIP 1 Малая (до 4 чел)', 'PlayStation 5 • ТВ • Приватная шторка', true)">
+          <rect x="14" y="50" width="82" height="74" class="tbl-zone" />
+          <text x="55" y="80" class="svg-text-bold">VIP 1</text>
+          <text x="55" y="96" class="svg-text-sub">PS5 • 4 чел</text>
+        </g>
+
+        <!-- VIP 2 -->
+        <g id="node-vip2" class="tbl-node" onclick="selectItem('vip2', 'VIP 2 Большая (до 8 чел)', 'PlayStation 5 • Большой ТВ • Шторка', true)">
+          <rect x="14" y="136" width="82" height="106" class="tbl-zone" />
+          <text x="55" y="182" class="svg-text-bold">VIP 2</text>
+          <text x="55" y="198" class="svg-text-sub">PS5 • 8 чел</text>
+        </g>
+
+        <!-- Continuous Red Couch -->
+        <rect x="108" y="50" width="6" height="192" rx="3" fill="#d62839" />
+
+        <!-- Table 1 -->
+        <g id="node-t1" class="tbl-node active" onclick="selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false)">
+          <rect x="122" y="56" width="46" height="30" class="tbl-body" />
+          <text x="145" y="72" class="svg-text-num">1</text>
+          <rect x="176" y="58" width="4" height="11" class="tbl-chair" />
+          <rect x="176" y="73" width="4" height="11" class="tbl-chair" />
+        </g>
+
+        <!-- Table 2 -->
+        <g id="node-t2" class="tbl-node" onclick="selectItem('t2', 'Стол №2 (Красный диван)', 'Центр зала • Красный диван + 2 стула', false)">
+          <rect x="122" y="131" width="46" height="30" class="tbl-body" />
+          <text x="145" y="147" class="svg-text-num">2</text>
+          <rect x="176" y="133" width="4" height="11" class="tbl-chair" />
+          <rect x="176" y="148" width="4" height="11" class="tbl-chair" />
+        </g>
+
+        <!-- Table 3 -->
+        <g id="node-t3" class="tbl-node" onclick="selectItem('t3', 'Стол №3 (Красный диван)', 'Уютный угол зала • Красный диван + 2 стула', false)">
+          <rect x="122" y="206" width="46" height="30" class="tbl-body" />
+          <text x="145" y="222" class="svg-text-num">3</text>
+          <rect x="176" y="208" width="4" height="11" class="tbl-chair" />
+          <rect x="176" y="223" width="4" height="11" class="tbl-chair" />
+        </g>
+
+        <!-- Table 4 -->
+        <rect x="220" y="48" width="62" height="6" rx="3" fill="#d62839" />
+        <g id="node-t4" class="tbl-node" onclick="selectItem('t4', 'Стол №4 (Перед экраном)', 'Идеальный обзор экрана • Двухсторонние диваны', false)">
+          <rect x="223" y="60" width="56" height="32" class="tbl-body" />
+          <text x="251" y="77" class="svg-text-num">4</text>
+        </g>
+        <rect x="220" y="98" width="62" height="6" rx="3" fill="#d62839" />
+
+        <!-- Table 5 -->
+        <rect x="220" y="123" width="62" height="6" rx="3" fill="#d62839" />
+        <g id="node-t5" class="tbl-node" onclick="selectItem('t5', 'Стол №5 (Центр зала)', 'Большой стол с мягкими диванами', false)">
+          <rect x="223" y="135" width="56" height="32" class="tbl-body" />
+          <text x="251" y="152" class="svg-text-num">5</text>
+        </g>
+        <rect x="220" y="173" width="62" height="6" rx="3" fill="#d62839" />
+
+        <!-- Table 6 -->
+        <g id="node-t6" class="tbl-node" onclick="selectItem('t6', 'Стол №6 (У бара)', '2 стула + боковой диван', false)">
+          <rect x="211" y="212" width="4" height="11" class="tbl-chair" />
+          <rect x="211" y="227" width="4" height="11" class="tbl-chair" />
+          <rect x="223" y="210" width="56" height="32" class="tbl-body" />
+          <text x="251" y="227" class="svg-text-num">6</text>
+          <rect x="287" y="204" width="6" height="44" rx="3" fill="#d62839" />
+        </g>
+
+        <!-- Bar Counter -->
+        <rect x="36" y="275" width="308" height="42" class="tbl-bar" />
+        <text x="190" y="296" class="svg-text-bold" style="letter-spacing: 0.12em; font-size: 10px;">ЗОНА БАРА</text>
+      </svg>
+    </div>
+
+    <!-- КАРТОЧКА ФОТО -->
+    <div class="table-live-card">
+      <div class="table-photo-wrap" onclick="openHallPhotoModal()">
+        <img id="tablePhotoImg" src="img/hall.jpg" alt="Интерьер ЦОКОЛЬ Lounge" onerror="this.src='https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80'">
+        <div class="table-photo-gradient"></div>
+        <div class="click-zoom-hint" id="photoZoomHint">🔍 Фото зала</div>
+        <div class="table-photo-badges" id="tableBadgesBox"></div>
+      </div>
+      <div class="table-meta-row">
+        <div>
+          <h4 id="selTitle">Стол №1 (Красный диван)</h4>
+          <p id="selDesc">У экрана • Красный диван + 2 стула</p>
+        </div>
+        <div class="table-meta-price" id="selPrice">1 500 ₽</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Parameters -->
+    <div class="step-label">3. Параметры покура, напитки и контакты <span>Шаг 3 из 3</span></div>
+
+    <div class="unified-card">
+      <div class="card-section-title">Гости и кальяны <span>Регламент 1:3</span></div>
+
+      <div class="stepper-row">
+        <div class="stepper-label">
+          <h6>Персоны за столом</h6>
+          <p>Размер вашей компании</p>
+        </div>
+        <div class="stepper-controls">
+          <div class="step-btn" onclick="changeGuests(-1)">−</div>
+          <div class="step-val" id="guestsCount">2</div>
+          <div class="step-btn" onclick="changeGuests(1)">+</div>
+        </div>
+      </div>
+
+      <div class="stepper-row">
+        <div class="stepper-label">
+          <h6>Количество кальянов</h6>
+          <p id="hookahRateText">1 кальян на 1–3 гостя</p>
+        </div>
+        <div class="stepper-controls">
+          <div class="step-btn" onclick="changeHookahs(-1)">−</div>
+          <div class="step-val" id="hookahsCount">1</div>
+          <div class="step-btn" onclick="changeHookahs(1)">+</div>
+        </div>
+      </div>
+
+      <div class="hint-box" id="ratioNotice">
+        <strong>Регламент зала:</strong> 1 кальян на 1–3 гостя. Для 2 персон достаточно 1 кальяна.
+      </div>
+
+      <div id="lunchBadge" style="display:none; background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.25); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--green); margin-bottom: 12px;">
+        <strong>Обеденный тариф активен:</strong> сеанс до 17:00 — цена кальяна всего <strong>1 000 ₽</strong>!
+      </div>
+
+      <div class="card-section-title" style="margin-top: 14px;">Линейка табака <span>Выбор смеси</span></div>
+      <div class="tier-grid">
+        <div class="tier-card active" id="tierClassic" onclick="setTobaccoTier('classic')">
+          <h6>Классика</h6>
+          <span id="classicPriceDesc">1 500 ₽ / шт</span>
+        </div>
+        <div class="tier-card" id="tierPremium" onclick="setTobaccoTier('premium')">
+          <h6>PREMIUM</h6>
+          <span id="premiumPriceDesc">+500 ₽ / шт</span>
+        </div>
+      </div>
+
+      <!-- Premium Brands -->
+      <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
+        <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист из меню:</div>
+        <div class="pill-group">
+          <div class="pill-btn gold" onclick="toggleBrand(this, 'Bonche')">Bonche (сигарный лист)</div>
+          <div class="pill-btn" onclick="toggleBrand(this, 'Satyr')">Satyr (крафт)</div>
+          <div class="pill-btn" onclick="toggleBrand(this, 'Tangiers')">Tangiers (USA)</div>
+        </div>
+      </div>
+
+      <div class="card-section-title">Крепость <span>1 вариант</span></div>
+      <div class="pill-group">
+        <div class="pill-btn" onclick="selectStrength(this)">Мягкий</div>
+        <div class="pill-btn active" onclick="selectStrength(this)">Средний</div>
+        <div class="pill-btn" onclick="selectStrength(this)">Крепкий</div>
+      </div>
+
+      <div class="card-section-title">Вкусовой профиль <span>до 3 вариантов</span></div>
+      <div class="pill-group" id="flavorContainer">
+        <div class="pill-btn active" onclick="toggleFlavor(this)">Ягодный сбор</div>
+        <div class="pill-btn" onclick="toggleFlavor(this)">Цитрусовый микс</div>
+        <div class="pill-btn active" onclick="toggleFlavor(this)">Свежесть / Холод</div>
+        <div class="pill-btn" onclick="toggleFlavor(this)">Десерт / Выпечка</div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="card-section-title" style="margin-bottom: 4px;">Пожелания к забивке</div>
+        <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса, любим миксы с цитрусом или хвоей..."></textarea>
+      </div>
+    </div>
+
+    <!-- Tea & Bar Menu -->
+    <div class="unified-card">
+      <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
+
+      <div class="slider-row" style="margin-bottom: 6px;">
+        <button type="button" class="arrow-btn" onclick="slideCats(-1)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="cat-track" id="catSlider">
+          <button type="button" class="cat-pill active" onclick="changeCategory('energy', this)">Взбодриться</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('relax', this)">Расслабиться</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('balance', this)">Баланс</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('gaba', this)">Особый эффект</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('mood', this)">Под настроение</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Лимонады</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе & Напитки</button>
+        </div>
+        <button type="button" class="arrow-btn" onclick="slideCats(1)">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="menu-grid" id="drinksContainer"></div>
+    </div>
+
+    <!-- Contacts -->
+    <div class="unified-card">
+      <div class="form-group">
+        <label>Имя гостя</label>
+        <input type="text" id="guestNameInput" value="Алина" placeholder="Ваше имя">
+      </div>
+      <div class="form-group">
+        <label>Телефон для депозита и СБП</label>
+        <input type="tel" id="guestPhoneInput" value="+7 (980) 123-45-67" placeholder="+7 (9XX) XXX-XX-XX">
+      </div>
+    </div>
+
+    <!-- ЮРИДИЧЕСКИЙ ДИСКЛЕЙМЕР (ФЗ-15) -->
+    <div class="legal-disclaimer">
+      Информация носит ознакомительный характер для гостей заведения ЦОКОЛЬ Lounge, не является публичной офертой, рекламой или дистанционной продажей табачной продукции. Курение вредит вашему здоровью. Вход строго 18+.
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="checkout-bar">
+    <div class="checkout-content">
+      <div class="checkout-amount">
+        <span>Депозит брони:</span>
+        <strong id="priceLabel">1 500 ₽</strong>
+        <small id="cashbackLabel">+45 ₽ кэшбэком</small>
+      </div>
+      <button class="checkout-btn" onclick="openModal()">Оплатить СБП</button>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal афиши -->
+  <div class="poster-modal-backdrop" id="posterModal" onclick="closePosterModal(event)">
+    <div class="poster-modal-box">
+      <img id="posterModalImg" class="poster-modal-img" src="" alt="Постер фильма">
+      <button type="button" class="poster-modal-btn" id="posterModalActionBtn">Забронировать этот сеанс (20:00)</button>
+      <button type="button" class="poster-modal-close" onclick="closePosterModalDirect()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal фото зала -->
+  <div class="hall-photo-modal-backdrop" id="hallPhotoModal" onclick="closeHallPhotoModal(event)">
+    <div class="hall-photo-modal-box">
+      <img id="hallPhotoModalImg" class="hall-photo-modal-img" src="" alt="Интерьер ЦОКОЛЬ Lounge">
+      <button type="button" class="poster-modal-close" style="margin-top: 10px;" onclick="closeHallPhotoModalDirect()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Modal Checkout -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal-box">
+      <h3>Бронь подтверждена</h3>
+      <p id="modalText"></p>
+      <button onclick="closeModal()">Готово</button>
+    </div>
+  </div>
+
+  <script>
+    // ПРОВЕРКА 18+ (LOCALSTORAGE)
+    function checkAgeVerification() {
+      const isVerified = localStorage.getItem('cokol_age_confirmed');
+      if (!isVerified) {
+        document.getElementById('ageModal').style.display = 'flex';
+      }
+    }
+
+    function confirmAge() {
+      haptic('impact');
+      localStorage.setItem('cokol_age_confirmed', 'true');
+      document.getElementById('ageModal').style.display = 'none';
+    }
+
+    // TELEGRAM MINI APP INITIALIZATION
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        if (tg.initDataUnsafe?.user?.first_name) {
+          const userName = tg.initDataUnsafe.user.first_name;
+          document.getElementById('guestNameInput').value = userName;
+          document.getElementById('cardGuestName').innerText = userName;
+        }
+      } catch (e) {
+        console.log("TG WebApp not active");
+      }
+    }
+
+    function haptic(type = 'selection') {
+      if (!tg?.HapticFeedback) return;
+      if (type === 'impact') tg.HapticFeedback.impactOccurred('medium');
+      else if (type === 'selection') tg.HapticFeedback.selectionChanged();
+      else if (type === 'notification') tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    // 🍿 РАСПИСАНИЕ КИНОПОКАЗОВ
+    const CINEMA_EVENTS = [
+      { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-11", time: "20:00", img: "img/sun2.jpg", fallback: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-18", time: "20:00", img: "img/sun3.jpg", fallback: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-25", time: "20:00", img: "img/sun4.jpg", fallback: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-31", time: "20:00", img: "img/sun5.jpg", fallback: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    // 🛋 ФОТО И БЕЙДЖИ
+    const HALL_PHOTO_SRC = "img/hall.jpg";
+    const HALL_PHOTO_FALLBACK = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80";
+
+    const VIP_PHOTO_FALLBACK_1 = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80";
+    const VIP_PHOTO_FALLBACK_2 = "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80";
+
+    const tableBadgesData = {
+      vip1: ["PlayStation 5", "До 4 персон", "Приватная шторка", "ТВ 55\""],
+      vip2: ["Большая VIP", "PlayStation 5", "ТВ 65\"", "До 8 персон"],
+      t1: ["Вид на проектор", "Красный диван", "2 мягких стула"],
+      t2: ["Центр зала", "Красный диван", "Камерный свет"],
+      t3: ["Уютный угол", "Красный диван", "Приглушённый звук"],
+      t4: ["Лучший обзор экрана", "Двусторонние диваны", "Для кино"],
+      t5: ["Большой стол", "Мягкие диваны", "Для компании"],
+      t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
+    };
+
+    // ЧАЙНАЯ КАРТА
+    const menuData = {
+      energy: [
+        { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
+        { id: 'e2', name: "Дянь Хун Медовый", desc: "Согревает, тонизирует", price: 500 },
+        { id: 'e3', name: "Дянь Хун Шентай", desc: "Быстро включает, дает энергию", price: 500 },
+        { id: 'e4', name: "Сяо Цзинь Чжэнь", desc: "Собирает внимание, согревает", price: 500 }
+      ],
+      relax: [
+        { id: 'r1', name: "Тегуаньинь", desc: "Мягко расслабляет, снимает напряжение", price: 500 },
+        { id: 'r2', name: "Тегуаньинь Го Сянь", desc: "Улучшает настроение, освежает", price: 500 },
+        { id: 'r3', name: "Женьшень улун", desc: "Глубокое расслабление тела", price: 500 },
+        { id: 'r4', name: "Алишань улун Фенциху", desc: "Очень мягкий, успокаивает", price: 700 },
+        { id: 'r5', name: "Сюэ Я «снежная почка»", desc: "Очень мягко освежает и расслабляет", price: 500 }
+      ],
+      balance: [
+        { id: 'b1', name: "Да Хун Пао", desc: "Согревает, собирает внимание", price: 500 },
+        { id: 'b2', name: "Ли Ни Пао Ча Ван", desc: "Расслабляет тело, замедляет ритм", price: 500 },
+        { id: 'b3', name: "Алишань Лао Ча Ван", desc: "Баланс между расслаблением и ясностью", price: 700 }
+      ],
+      gaba: [
+        { id: 'g1', name: "Шу пуэр", desc: "Глубоко расслабляет и убирает суету", price: 500 },
+        { id: 'g2', name: "ГАБА Алишань", desc: "Снимает стресс и проясняет голову", price: 500 },
+        { id: 'g3', name: "ГАБА Алишань Экстра", desc: "Глубокое расслабление, ясная концентрация", price: 700 },
+        { id: 'g4', name: "ГАБА Наньтоу", desc: "Замедляет, снимает напряжение", price: 500 },
+        { id: 'g5', name: "ГАБА Black Jack", desc: "Глубокий чайный эффект и расслабление", price: 700 }
+      ],
+      mood: [
+        { id: 'm1', name: "Зеленый с грецким орехом", desc: "Создает уютное и теплое состояние", price: 500 },
+        { id: 'm2', name: "Таежный сбор", desc: "Дает спокойное природное состояние", price: 500 },
+        { id: 'm3', name: "Белая черешня", desc: "Поднимает настроение, легкое состояние", price: 500 },
+        { id: 'm4', name: "Зеленый чай с лимонником", desc: "Освежает, бодрит и проясняет голову", price: 500 }
+      ],
+      lemonade: [
+        { id: 'l1', name: "Фуджи сакура", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l2', name: "Слива рислинг", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l3', name: "Миндаль шафран", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l4', name: "Малина пан", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l5', name: "Черника лаванда", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l6', name: "Абрикос солод", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l7', name: "Ладан кокос", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l8', name: "Кактус ранет", desc: "Крафтовый лимонад • 500 мл", price: 250 }
+      ],
+      coffee: [
+        { id: 'c1', name: "Капучино", desc: "Кофе • 250/350 мл", price: 200 },
+        { id: 'c2', name: "Латте", desc: "Кофе • 250/350 мл", price: 200 },
+        { id: 'c3', name: "Флэт Уайт", desc: "Кофе • 250 мл", price: 250 },
+        { id: 'c4', name: "Американо", desc: "Кофе • 250 мл", price: 200 },
+        { id: 'c5', name: "Эспрессо", desc: "Кофе • 30 мл", price: 150 },
+        { id: 'c6', name: "Кола", desc: "Освежающий напиток • 330 мл", price: 200 },
+        { id: 'c7', name: "Энергетик", desc: "Тоник • 250 мл", price: 250 },
+        { id: 'c8', name: "Вода", desc: "Чистая минеральная • 500 мл", price: 150 }
+      ]
+    };
+
+    const rawTimes = [
+      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+      '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+      '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
+      '21:00', '21:30', '22:00', '22:30', '23:00', '23:30',
+      '00:00', '00:30'
+    ];
+
+    const monthsShort = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    const daysWeekShort = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+
+    let guests = 2;
+    let hookahs = 1;
+    let isLunchTime = false;
+    let isVipSelected = false;
+    let currentTableId = 't1';
+    let currentTableName = 'Стол №1 (Красный диван)';
+    let isPremium = false;
+    let selectedBrandName = 'Bonche';
+    let selectedDrinks = new Map();
+    let currentCategory = 'energy';
+    let selectedDateIso = '';
+    let selectedDateLabel = 'Сегодня';
+    let selectedStartTime = '18:00';
+
+    let activeTablePhotoSrc = HALL_PHOTO_SRC;
+    let activeTablePhotoFallback = HALL_PHOTO_FALLBACK;
+
+    function toggleCardFlip() {
+      haptic('impact');
+      document.getElementById('cardFlipper').classList.toggle('is-flipped');
+    }
+
+    function calculateEndTime(startStr) {
+      const [h, m] = startStr.split(':').map(Number);
+      let totalMinutes = h * 60 + m + 90;
+      let endH = Math.floor(totalMinutes / 60) % 24;
+      let endM = totalMinutes % 60;
+      return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    }
+
+    function updateSessionBanner() {
+      const endStr = calculateEndTime(selectedStartTime);
+      document.getElementById('sessionWindowText').innerText = `${selectedStartTime} – ${endStr} (1.5 часа)`;
+    }
+
+    function slideAfisha(dir) {
+      haptic('selection');
+      const container = document.getElementById('afishaContainer');
+      if (container) container.scrollBy({ left: dir * 140, behavior: 'smooth' });
+    }
+
+    function buildAfisha() {
+      const container = document.getElementById('afishaContainer');
+      container.innerHTML = '';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      CINEMA_EVENTS.forEach((event) => {
+        const parts = event.date.split('-').map(Number);
+        const eventDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        const wDay = daysWeekShort[eventDate.getDay()];
+        const dateDisplay = `${wDay}, ${eventDate.getDate()} ${monthsShort[eventDate.getMonth()]}`;
+        const isPast = (eventDate < today);
+
+        const card = document.createElement('div');
+        card.className = `movie-poster-card ${isPast ? 'past-movie' : ''}`;
+        
+        card.onclick = () => openPosterModal(event.img, event.fallback, event.date, dateDisplay, isPast, event.time);
+
+        card.innerHTML = `
+          <div class="movie-date-tag">${dateDisplay}</div>
+          <img src="${event.img}" alt="Постер" onerror="this.src='${event.fallback}'">
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openPosterModal(src, fallback, isoDate, dateDisplay, isPast, sessionTime) {
+      haptic('impact');
+      const modal = document.getElementById('posterModal');
+      const img = document.getElementById('posterModalImg');
+      const actionBtn = document.getElementById('posterModalActionBtn');
+
+      img.onerror = () => { img.src = fallback; };
+      img.src = src;
+
+      if (isPast) {
+        actionBtn.innerText = "Сеанс уже прошёл";
+        actionBtn.style.opacity = "0.5";
+        actionBtn.onclick = null;
+      } else {
+        actionBtn.innerText = `Забронировать на ${dateDisplay} (${sessionTime || '20:00'})`;
+        actionBtn.style.opacity = "1";
+        actionBtn.onclick = () => {
+          closePosterModalDirect();
+          selectMovieSession(isoDate, sessionTime || '20:00');
+        };
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closePosterModal(e) {
+      if (e.target.id === 'posterModal') closePosterModalDirect();
+    }
+    function closePosterModalDirect() {
+      haptic('selection');
+      document.getElementById('posterModal').style.display = 'none';
+    }
+
+    function openHallPhotoModal() {
+      haptic('impact');
+      const modal = document.getElementById('hallPhotoModal');
+      const img = document.getElementById('hallPhotoModalImg');
+      img.onerror = () => { img.src = activeTablePhotoFallback; };
+      img.src = activeTablePhotoSrc;
+      modal.style.display = 'flex';
+    }
+
+    function closeHallPhotoModal(e) {
+      if (e.target.id === 'hallPhotoModal') closeHallPhotoModalDirect();
+    }
+    function closeHallPhotoModalDirect() {
+      haptic('selection');
+      document.getElementById('hallPhotoModal').style.display = 'none';
+    }
+
+    function selectMovieSession(isoDate, time) {
+      haptic('selection');
+      const targetCard = document.querySelector(`.date-chip[data-date="${isoDate}"]`);
+      if (targetCard) {
+        targetCard.click();
+        targetCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      selectedStartTime = time;
+      const timeChips = document.querySelectorAll('.time-chip');
+      timeChips.forEach(chip => {
+        if (chip.innerText.includes(time)) chip.click();
+      });
+
+      selectItem('t4', 'Стол №4 (Перед экраном)', 'Идеальный прямой обзор экрана • Двухсторонние диваны', false);
+      document.getElementById('step2Anchor').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildCalendar() {
+      const slider = document.getElementById('dateSlider');
+      slider.innerHTML = '';
+      const now = new Date();
+
+      for (let i = 0; i < 30; i++) {
+        const d = new Date();
+        d.setDate(now.getDate() + i);
+
+        const card = document.createElement('div');
+        card.className = `date-chip ${i === 0 ? 'active' : ''}`;
+        
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        card.dataset.date = iso;
+
+        const isEventDay = CINEMA_EVENTS.some(ev => ev.date === iso);
+        const wDay = i === 0 ? 'СЕГОДНЯ' : daysWeekShort[d.getDay()];
+        const fullDateStr = `${wDay}, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+
+        card.onclick = () => {
+          haptic('selection');
+          document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          selectedDateIso = iso;
+          selectedDateLabel = fullDateStr;
+          renderTimeSlots(iso);
+        };
+
+        card.innerHTML = `
+          <div class="d-w">${wDay}</div>
+          <div class="d-n">${d.getDate()}</div>
+          ${isEventDay ? '<div class="d-tag">КИНО</div>' : ''}
+        `;
+        slider.appendChild(card);
+
+        if (i === 0) {
+          selectedDateIso = iso;
+          selectedDateLabel = fullDateStr;
+          renderTimeSlots(iso);
+        }
+      }
+    }
+
+    function renderTimeSlots(isoDate) {
+      const container = document.getElementById('timeSlotsContainer');
+      container.innerHTML = '';
+      const eventToday = CINEMA_EVENTS.find(ev => ev.date === isoDate);
+
+      rawTimes.forEach((timeStr) => {
+        const chip = document.createElement('div');
+        const [h] = timeStr.split(':').map(Number);
+        
+        const isLunch = (h >= 12 && h < 17);
+        const isCinema = (eventToday && timeStr === eventToday.time);
+        const isDefault = (timeStr === selectedStartTime);
+
+        chip.className = `time-chip ${isDefault ? 'active' : ''} ${isLunch ? 'lunch' : ''} ${isCinema ? 'cinema-slot' : ''}`;
+        
+        let label = timeStr;
+        if (isCinema) label = `${timeStr} • КИНОПОКАЗ`;
+        else if (isLunch) label = `${timeStr} (1000 ₽)`;
+
+        chip.innerText = label;
+
+        chip.onclick = () => {
+          haptic('selection');
+          document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          
+          selectedStartTime = timeStr;
+          isLunchTime = isLunch;
+          updateSessionBanner();
+          updatePricingLogic();
+        };
+        container.appendChild(chip);
+
+        if (isDefault) isLunchTime = isLunch;
+      });
+
+      updateSessionBanner();
+      updatePricingLogic();
+    }
+
+    function updateRatioNotice() {
+      const notice = document.getElementById('ratioNotice');
+      const expectedHookahs = Math.ceil(guests / 3);
+      if (hookahs < expectedHookahs) {
+        notice.innerHTML = `⚠️ <strong>Внимание:</strong> на компанию из ${guests} гостей рекомендуется от <strong>${expectedHookahs} кальянов</strong>, чтобы чаша не перегревалась.`;
+        notice.style.background = 'rgba(214, 40, 57, 0.14)';
+        notice.style.borderColor = 'rgba(214, 40, 57, 0.4)';
+      } else {
+        notice.innerHTML = `<strong>Регламент зала:</strong> 1 кальян на 1–3 гостя. На ${guests} персон выбрано ${hookahs} кальяна.`;
+        notice.style.background = 'rgba(214, 40, 57, 0.06)';
+        notice.style.borderColor = 'rgba(214, 40, 57, 0.18)';
+      }
+    }
+
+    function changeGuests(delta) {
+      haptic('selection');
+      guests = Math.max(1, Math.min(12, guests + delta));
+      document.getElementById('guestsCount').innerText = guests;
+      hookahs = Math.ceil(guests / 3);
+      document.getElementById('hookahsCount').innerText = hookahs;
+      updateRatioNotice();
+      updateTotal();
+    }
+
+    function changeHookahs(delta) {
+      haptic('selection');
+      hookahs = Math.max(1, Math.min(5, hookahs + delta));
+      document.getElementById('hookahsCount').innerText = hookahs;
+      updateRatioNotice();
+      updateTotal();
+    }
+
+    function toggleFlavor(el) {
+      haptic('selection');
+      const activeFlavors = document.querySelectorAll('#flavorContainer .pill-btn.active');
+      if (!el.classList.contains('active') && activeFlavors.length >= 3) {
+        activeFlavors[0].classList.remove('active');
+      }
+      el.classList.toggle('active');
+    }
+
+    function updatePricingLogic() {
+      const lunchBadge = document.getElementById('lunchBadge');
+      const rateText = document.getElementById('hookahRateText');
+      const classicDesc = document.getElementById('classicPriceDesc');
+
+      if (isLunchTime) {
+        lunchBadge.style.display = 'block';
+        rateText.innerText = "Обеденный тариф: 1 000 ₽ / кальян (до 17:00)";
+        classicDesc.innerText = "1 000 ₽ / шт (Обед)";
+      } else {
+        lunchBadge.style.display = 'none';
+        rateText.innerText = "Стандартный тариф: 1 500 ₽ / кальян";
+        classicDesc.innerText = "1 500 ₽ / шт";
+      }
+      updateTotal();
+    }
+
+    function slideDates(dir) {
+      haptic('selection');
+      const slider = document.getElementById('dateSlider');
+      if (slider) slider.scrollBy({ left: dir * 140, behavior: 'smooth' });
+    }
+
+    function slideTimes(dir) {
+      haptic('selection');
+      const container = document.getElementById('timeSlotsContainer');
+      if (container) container.scrollBy({ left: dir * 120, behavior: 'smooth' });
+    }
+
+    function setTobaccoTier(tier) {
+      haptic('selection');
+      const classicCard = document.getElementById('tierClassic');
+      const premiumCard = document.getElementById('tierPremium');
+      const brandsBlock = document.getElementById('premiumBrandsBlock');
+
+      if (tier === 'premium') {
+        classicCard.classList.remove('active');
+        premiumCard.classList.add('active');
+        brandsBlock.style.display = 'block';
+        isPremium = true;
+      } else {
+        premiumCard.classList.remove('active');
+        classicCard.classList.add('active');
+        brandsBlock.style.display = 'none';
+        isPremium = false;
+      }
+      updateTotal();
+    }
+
+    function toggleBrand(el, brandName) {
+      haptic('selection');
+      el.parentElement.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('gold'));
+      el.classList.add('gold');
+      selectedBrandName = brandName;
+    }
+
+    function renderCategory(cat) {
+      currentCategory = cat;
+      const container = document.getElementById('drinksContainer');
+      container.innerHTML = '';
+
+      const items = menuData[cat] || [];
+      items.forEach(item => {
+        const isSelected = selectedDrinks.has(item.id);
+        const card = document.createElement('div');
+        card.className = `drink-card ${isSelected ? 'active' : ''}`;
+        card.onclick = () => toggleDrink(item);
+
+        card.innerHTML = `
+          <div>
+            <h5>${item.name}</h5>
+            <p>${item.desc}</p>
+          </div>
+          <div class="drink-footer">
+            <span class="drink-price">+${item.price} ₽</span>
+            <span class="drink-check">✓ В заказе</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleDrink(item) {
+      haptic('selection');
+      if (selectedDrinks.has(item.id)) selectedDrinks.delete(item.id);
+      else selectedDrinks.set(item.id, item);
+      renderCategory(currentCategory);
+      updateTotal();
+    }
+
+    function changeCategory(cat, btn) {
+      haptic('selection');
+      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      renderCategory(cat);
+    }
+
+    function slideCats(dir) {
+      haptic('selection');
+      const slider = document.getElementById('catSlider');
+      if (slider) slider.scrollBy({ left: dir * 140, behavior: 'smooth' });
+    }
+
+    function updateTotal() {
+      const baseHookahRate = isLunchTime ? 1000 : 1500;
+      const premiumExtra = isPremium ? 500 : 0;
+      const hookahsCost = (baseHookahRate + premiumExtra) * hookahs;
+
+      let drinksTotal = 0;
+      selectedDrinks.forEach(item => drinksTotal += item.price);
+      
+      const orderSum = hookahsCost + drinksTotal;
+      const finalDeposit = isVipSelected ? Math.max(2000, orderSum) : orderSum;
+      const cashback = Math.round(finalDeposit * 0.03);
+
+      document.getElementById('priceLabel').innerText = finalDeposit.toLocaleString('ru-RU') + ' ₽';
+      document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
+      document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
+      document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
+    }
+
+    function selectItem(id, title, desc, isVip) {
+      haptic('impact');
+      document.querySelectorAll('.tbl-node').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`node-${id}`);
+      if (target) target.classList.add('active');
+
+      currentTableId = id;
+      currentTableName = title;
+      document.getElementById('selTitle').innerText = title;
+      document.getElementById('selDesc').innerText = desc;
+      isVipSelected = isVip;
+
+      const imgEl = document.getElementById('tablePhotoImg');
+      const hintEl = document.getElementById('photoZoomHint');
+
+      if (isVip) {
+        hintEl.innerText = "🔍 VIP-комната";
+        activeTablePhotoSrc = (id === 'vip2') ? "img/vip2.jpg" : "img/vip1.jpg";
+        activeTablePhotoFallback = (id === 'vip2') ? VIP_PHOTO_FALLBACK_2 : VIP_PHOTO_FALLBACK_1;
+      } else {
+        hintEl.innerText = "🔍 Фото зала";
+        activeTablePhotoSrc = HALL_PHOTO_SRC;
+        activeTablePhotoFallback = HALL_PHOTO_FALLBACK;
+      }
+
+      imgEl.onerror = () => { imgEl.src = activeTablePhotoFallback; };
+      imgEl.src = activeTablePhotoSrc;
+
+      const badges = tableBadgesData[id] || tableBadgesData.t1;
+      const badgesBox = document.getElementById('tableBadgesBox');
+      badgesBox.innerHTML = '';
+      badges.forEach(bText => {
+        const badge = document.createElement('span');
+        badge.className = 'photo-tag';
+        badge.innerText = bText;
+        badgesBox.appendChild(badge);
+      });
+
+      updateTotal();
+    }
+
+    function selectStrength(el) {
+      haptic('selection');
+      el.parentElement.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function openModal() {
+      haptic('notification');
+      const modal = document.getElementById('modal');
+      const modalText = document.getElementById('modalText');
+      const name = document.getElementById('guestNameInput').value || 'Гость';
+      const comment = document.getElementById('hookahComment').value.trim();
+
+      let hookahTypeDesc = isPremium ? `Премиум (${selectedBrandName})` : 'Классика';
+      
+      let drinksNames = [];
+      selectedDrinks.forEach(item => drinksNames.push(item.name));
+      let drinksSummary = drinksNames.length > 0 
+        ? `<br>Напитки: <strong>${drinksNames.join(', ')}</strong>` 
+        : '';
+        
+      let commentSummary = comment ? `<br>Пожелание: <em>«${comment}»</em>` : '';
+      const endStr = calculateEndTime(selectedStartTime);
+
+      const totalVal = document.getElementById('priceLabel').innerText;
+      const cbVal = document.getElementById('cashbackLabel').innerText;
+
+      modalText.innerHTML = `
+        <strong>${name}</strong>, бронь зафиксирована.<br><br>
+        📅 Сеанс: <strong>${selectedDateLabel}</strong><br>
+        ⏰ Время: <strong>${selectedStartTime} – ${endStr} (1.5 ч)</strong><br>
+        📍 Локация: <strong>${currentTableName}</strong><br>
+        💨 Заказ: <strong>${hookahs} кальян(а) [${hookahTypeDesc}]</strong>
+        ${drinksSummary}
+        ${commentSummary}<br><br>
+        Сумма депозита: <strong>${totalVal}</strong><br>
+        Бонусы на карту: <strong style="color:var(--green)">${cbVal}</strong>
+      `;
+
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() { 
+      haptic('selection');
+      document.getElementById('modal').style.display = 'none'; 
+    }
+
+    // Инициализация при загрузке
+    checkAgeVerification();
+    buildCalendar();
+    buildAfisha();
+    renderCategory('energy');
+    selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false);
+  </script>
+</body>
+</html>

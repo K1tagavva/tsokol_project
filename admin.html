@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ЦОКОЛЬ Lounge | Управление залом</title>
+  
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --surface: #12141a;
+      --surface-hover: #181b24;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-light: rgba(255, 255, 255, 0.14);
+      --accent: #d62839;
+      --accent-glow: rgba(214, 40, 57, 0.3);
+      --gold: #d4af37;
+      --green: #2ecc71;
+      --orange: #e67e22;
+      --text: #f4f5f7;
+      --text-muted: #7b808e;
+      --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 40px; overflow-x: hidden; }
+    .container { max-width: 480px; margin: 0 auto; padding: 18px 16px; }
+
+    .admin-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .admin-title h1 { font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+    .admin-title h1 span { color: var(--accent); }
+    .admin-title p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .role-badge {
+      background: rgba(214, 40, 57, 0.12); border: 1px solid var(--accent);
+      color: #ff5e6f; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800;
+    }
+
+    /* Выбор слота времени в админке */
+    .slot-picker-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px; margin-bottom: 16px;
+    }
+    .slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .slot-label span { color: var(--accent); }
+    .time-selector-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    .time-selector-row::-webkit-scrollbar { display: none; }
+    .admin-time-btn {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s;
+    }
+    .admin-time-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Matrix */
+    .tables-matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .table-state-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 12px; text-align: center; cursor: pointer; transition: 0.2s; user-select: none;
+    }
+    .table-state-card:active { transform: scale(0.98); }
+    .table-state-card h4 { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+    .table-state-card p { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+    .table-state-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px;
+    }
+    .st-free { background: rgba(46, 204, 113, 0.15); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
+    .st-busy { background: rgba(214, 40, 57, 0.15); color: var(--accent); border: 1px solid rgba(214, 40, 57, 0.3); }
+
+    .toast-box {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(18, 20, 26, 0.95); backdrop-filter: blur(10px);
+      border: 1px solid var(--green); color: var(--green); padding: 10px 18px;
+      border-radius: 10px; font-size: 12px; font-weight: 700; z-index: 1000;
+      display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="admin-header">
+      <div class="admin-title">
+        <h1>ЦОКОЛЬ<span>.</span> ADMIN</h1>
+        <p>Управление бронями и залом</p>
+      </div>
+      <div class="role-badge">АДМИНИСТРАТОР</div>
+    </header>
+
+    <!-- Выбор времени для смены статуса -->
+    <div class="slot-picker-box">
+      <div class="slot-label">Слот времени столов: <span id="currentSlotLabel">18:00</span></div>
+      <div class="time-selector-row" id="timeSlotsBar"></div>
+    </div>
+
+    <!-- Матрица столов -->
+    <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+      Статус столов на <span id="matrixSlotTime" style="color:#fff;">18:00</span> (кликните для смены):
+    </div>
+
+    <div class="tables-matrix" id="tablesMatrixBox"></div>
+  </div>
+
+  <div class="toast-box" id="toast">Статус обновлен и отправлен клиентам!</div>
+
+  <script>
+    const timesList = [
+      '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+      '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00'
+    ];
+
+    const tablesList = [
+      { id: 'vip1', title: 'VIP 1', desc: 'Малая • до 4 чел' },
+      { id: 'vip2', title: 'VIP 2', desc: 'Большая • до 8 чел' },
+      { id: 't1', title: 'Стол №1', desc: 'Красный диван' },
+      { id: 't2', title: 'Стол №2', desc: 'Красный диван' },
+      { id: 't3', title: 'Стол №3', desc: 'Угол зала' },
+      { id: 't4', title: 'Стол №4', desc: 'Перед экраном' },
+      { id: 't5', title: 'Стол №5', desc: 'Центр зала' },
+      { id: 't6', title: 'Стол №6', desc: 'У бара' }
+    ];
+
+    let selectedTime = '18:00';
+    
+    // Синхронизация через BroadcastChannel
+    const syncChannel = new BroadcastChannel('cokol_bookings_sync');
+
+    function getStorageKey(time) {
+      return `cokol_tables_state_${time}`;
+    }
+
+    function loadStateForTime(time) {
+      const saved = localStorage.getItem(getStorageKey(time));
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+      return {};
+    }
+
+    function saveStateForTime(time, state) {
+      localStorage.setItem(getStorageKey(time), JSON.stringify(state));
+      // Оповещаем клиентскую вкладку
+      syncChannel.postMessage({ type: 'table_state_changed', time: time, state: state });
+    }
+
+    function renderTimeSlots() {
+      const bar = document.getElementById('timeSlotsBar');
+      bar.innerHTML = '';
+      timesList.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = `admin-time-btn ${t === selectedTime ? 'active' : ''}`;
+        btn.innerText = t;
+        btn.onclick = () => {
+          selectedTime = t;
+          document.getElementById('currentSlotLabel').innerText = t;
+          document.getElementById('matrixSlotTime').innerText = t;
+          renderTimeSlots();
+          renderMatrix();
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function renderMatrix() {
+      const box = document.getElementById('tablesMatrixBox');
+      box.innerHTML = '';
+      const state = loadStateForTime(selectedTime);
+
+      tablesList.forEach(tbl => {
+        const isBusy = (state[tbl.id] === 'busy');
+        const card = document.createElement('div');
+        card.className = 'table-state-card';
+        card.innerHTML = `
+          <h4>${tbl.title}</h4>
+          <p>${tbl.desc}</p>
+          <span class="table-state-badge ${isBusy ? 'st-busy' : 'st-free'}">${isBusy ? 'Занят' : 'Свободен'}</span>
+        `;
+
+        card.onclick = () => {
+          state[tbl.id] = isBusy ? 'free' : 'busy';
+          saveStateForTime(selectedTime, state);
+          renderMatrix();
+          showToast(`${tbl.title} теперь ${state[tbl.id] === 'busy' ? 'ЗАНЯТ' : 'СВОБОДЕН'} на ${selectedTime}`);
+        };
+
+        box.appendChild(card);
+      });
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.innerText = text;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    // Старт
+    renderTimeSlots();
+    renderMatrix();
+  </script>
+</body>
+</html>
