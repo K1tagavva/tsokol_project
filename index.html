@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЦОКОЛЬ Lounge | Онлайн-бронирование</title>
   
-  <!-- Защита от индексации роботами и сканерами -->
+  <!-- Защита от индексации поисковыми роботами -->
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="googlebot" content="noindex, nofollow, noarchive">
   <meta name="yandex" content="none">
@@ -33,12 +33,8 @@
       --green: #2ecc71;
       --chair: #b89355;
       
-      --sbp-blue: #1d71b8;
-      --sbp-yellow: #f5a81c;
-      
       --text: #f4f5f7;
       --text-muted: #7b808e;
-      
       --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
     }
 
@@ -224,7 +220,7 @@
     .tbl-node:hover .tbl-body { stroke: var(--accent); fill: #1c1e29; }
     .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; filter: drop-shadow(0 0 10px var(--accent-glow)); }
 
-    /* СТИЛИ ЗАНЯТОГО СТОЛА ПРИ СИНХРОНИЗАЦИИ */
+    /* Индикация занятого стола */
     .tbl-node.is-busy {
       opacity: 0.32 !important;
       cursor: not-allowed !important;
@@ -374,7 +370,7 @@
     .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
     .form-group input:focus { border-color: var(--border-light); }
 
-    /* Юридический дисклеймер (ФЗ-15) */
+    /* Юридический дисклеймер */
     .legal-disclaimer {
       font-size: 10px; color: #5a5f6e; line-height: 1.5;
       text-align: center; margin: 24px 8px 12px; padding: 12px;
@@ -403,9 +399,7 @@
     }
     .checkout-btn:hover { transform: translateY(-1px); }
 
-    /* =========================================================================
-       МОДАЛЬНОЕ ОКНО ОПЛАТЫ СБП (ЧЕКАУТ)
-       ========================================================================= */
+    /* SBP Modal */
     .sbp-modal-box {
       background: #14161f; border: 1px solid var(--border-light);
       border-radius: 20px; padding: 20px 18px; max-width: 360px; width: 100%;
@@ -462,7 +456,7 @@
       font-weight: 600; cursor: pointer; padding: 6px; width: 100%;
     }
 
-    /* Modal 18+ Подтверждение возраста */
+    /* Modal 18+ */
     .age-modal-box {
       background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
       padding: 24px 20px; max-width: 320px; width: 100%; text-align: center;
@@ -479,7 +473,7 @@
       border-radius: 10px; font-size: 13px; font-weight: 700; width: 100%; cursor: pointer;
     }
 
-    /* Окно успешного финиша */
+    /* Success Modal */
     .success-modal-box {
       background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
       padding: 20px; max-width: 360px; width: 100%; text-align: center;
@@ -496,7 +490,7 @@
 </head>
 <body>
 
-  <!-- Модальное окно подтверждения возраста 18+ -->
+  <!-- Модальное окно 18+ -->
   <div class="age-modal-backdrop" id="ageModal">
     <div class="age-modal-box">
       <div class="age-badge-big">18+</div>
@@ -507,7 +501,7 @@
   </div>
 
   <div class="container">
-    <!-- Header (с секретным переходом в админку по 3 кликам) -->
+    <!-- Header -->
     <header class="header">
       <div class="brand-group">
         <h1 onclick="handleBrandClick()" title="Нажмите 3 раза для входа в панель">ЦОКОЛЬ<span>.</span></h1>
@@ -516,7 +510,7 @@
       <div class="status-badge">12:00 – 02:00</div>
     </header>
 
-    <!-- 3D Flip Club Card -->
+    <!-- 3D Flip Loyalty Card -->
     <div class="card-perspective">
       <div class="card-flipper" id="cardFlipper" onclick="toggleCardFlip()">
         
@@ -568,7 +562,7 @@
       </div>
     </div>
 
-    <!-- MONTHLY CINEMA SCHEDULE BLOCK -->
+    <!-- Киноафиша -->
     <div class="cinema-afisha-section">
       <div class="afisha-head">
         <h3>🎬 Киноафиша месяца</h3>
@@ -586,10 +580,9 @@
       </div>
     </div>
 
-    <!-- Step 1: Calendar & Time -->
+    <!-- Шаг 1: Календарь и время -->
     <div class="step-label" id="step1Anchor">1. Дата и сеанс (1.5 часа) <span>Шаг 1 из 3</span></div>
 
-    <!-- Dates (30 days generation) -->
     <div class="slider-row">
       <button type="button" class="arrow-btn" onclick="slideDates(-1)">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -600,7 +593,6 @@
       </button>
     </div>
 
-    <!-- Time Slots (30 min step) -->
     <div class="slider-row">
       <button type="button" class="arrow-btn" onclick="slideTimes(-1)">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -611,13 +603,12 @@
       </button>
     </div>
 
-    <!-- Floating Session Window Banner -->
     <div class="session-window-banner">
       <span>Время бронирования стола:</span>
       <strong id="sessionWindowText">18:00 – 19:30 (1.5 часа)</strong>
     </div>
 
-    <!-- Step 2: SVG Blueprint Floor Plan -->
+    <!-- Шаг 2: Схема зала -->
     <div class="step-label" id="step2Anchor">2. Выбор места на схеме зала <span>Шаг 2 из 3</span></div>
 
     <div class="map-container">
@@ -628,7 +619,7 @@
       </div>
 
       <svg viewBox="0 0 380 430">
-        <!-- Screen -->
+        <!-- Экран -->
         <rect x="90" y="8" width="200" height="26" class="tbl-screen" />
         <text x="190" y="21" class="svg-text-bold" style="font-size: 9px; fill: var(--accent);">ПРОЕКТОР • ЭКРАН</text>
 
@@ -646,10 +637,10 @@
           <text x="55" y="198" class="svg-text-sub">PS5 • 8 чел</text>
         </g>
 
-        <!-- Continuous Red Couch -->
+        <!-- Красный диван слева -->
         <rect x="108" y="50" width="6" height="192" rx="3" fill="#d62839" />
 
-        <!-- Table 1 -->
+        <!-- Стол 1 -->
         <g id="node-t1" class="tbl-node active" onclick="selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false)">
           <rect x="122" y="56" width="46" height="30" class="tbl-body" />
           <text x="145" y="72" class="svg-text-num">1</text>
@@ -657,7 +648,7 @@
           <rect x="176" y="73" width="4" height="11" class="tbl-chair" />
         </g>
 
-        <!-- Table 2 -->
+        <!-- Стол 2 -->
         <g id="node-t2" class="tbl-node" onclick="selectItem('t2', 'Стол №2 (Красный диван)', 'Центр зала • Красный диван + 2 стула', false)">
           <rect x="122" y="131" width="46" height="30" class="tbl-body" />
           <text x="145" y="147" class="svg-text-num">2</text>
@@ -665,7 +656,7 @@
           <rect x="176" y="148" width="4" height="11" class="tbl-chair" />
         </g>
 
-        <!-- Table 3 -->
+        <!-- Стол 3 -->
         <g id="node-t3" class="tbl-node" onclick="selectItem('t3', 'Стол №3 (Красный диван)', 'Уютный угол зала • Красный диван + 2 стула', false)">
           <rect x="122" y="206" width="46" height="30" class="tbl-body" />
           <text x="145" y="222" class="svg-text-num">3</text>
@@ -673,7 +664,7 @@
           <rect x="176" y="223" width="4" height="11" class="tbl-chair" />
         </g>
 
-        <!-- Table 4 -->
+        <!-- Стол 4 -->
         <rect x="220" y="48" width="62" height="6" rx="3" fill="#d62839" />
         <g id="node-t4" class="tbl-node" onclick="selectItem('t4', 'Стол №4 (Перед экраном)', 'Идеальный обзор экрана • Двухсторонние диваны', false)">
           <rect x="223" y="60" width="56" height="32" class="tbl-body" />
@@ -681,7 +672,7 @@
         </g>
         <rect x="220" y="98" width="62" height="6" rx="3" fill="#d62839" />
 
-        <!-- Table 5 -->
+        <!-- Стол 5 -->
         <rect x="220" y="123" width="62" height="6" rx="3" fill="#d62839" />
         <g id="node-t5" class="tbl-node" onclick="selectItem('t5', 'Стол №5 (Центр зала)', 'Большой стол с мягкими диванами', false)">
           <rect x="223" y="135" width="56" height="32" class="tbl-body" />
@@ -689,7 +680,7 @@
         </g>
         <rect x="220" y="173" width="62" height="6" rx="3" fill="#d62839" />
 
-        <!-- Table 6 -->
+        <!-- Стол 6 -->
         <g id="node-t6" class="tbl-node" onclick="selectItem('t6', 'Стол №6 (У бара)', '2 стула + боковой диван', false)">
           <rect x="211" y="212" width="4" height="11" class="tbl-chair" />
           <rect x="211" y="227" width="4" height="11" class="tbl-chair" />
@@ -698,13 +689,13 @@
           <rect x="287" y="204" width="6" height="44" rx="3" fill="#d62839" />
         </g>
 
-        <!-- Bar Counter -->
+        <!-- Зона бара -->
         <rect x="36" y="275" width="308" height="42" class="tbl-bar" />
         <text x="190" y="296" class="svg-text-bold" style="letter-spacing: 0.12em; font-size: 10px;">ЗОНА БАРА</text>
       </svg>
     </div>
 
-    <!-- КАРТОЧКА ФОТО ЗАЛА И СТОЛОВ -->
+    <!-- Карточка фото зала -->
     <div class="table-live-card">
       <div class="table-photo-wrap" onclick="openHallPhotoModal()">
         <img id="tablePhotoImg" src="img/hall.jpg" alt="Интерьер ЦОКОЛЬ Lounge" onerror="this.src='https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80'">
@@ -721,7 +712,7 @@
       </div>
     </div>
 
-    <!-- Step 3: Parameters -->
+    <!-- Шаг 3: Параметры заказа -->
     <div class="step-label">3. Параметры покура, напитки и контакты <span>Шаг 3 из 3</span></div>
 
     <div class="unified-card">
@@ -771,7 +762,7 @@
         </div>
       </div>
 
-      <!-- Premium Brands -->
+      <!-- Бренды табака -->
       <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
         <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист из меню:</div>
         <div class="pill-group">
@@ -802,7 +793,7 @@
       </div>
     </div>
 
-    <!-- Tea & Bar Menu -->
+    <!-- Чайная карта -->
     <div class="unified-card">
       <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
 
@@ -827,7 +818,7 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Contacts -->
+    <!-- Контактные данные -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя</label>
@@ -839,7 +830,7 @@
       </div>
     </div>
 
-    <!-- Юридический дисклеймер (ФЗ-15) -->
+    <!-- Юридический дисклеймер -->
     <div class="legal-disclaimer">
       Информация носит ознакомительный характер для гостей заведения ЦОКОЛЬ Lounge, не является публичной офертой, рекламой или дистанционной продажей табачной продукции. Курение вредит вашему здоровью. Вход строго 18+.
       <br>
@@ -847,7 +838,7 @@
     </div>
   </div>
 
-  <!-- Bottom CTA -->
+  <!-- Нижний бар оплаты -->
   <div class="checkout-bar">
     <div class="checkout-content">
       <div class="checkout-amount">
@@ -859,7 +850,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ОПЛАТЫ ПО СБП -->
+  <!-- Модальное окно СБП -->
   <div class="sbp-modal-backdrop" id="sbpModal">
     <div class="sbp-modal-box">
       
@@ -877,7 +868,7 @@
         <strong id="sbpModalAmount">1 500 ₽</strong>
       </div>
 
-      <!-- QR-код СБП -->
+      <!-- QR-код -->
       <div class="sbp-qr-wrapper">
         <img id="sbpQrImage" src="" alt="QR-код СБП">
         <div class="sbp-qr-center-logo">
@@ -889,7 +880,7 @@
         </div>
       </div>
 
-      <!-- Реквизиты заведения -->
+      <!-- Реквизиты -->
       <div class="sbp-details-card">
         <div class="sbp-detail-row">
           <span class="sbp-detail-label">Получатель:</span>
@@ -915,7 +906,7 @@
     </div>
   </div>
 
-  <!-- ФИНАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+  <!-- Модальное окно подтверждения (для браузера) -->
   <div class="modal-backdrop" id="modal">
     <div class="success-modal-box">
       <div class="success-icon-badge">✓</div>
@@ -925,7 +916,7 @@
     </div>
   </div>
 
-  <!-- Lightbox Modal афиши -->
+  <!-- Lightbox афиши -->
   <div class="poster-modal-backdrop" id="posterModal" onclick="closePosterModal(event)">
     <div class="poster-modal-box">
       <img id="posterModalImg" class="poster-modal-img" src="" alt="Постер фильма">
@@ -934,7 +925,7 @@
     </div>
   </div>
 
-  <!-- Lightbox Modal фото зала -->
+  <!-- Lightbox фото зала -->
   <div class="hall-photo-modal-backdrop" id="hallPhotoModal" onclick="closeHallPhotoModal(event)">
     <div class="hall-photo-modal-box">
       <img id="hallPhotoModalImg" class="hall-photo-modal-img" src="" alt="Интерьер ЦОКОЛЬ Lounge">
@@ -943,16 +934,14 @@
   </div>
 
   <script>
-    // =========================================================================
-    // 💳 НАСТРОЙКИ СБП ДЛЯ ОПЛАТЫ
-    // =========================================================================
+    // Реквизиты СБП
     const SBP_CONFIG = {
       phone: "+7 (980) 123-45-67",
       bank: "Т-Банк (Тинькофф) / Сбер",
       recipient: "ЦОКОЛЬ Lounge"
     };
 
-    // ПРОВЕРКА 18+ (LOCALSTORAGE)
+    // Проверка 18+
     function checkAgeVerification() {
       const isVerified = localStorage.getItem('cokol_age_confirmed');
       if (!isVerified) {
@@ -966,7 +955,7 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // TELEGRAM MINI APP INITIALIZATION
+    // Telegram Mini App
     const tg = window.Telegram?.WebApp;
     if (tg) {
       try {
@@ -978,7 +967,7 @@
           document.getElementById('cardGuestName').innerText = userName;
         }
       } catch (e) {
-        console.log("TG WebApp not active");
+        console.log("TG WebApp инициализирован");
       }
     }
 
@@ -989,7 +978,7 @@
       else if (type === 'notification') tg.HapticFeedback.notificationOccurred('success');
     }
 
-    // 🍿 РАСПИСАНИЕ КИНОПОКАЗОВ (АФИША)
+    // Кинопоказы
     const CINEMA_EVENTS = [
       { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
       { date: "2026-10-11", time: "20:00", img: "img/sun2.jpg", fallback: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=400&q=80" },
@@ -998,10 +987,9 @@
       { date: "2026-10-31", time: "20:00", img: "img/sun5.jpg", fallback: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    // 🛋 ФОТО И БЕЙДЖИ
+    // Фото и бейджи столов
     const HALL_PHOTO_SRC = "img/hall.jpg";
     const HALL_PHOTO_FALLBACK = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80";
-
     const VIP_PHOTO_FALLBACK_1 = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80";
     const VIP_PHOTO_FALLBACK_2 = "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80";
 
@@ -1016,7 +1004,7 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
-    // ЧАЙНАЯ КАРТА
+    // Чайная карта
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -1101,9 +1089,7 @@
     let activeTablePhotoSrc = HALL_PHOTO_SRC;
     let activeTablePhotoFallback = HALL_PHOTO_FALLBACK;
 
-    // =========================================================================
-    // СИНХРОНИЗАЦИЯ С АДМИНКОЙ В РЕАЛЬНОМ ВРЕМЕНИ
-    // =========================================================================
+    // СИНХРОНИЗАЦИЯ ЧЕРЕЗ BROADCASTCHANNEL
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
     function getTableState(time) {
@@ -1135,7 +1121,6 @@
       });
     }
 
-    // Слушаем сигналы из админки
     syncChannel.onmessage = (event) => {
       if (event.data?.type === 'table_state_changed') {
         updateTablesAvailability();
@@ -1515,7 +1500,6 @@
     }
 
     function selectItem(id, title, desc, isVip) {
-      // ПРОВЕРКА НА ЗАНЯТОСТЬ
       const state = getTableState(selectedStartTime);
       if (state[id] === 'busy') {
         haptic('notification');
@@ -1569,11 +1553,7 @@
       el.classList.add('active');
     }
 
-    // =========================================================================
-    // 💳 ЛОГИКА ОКНА ОПЛАТЫ СБП С ПРОВЕРКОЙ ОВЕРБУКИНГА
-    // =========================================================================
     function openSbpModal() {
-      // Контрольная проверка перед оплатой
       const currentState = getTableState(selectedStartTime);
       if (currentState[currentTableId] === 'busy') {
         haptic('notification');
@@ -1613,6 +1593,7 @@
       });
     }
 
+    // Подтверждение платежа и отправка в Telegram
     function confirmSbpPayment() {
       haptic('notification');
       closeSbpModal();
@@ -1621,13 +1602,13 @@
       const phone = document.getElementById('guestPhoneInput').value.trim() || '+7 (9XX) XXX-XX-XX';
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Помечаем стол как занятый в базе
+      // 1. Помечаем стол как занятый в локальной базе
       const state = getTableState(selectedStartTime);
       state[currentTableId] = 'busy';
       setTableState(selectedStartTime, state);
       updateTablesAvailability();
 
-      // 2. Добавляем бронь в историю для админки
+      // 2. Формируем объект брони
       let bookings = [];
       try {
         bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
@@ -1656,11 +1637,19 @@
 
       bookings.unshift(newBooking);
       localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
-
-      // 3. Отправляем сигнал в админку
       syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
 
-      // 4. Показываем гостю подтверждение
+      // 3. ПЕРЕДАЧА ДАННЫХ В TELEGRAM BOT ЧЕРЕЗ SENDDATA
+      if (window.Telegram?.WebApp?.sendData) {
+        try {
+          window.Telegram.WebApp.sendData(JSON.stringify(newBooking));
+          return;
+        } catch(err) {
+          console.error("sendData error:", err);
+        }
+      }
+
+      // 4. Показываем всплывающее окно при открытии вне Telegram
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
@@ -1686,7 +1675,7 @@
       document.getElementById('modal').style.display = 'none'; 
     }
 
-    // Секретный переход в админку по 3 тапам на бренд
+    // 3 клика по логотипу — секретный вход в админку
     let brandClicks = 0;
     let brandTimer = null;
     function handleBrandClick() {
