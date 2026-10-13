@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЦОКОЛЬ Lounge | Онлайн-бронирование</title>
   
-  <!-- Защита от индексации поисковыми роботами -->
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="googlebot" content="noindex, nofollow, noarchive">
   <meta name="yandex" content="none">
@@ -48,7 +47,7 @@
 
     /* Top Bar */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .brand-group h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; user-select: none; }
+    .brand-group h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; user-select: none; }
     .brand-group h1 span { color: var(--accent); }
     .brand-group p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .status-badge {
@@ -145,7 +144,7 @@
       font-size: 9px; font-weight: 800; padding: 3px 7px; color: #fff; z-index: 2;
     }
 
-    /* Lightbox Modals */
+    /* Modals */
     .poster-modal-backdrop, .hall-photo-modal-backdrop, .modal-backdrop, .age-modal-backdrop, .sbp-modal-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
       backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
@@ -198,7 +197,7 @@
     .time-chip.lunch { border-color: rgba(46, 204, 113, 0.3); color: var(--green); }
     .time-chip.cinema-slot { border-color: var(--accent); color: #fff; background: rgba(214, 40, 57, 0.15); }
 
-    /* Floating Session Window Banner */
+    /* Session Window Banner */
     .session-window-banner {
       background: var(--surface); border: 1px dashed var(--border-light);
       border-radius: 10px; padding: 9px 12px; font-size: 11px; color: var(--text-muted);
@@ -226,7 +225,7 @@
     .tbl-node:hover .tbl-body { stroke: var(--accent); fill: #1c1e29; }
     .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; filter: drop-shadow(0 0 10px var(--accent-glow)); }
 
-    /* Индикация занятого стола */
+    /* Busy Table State */
     .tbl-node.is-busy {
       opacity: 0.32 !important;
       cursor: not-allowed !important;
@@ -246,7 +245,7 @@
     .svg-text-sub { fill: var(--text-muted); font-size: 8px; font-weight: 500; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
     .svg-text-num { fill: #fff; font-size: 12px; font-weight: 800; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
 
-    /* Карточка фото зала */
+    /* Card Photo */
     .table-live-card {
       background: var(--surface); border: 1px solid var(--border-light);
       border-radius: 16px; overflow: hidden; margin-bottom: 22px;
@@ -345,7 +344,7 @@
     }
     .textarea-box:focus { border-color: var(--border-light); }
 
-    /* Tea & Bar Horizontal Tabs */
+    /* Bar Tabs */
     .cat-track { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; flex: 1; scrollbar-width: none; }
     .cat-track::-webkit-scrollbar { display: none; }
     .cat-pill {
@@ -355,7 +354,7 @@
     }
     .cat-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Tea Menu Grid */
+    /* Drinks Grid */
     .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .drink-card {
       background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
@@ -377,17 +376,14 @@
     .form-group input:focus { border-color: var(--border-light); }
     .form-group input.input-error { border-color: var(--accent) !important; background: rgba(214, 40, 57, 0.08) !important; }
 
-    /* Юридический дисклеймер */
+    /* Legal Disclaimer */
     .legal-disclaimer {
       font-size: 10px; color: #5a5f6e; line-height: 1.5;
       text-align: center; margin: 24px 8px 12px; padding: 12px;
       border: 1px dashed rgba(255,255,255,0.06); border-radius: 10px;
     }
-    .admin-link-discrete {
-      color: #666; font-size: 10px; text-decoration: underline; display: inline-block; margin-top: 6px;
-    }
 
-    /* Bottom Fixed CTA */
+    /* Checkout Bar */
     .checkout-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: rgba(11, 12, 15, 0.95); backdrop-filter: blur(14px);
@@ -462,7 +458,7 @@
       font-weight: 600; cursor: pointer; padding: 6px; width: 100%;
     }
 
-    /* Modal 18+ */
+    /* Age Modal */
     .age-modal-box {
       background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
       padding: 24px 20px; max-width: 320px; width: 100%; text-align: center;
@@ -479,7 +475,7 @@
       border-radius: 10px; font-size: 13px; font-weight: 700; width: 100%; cursor: pointer;
     }
 
-    /* Success Modal */
+    /* Modal Text */
     .success-modal-box {
       background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
       padding: 20px; max-width: 360px; width: 100%; text-align: center;
@@ -507,10 +503,10 @@
   </div>
 
   <div class="container">
-    <!-- Header -->
+    <!-- Header без скрытых кликов -->
     <header class="header">
       <div class="brand-group">
-        <h1 onclick="handleBrandClick()" title="Нажмите 3 раза для входа в панель">ЦОКОЛЬ<span>.</span></h1>
+        <h1>ЦОКОЛЬ<span>.</span></h1>
         <p>Белгород • ул. Королёва, 4Д</p>
       </div>
       <div class="status-badge">12:00 – 02:00</div>
@@ -646,7 +642,7 @@
           <text x="55" y="198" class="svg-text-sub">PS5 • 8 чел</text>
         </g>
 
-        <!-- Красный диван слева -->
+        <!-- Диван слева -->
         <rect x="108" y="50" width="6" height="192" rx="3" fill="#d62839" />
 
         <!-- Стол 1 -->
@@ -698,7 +694,7 @@
           <rect x="287" y="204" width="6" height="44" rx="3" fill="#d62839" />
         </g>
 
-        <!-- Зона бара -->
+        <!-- Бар -->
         <rect x="36" y="275" width="308" height="42" class="tbl-bar" />
         <text x="190" y="296" class="svg-text-bold" style="letter-spacing: 0.12em; font-size: 10px;">ЗОНА БАРА</text>
       </svg>
@@ -827,7 +823,7 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контактные данные с маской телефона -->
+    <!-- Контактные данные -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
@@ -839,11 +835,9 @@
       </div>
     </div>
 
-    <!-- Юридический дисклеймер -->
+    <!-- Юридический дисклеймер без ссылок на админку -->
     <div class="legal-disclaimer">
       Информация носит ознакомительный характер для гостей заведения ЦОКОЛЬ Lounge, не является публичной офертой, рекламой или дистанционной продажей табачной продукции. Курение вредит вашему здоровью. Вход строго 18+.
-      <br>
-      <a href="admin.html" class="admin-link-discrete">Панель управления залом</a>
     </div>
   </div>
 
@@ -915,7 +909,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно подтверждения (для браузера вне TG) -->
+  <!-- Модальное окно браузера -->
   <div class="modal-backdrop" id="modal">
     <div class="success-modal-box">
       <div class="success-icon-badge">✓</div>
@@ -934,7 +928,7 @@
     </div>
   </div>
 
-  <!-- Lightbox фото зала -->
+  <!-- Lightbox зала -->
   <div class="hall-photo-modal-backdrop" id="hallPhotoModal" onclick="closeHallPhotoModal(event)">
     <div class="hall-photo-modal-box">
       <img id="hallPhotoModalImg" class="hall-photo-modal-img" src="" alt="Интерьер ЦОКОЛЬ Lounge">
@@ -950,7 +944,6 @@
       recipient: "ЦОКОЛЬ Lounge"
     };
 
-    // Флаг защиты от спама и повторных отправок
     let isSubmitting = false;
 
     // Telegram Mini App
@@ -991,7 +984,7 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // АВТОМАСКА ТЕЛЕФОНА +7 (XXX) XXX-XX-XX
+    // Автомаска телефона +7 (XXX) XXX-XX-XX
     const phoneInput = document.getElementById('guestPhoneInput');
     phoneInput.addEventListener('input', function(e) {
       this.classList.remove('input-error');
@@ -1007,7 +1000,7 @@
       this.value = res;
     });
 
-    // ДВИЖОК ПРОГРАММЫ ЛОЯЛЬНОСТИ С ЗАЩИТОЙ ОТ АБУЗА
+    // ДВИЖОК ПРОГРАММЫ ЛОЯЛЬНОСТИ
     const LOYALTY_STORAGE_KEY = 'cokol_loyalty_' + tgUserId;
 
     function getLoyaltyProfile() {
@@ -1119,7 +1112,7 @@
       { date: "2026-10-31", time: "20:00", img: "img/sun5.jpg", fallback: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    // Фото и бейджи столов
+    // Фото и бейджи
     const HALL_PHOTO_SRC = "img/hall.jpg";
     const HALL_PHOTO_FALLBACK = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80";
     const VIP_PHOTO_FALLBACK_1 = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80";
@@ -1136,7 +1129,7 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
-    // Чайная карта
+    // Меню
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -1676,7 +1669,7 @@
       el.classList.add('active');
     }
 
-    // ВАЛИДАЦИЯ ДАННЫХ ПЕРЕД ОТКРЫТИЕМ ОПЛАТЫ
+    // ВАЛИДАЦИЯ ДАННЫХ ПЕРЕД ОПЛАТОЙ
     function openSbpModal() {
       const nameInput = document.getElementById('guestNameInput');
       const phoneInput = document.getElementById('guestPhoneInput');
@@ -1737,14 +1730,14 @@
       });
     }
 
-    // ПОДТВЕРЖДЕНИЕ ПЛАТЕЖА С ЗАЩИТОЙ ОТ АБУЗА
+    // ПОДТВЕРЖДЕНИЕ ПЛАТЕЖА
     function confirmSbpPayment() {
       if (isSubmitting) return;
 
       const profile = getLoyaltyProfile();
       const now = Date.now();
 
-      // Anti-Spam: ограничение 45 секунд между заявками
+      // Anti-Spam: 45 секунд между заявками
       if (now - profile.lastBookingAt < 45000) {
         haptic('notification');
         alert('⏳ Вы недавно отправили заявку. Пожалуйста, подождите 45 секунд перед следующей бронью.');
@@ -1765,13 +1758,13 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Помечаем стол как занятый в локальной шахматке
+      // 1. Помечаем стол как занятый
       const state = getTableState(selectedStartTime);
       state[currentTableId] = 'busy';
       setTableState(selectedStartTime, state);
       updateTablesAvailability();
 
-      // 2. Расчет честного кэшбэка в статус PENDING
+      // 2. Расчет кэшбэка в статус PENDING
       const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
       const earnedCashback = Math.round(currentCalculatedTotal * currentRate);
 
@@ -1828,7 +1821,7 @@
         }
       }
 
-      // 5. Всплывающее окно для браузера вне Telegram
+      // 5. Модалка для браузера вне TG
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
@@ -1861,20 +1854,7 @@
       document.getElementById('modal').style.display = 'none'; 
     }
 
-    // 3 клика по названию — секретный переход в админку
-    let brandClicks = 0;
-    let brandTimer = null;
-    function handleBrandClick() {
-      brandClicks++;
-      clearTimeout(brandTimer);
-      brandTimer = setTimeout(() => { brandClicks = 0; }, 1200);
-      if (brandClicks >= 3) {
-        brandClicks = 0;
-        window.location.href = 'admin.html';
-      }
-    }
-
-    // Инициализация при старте
+    // Инициализация
     checkAgeVerification();
     buildCalendar();
     buildAfisha();
