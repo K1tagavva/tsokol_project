@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ЦОКОЛЬ Lounge | Панель управления</title>
   
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,165 +20,301 @@
       --border: rgba(255, 255, 255, 0.08);
       --border-light: rgba(255, 255, 255, 0.14);
       --accent: #d62839;
-      --gold: #d4af37;
+      --accent-soft: rgba(214, 40, 57, 0.15);
       --green: #2ecc71;
-      --orange: #e67e22;
+      --green-soft: rgba(46, 204, 113, 0.12);
+      --gold: #d4af37;
       --text: #f4f5f7;
       --text-muted: #7b808e;
       --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; overflow-x: hidden; }
-    .container { max-width: 480px; margin: 0 auto; padding: 18px 16px; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 50px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
 
+    /* Экран PIN-блокировки */
+    .pin-lock-overlay {
+      position: fixed; inset: 0; background: #0b0c0f;
+      z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .pin-box {
+      background: var(--surface); border: 1px solid var(--border-light);
+      border-radius: 20px; padding: 28px 22px; max-width: 320px; width: 100%; text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+    .pin-icon {
+      width: 50px; height: 50px; border-radius: 50%; background: var(--accent-soft);
+      border: 1px solid var(--accent); color: var(--accent); font-size: 20px;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+    }
+    .pin-box h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .pin-box p { font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
+    .pin-input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border-light);
+      border-radius: 10px; padding: 12px; font-size: 22px; font-weight: 800; color: #fff;
+      text-align: center; letter-spacing: 0.3em; outline: none; margin-bottom: 12px;
+    }
+    .pin-input:focus { border-color: var(--accent); }
+    .pin-submit-btn {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      padding: 13px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .pin-error { font-size: 11px; color: var(--accent); margin-top: 10px; display: none; font-weight: 600; }
+
+    /* Шапка админки */
     .admin-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
-    .admin-title h1 { font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
-    .admin-title h1 span { color: var(--accent); }
-    .admin-title p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .nav-back-link {
-      background: var(--surface); border: 1px solid var(--border-light); color: #fff;
-      padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-decoration: none;
+    .brand-title { display: flex; align-items: center; gap: 8px; }
+    .brand-title h1 { font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+    .brand-title h1 span { color: var(--accent); }
+    .badge-admin {
+      font-size: 9px; font-weight: 800; background: var(--accent-soft);
+      border: 1px solid var(--accent); color: var(--accent); padding: 3px 6px; border-radius: 5px;
+    }
+    .logout-btn {
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 5px 9px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer;
     }
 
-    /* Metrics */
-    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-    .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
-    .metric-card span { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px; }
-    .metric-card strong { font-size: 15px; font-weight: 800; color: #fff; }
-
-    /* Tabs */
-    .tab-pills { display: flex; gap: 6px; background: var(--surface); padding: 4px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 9px 0; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-    .tab-btn.active { background: var(--accent); color: #fff; }
-
-    /* Slot Picker */
-    .slot-picker-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 14px; }
-    .slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
-    .time-selector-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-    .time-selector-row::-webkit-scrollbar { display: none; }
-    .admin-time-btn {
-      background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);
-      padding: 7px 11px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    /* Навигация по вкладкам */
+    .tabs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .tab-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 11px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+      transition: 0.2s;
     }
-    .admin-time-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Tables Matrix */
-    .tables-matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .table-state-card {
+    /* Полоса времени со стрелками */
+    .slider-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+    .arrow-btn {
+      width: 32px; height: 36px; min-width: 32px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border); color: #fff;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+    }
+    .arrow-btn:active { background: var(--surface-hover); }
+    .arrow-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .times-scroll {
+      display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth;
+      flex: 1; scrollbar-width: none;
+    }
+    .times-scroll::-webkit-scrollbar { display: none; }
+    .time-chip {
+      background: var(--surface); border: 1px solid var(--border); padding: 8px 12px;
+      border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted);
+      white-space: nowrap; flex-shrink: 0; cursor: pointer; transition: 0.2s;
+    }
+    .time-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Сетка столов */
+    .section-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .table-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      padding: 14px 10px; text-align: center; cursor: pointer; transition: 0.2s; user-select: none;
+      padding: 12px; cursor: pointer; transition: 0.2s; position: relative; user-select: none;
     }
-    .table-state-card:active { transform: scale(0.97); }
-    .table-state-card h4 { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
-    .table-state-card p { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
-    .table-state-badge { display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; }
-    .st-free { background: rgba(46, 204, 113, 0.15); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
-    .st-busy { background: rgba(214, 40, 57, 0.15); color: var(--accent); border: 1px solid rgba(214, 40, 57, 0.3); }
+    .table-card:hover { border-color: var(--border-light); }
+    .table-card.busy { border-color: rgba(214, 40, 57, 0.6); background: rgba(214, 40, 57, 0.08); }
+    .table-name { font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .table-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+    .table-status-tag {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 4px 7px; border-radius: 5px;
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .status-free { background: var(--green-soft); color: var(--green); border: 1px solid var(--green); }
+    .status-busy { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
 
-    /* Bookings */
-    .booking-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; border-left: 4px solid var(--orange); }
-    .booking-card.confirmed { border-left-color: var(--green); }
-    .b-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .b-user h3 { font-size: 13px; font-weight: 800; color: #fff; }
-    .b-user p { font-size: 10px; color: var(--text-muted); }
-    .b-badge { font-size: 9px; font-weight: 800; padding: 3px 7px; border-radius: 5px; text-transform: uppercase; }
-    .badge-pending { background: rgba(230, 126, 34, 0.15); color: var(--orange); }
-    .badge-confirmed { background: rgba(46, 204, 113, 0.15); color: var(--green); }
-    .b-details { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; color: #ccc; margin-bottom: 10px; }
-    .b-actions { display: flex; gap: 8px; }
-    .act-btn { flex: 1; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
-    .act-confirm { background: var(--green); color: #fff; }
+    /* Фильтры заявок */
+    .filter-pills { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 11px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .pill.active { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
 
-    .toast-box {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(18, 20, 26, 0.95); backdrop-filter: blur(10px);
-      border: 1px solid var(--green); color: var(--green); padding: 10px 18px;
-      border-radius: 10px; font-size: 12px; font-weight: 700; z-index: 1000;
-      display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    /* Лента броней */
+    .booking-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .booking-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .guest-title { font-size: 13px; font-weight: 800; color: #fff; }
+    .guest-phone { font-size: 11px; color: var(--green); margin-top: 2px; font-weight: 700; text-decoration: none; }
+    .booking-details {
+      font-size: 11px; color: #ddd; line-height: 1.5; margin-bottom: 12px;
+      background: var(--bg); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+    }
+    .booking-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn-act { padding: 9px; border-radius: 8px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
+    .btn-ok { background: var(--green); color: #fff; }
+    .btn-del { background: rgba(214, 40, 57, 0.15); border: 1px solid var(--accent); color: var(--accent); }
+
+    .empty-state {
+      text-align: center; padding: 40px 14px; color: var(--text-muted); font-size: 12px;
+      background: var(--surface); border-radius: 14px; border: 1px dashed var(--border);
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <!-- Экран PIN-кода (по умолчанию tcklbel723daqw) -->
+  <div class="pin-lock-overlay" id="pinScreen">
+    <div class="pin-box">
+      <div class="pin-icon">🔐</div>
+      <h2>ЦОКОЛЬ Lounge</h2>
+      <p>Вход только для администратора смены</p>
+      <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="••••" pattern="[0-9]*" inputmode="numeric">
+      <button class="pin-submit-btn" onclick="checkPin()">Войти в панель</button>
+      <div class="pin-error" id="pinError">Неверный PIN-код</div>
+    </div>
+  </div>
+
+  <div class="container" id="adminContainer" style="display: none;">
+    <!-- Шапка -->
     <header class="admin-header">
-      <div class="admin-title">
-        <h1>ЦОКОЛЬ<span>.</span> ADMIN</h1>
-        <p>Панель управления заведением</p>
+      <div class="brand-title">
+        <h1>ЦОКОЛЬ<span>.</span></h1>
+        <span class="badge-admin">ADMIN</span>
       </div>
-      <a href="index.html" class="nav-back-link">← В клиент</a>
+      <button class="logout-btn" onclick="logout()">Заблокировать</button>
     </header>
 
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <span>Депозиты</span>
-        <strong id="mRevenue" style="color:var(--green)">0 ₽</strong>
-      </div>
-      <div class="metric-card">
-        <span>Новые СБП</span>
-        <strong id="mPending" style="color:var(--orange)">0</strong>
-      </div>
-      <div class="metric-card">
-        <span>Всего броней</span>
-        <strong id="mCount">0</strong>
-      </div>
+    <!-- Вкладки -->
+    <div class="tabs-row">
+      <div class="tab-btn active" id="tabGridBtn" onclick="switchTab('grid')">🛋 Шахматка зала</div>
+      <div class="tab-btn" id="tabBookingsBtn" onclick="switchTab('bookings')">📋 Заявки (<span id="bookingsCounter">0</span>)</div>
     </div>
 
-    <div class="tab-pills">
-      <button class="tab-btn active" onclick="switchTab('tables', this)">🛋 Зал и столы</button>
-      <button class="tab-btn" onclick="switchTab('bookings', this)">📋 Брони гостей</button>
-    </div>
-
-    <!-- TAB 1: ТАБЛИЦА СТОЛОВ -->
-    <div id="tabTables">
-      <div class="slot-picker-box">
-        <div class="slot-label">Слот времени: <strong id="currentSlotLabel" style="color:var(--accent);">18:00</strong></div>
-        <div class="time-selector-row" id="timeSlotsBar"></div>
+    <!-- Вкладка 1: Шахматка зала -->
+    <div id="gridSection">
+      <div class="section-title">
+        <span>Слот времени:</span>
+        <span id="activeSlotTitle" style="color: #fff; font-weight: 800;">18:00</span>
       </div>
-      <div class="tables-matrix" id="tablesMatrixBox"></div>
+
+      <!-- Линейка времени с 12:00 до 01:00 -->
+      <div class="slider-row">
+        <button type="button" class="arrow-btn" onclick="slideTimes(-1)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="times-scroll" id="timesScroll"></div>
+        <button type="button" class="arrow-btn" onclick="slideTimes(1)">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="section-title">
+        <span>Статус столов (нажмите для переключения):</span>
+      </div>
+
+      <div class="tables-grid" id="tablesContainer"></div>
     </div>
 
-    <!-- TAB 2: СПИСОК БРОНЕЙ -->
-    <div id="tabBookings" style="display: none;">
+    <!-- Вкладка 2: Заявки гостей -->
+    <div id="bookingsSection" style="display: none;">
+      <div class="section-title">
+        <span>Лента бронирований:</span>
+        <button onclick="clearAllBookings()" style="background: none; border: none; color: var(--accent); font-size: 10px; cursor: pointer; text-decoration: underline;">Очистить архив</button>
+      </div>
+
+      <div class="filter-pills">
+        <div class="pill active" id="filterAll" onclick="setBookingFilter('all', this)">Все</div>
+        <div class="pill" id="filterPending" onclick="setBookingFilter('pending', this)">⏳ Ожидают СБП</div>
+        <div class="pill" id="filterConfirmed" onclick="setBookingFilter('confirmed', this)">✅ Подтверждённые</div>
+      </div>
+
       <div id="bookingsFeed"></div>
     </div>
   </div>
 
-  <div class="toast-box" id="toast">Обновлено!</div>
-
   <script>
-    const rawTimes = [
+    // 1. ЗАЩИТА АДМИНКИ PIN-КОДОМ
+    const ADMIN_PIN = "tcklbel723daqw"; // Смените здесь на любой свой 4-значный код
+
+    function initAuth() {
+      const isAuth = sessionStorage.getItem('cokol_admin_auth') === 'true';
+      if (isAuth) {
+        document.getElementById('pinScreen').style.display = 'none';
+        document.getElementById('adminContainer').style.display = 'block';
+      } else {
+        document.getElementById('pinScreen').style.display = 'flex';
+        document.getElementById('adminContainer').style.display = 'none';
+        setTimeout(() => document.getElementById('pinInput')?.focus(), 200);
+      }
+    }
+
+    function checkPin() {
+      const pinVal = document.getElementById('pinInput').value.trim();
+      const errEl = document.getElementById('pinError');
+      if (pinVal === ADMIN_PIN) {
+        sessionStorage.setItem('cokol_admin_auth', 'true');
+        errEl.style.display = 'none';
+        initAuth();
+      } else {
+        errEl.style.display = 'block';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    }
+
+    document.getElementById('pinInput')?.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') checkPin();
+    });
+
+    function logout() {
+      sessionStorage.removeItem('cokol_admin_auth');
+      initAuth();
+    }
+
+    // 2. TELEGRAM WEBAPP
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    function haptic() {
+      if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    // 3. ПОЛНАЯ СЕТКА ВРЕМЕНИ ЗАВЕДЕНИЯ ДО 01:00
+    const ALL_TIMES = [
       '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
       '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
       '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
       '21:00', '21:30', '22:00', '22:30', '23:00', '23:30',
-      '00:00', '00:30'
+      '00:00', '00:30', '01:00'
     ];
 
-    const tablesList = [
-      { id: 'vip1', title: 'VIP 1', desc: 'Малая • до 4 чел' },
-      { id: 'vip2', title: 'VIP 2', desc: 'Большая • до 8 чел' },
-      { id: 't1', title: 'Стол №1', desc: 'Красный диван' },
-      { id: 't2', title: 'Стол №2', desc: 'Красный диван' },
-      { id: 't3', title: 'Стол №3', desc: 'Угол зала' },
-      { id: 't4', title: 'Стол №4', desc: 'Перед экраном' },
-      { id: 't5', title: 'Стол №5', desc: 'Центр зала' },
-      { id: 't6', title: 'Стол №6', desc: 'У бара' }
+    const TABLES = [
+      { id: 'vip1', name: 'VIP 1 (Малая)', desc: 'PS5 • до 4 чел' },
+      { id: 'vip2', name: 'VIP 2 (Большая)', desc: 'PS5 • ТВ 65" • до 8 чел' },
+      { id: 't1', name: 'Стол №1', desc: 'Красный диван у экрана' },
+      { id: 't2', name: 'Стол №2', desc: 'Красный диван (центр)' },
+      { id: 't3', name: 'Стол №3', desc: 'Красный диван (угол)' },
+      { id: 't4', name: 'Стол №4', desc: 'Перед экраном' },
+      { id: 't5', name: 'Стол №5', desc: 'Центральный диванный' },
+      { id: 't6', name: 'Стол №6', desc: 'У барной стойки' }
     ];
 
     let selectedTime = '18:00';
+    let currentFilter = 'all';
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
     function getTableState(time) {
-      const data = localStorage.getItem('cokol_tables_' + time);
-      if (data) {
-        try { return JSON.parse(data); } catch(e){}
+      try {
+        return JSON.parse(localStorage.getItem('cokol_tables_' + time)) || {};
+      } catch(e) {
+        return {};
       }
-      return {};
     }
 
     function setTableState(time, state) {
@@ -184,160 +322,181 @@
       syncChannel.postMessage({ type: 'table_state_changed', time: time });
     }
 
-    // Слушаем сигналы из клиента
-    syncChannel.onmessage = (e) => {
-      if (e.data?.type === 'new_booking') {
-        showToast('🔔 Новая бронь: ' + e.data.booking.name);
-        renderBookings();
-        renderMatrix();
-      } else if (e.data?.type === 'table_state_changed') {
-        renderMatrix();
-      }
-    };
-    window.addEventListener('storage', () => {
-      renderBookings();
-      renderMatrix();
-    });
-
     function renderTimeSlots() {
-      const bar = document.getElementById('timeSlotsBar');
-      bar.innerHTML = '';
-      rawTimes.forEach(t => {
-        const btn = document.createElement('button');
-        btn.className = `admin-time-btn ${t === selectedTime ? 'active' : ''}`;
-        btn.innerText = t;
-        btn.onclick = () => {
-          selectedTime = t;
-          document.getElementById('currentSlotLabel').innerText = t;
+      const container = document.getElementById('timesScroll');
+      container.innerHTML = '';
+
+      ALL_TIMES.forEach(time => {
+        const chip = document.createElement('div');
+        chip.className = `time-chip ${time === selectedTime ? 'active' : ''}`;
+        chip.innerText = time;
+        chip.onclick = () => {
+          haptic();
+          selectedTime = time;
+          document.getElementById('activeSlotTitle').innerText = time;
           renderTimeSlots();
-          renderMatrix();
+          renderTables();
         };
-        bar.appendChild(btn);
+        container.appendChild(chip);
       });
     }
 
-    function renderMatrix() {
-      const box = document.getElementById('tablesMatrixBox');
-      box.innerHTML = '';
+    function slideTimes(dir) {
+      haptic();
+      document.getElementById('timesScroll').scrollBy({ left: dir * 120, behavior: 'smooth' });
+    }
+
+    function renderTables() {
+      const container = document.getElementById('tablesContainer');
+      container.innerHTML = '';
       const state = getTableState(selectedTime);
 
-      tablesList.forEach(tbl => {
+      TABLES.forEach(tbl => {
         const isBusy = (state[tbl.id] === 'busy');
         const card = document.createElement('div');
-        card.className = 'table-state-card';
+        card.className = `table-card ${isBusy ? 'busy' : ''}`;
+        card.onclick = () => toggleTable(tbl.id);
+
         card.innerHTML = `
-          <h4>${tbl.title}</h4>
-          <p>${tbl.desc}</p>
-          <span class="table-state-badge ${isBusy ? 'st-busy' : 'st-free'}">${isBusy ? 'Занят' : 'Свободен'}</span>
+          <div class="table-name">${tbl.name}</div>
+          <div class="table-desc">${tbl.desc}</div>
+          <span class="table-status-tag ${isBusy ? 'status-busy' : 'status-free'}">
+            ${isBusy ? '🔴 ЗАНЯТ' : '🟢 СВОБОДЕН'}
+          </span>
         `;
-
-        card.onclick = () => {
-          state[tbl.id] = isBusy ? 'free' : 'busy';
-          setTableState(selectedTime, state);
-          renderMatrix();
-          showToast(`${tbl.title} теперь ${state[tbl.id] === 'busy' ? 'ЗАНЯТ' : 'СВОБОДЕН'} на ${selectedTime}`);
-        };
-
-        box.appendChild(card);
+        container.appendChild(card);
       });
+    }
+
+    function toggleTable(tableId) {
+      haptic();
+      const state = getTableState(selectedTime);
+      state[tableId] = (state[tableId] === 'busy') ? 'free' : 'busy';
+      setTableState(selectedTime, state);
+      renderTables();
+    }
+
+    function switchTab(tab) {
+      haptic();
+      if (tab === 'grid') {
+        document.getElementById('tabGridBtn').classList.add('active');
+        document.getElementById('tabBookingsBtn').classList.remove('active');
+        document.getElementById('gridSection').style.display = 'block';
+        document.getElementById('bookingsSection').style.display = 'none';
+        renderTables();
+      } else {
+        document.getElementById('tabBookingsBtn').classList.add('active');
+        document.getElementById('tabGridBtn').classList.remove('active');
+        document.getElementById('gridSection').style.display = 'none';
+        document.getElementById('bookingsSection').style.display = 'block';
+        renderBookings();
+      }
+    }
+
+    function setBookingFilter(filter, el) {
+      haptic();
+      document.querySelectorAll('.filter-pills .pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      currentFilter = filter;
+      renderBookings();
     }
 
     function renderBookings() {
       const feed = document.getElementById('bookingsFeed');
+      feed.innerHTML = '';
+
       let bookings = [];
       try {
         bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
       } catch(e){}
 
-      if (bookings.length === 0) {
-        // Начальные тестовые данные для наглядности
-        bookings = [
-          {
-            id: 'demo1',
-            name: 'София',
-            username: 'sofia_belgorod',
-            phone: '+7 (980) 123-45-67',
-            tableName: 'VIP 2 Большая (до 8 чел)',
-            date: 'Сегодня',
-            time: '20:00',
-            hookahs: 2,
-            hookahType: 'PREMIUM',
-            total: '3 500 ₽',
-            status: 'pending'
-          }
-        ];
-        localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
+      document.getElementById('bookingsCounter').innerText = bookings.length;
+
+      let filtered = bookings;
+      if (currentFilter === 'pending') filtered = bookings.filter(b => b.status === 'pending');
+      if (currentFilter === 'confirmed') filtered = bookings.filter(b => b.status === 'confirmed');
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `
+          <div class="empty-state">
+            Заявок в этой категории пока нет.<br>
+            Входящие брони от гостей появятся здесь автоматически.
+          </div>
+        `;
+        return;
       }
 
-      feed.innerHTML = '';
-      let pendingCount = 0;
-      let totalRevenue = 0;
-
-      bookings.forEach(b => {
+      filtered.forEach((b) => {
         const isConfirmed = (b.status === 'confirmed');
-        if (!isConfirmed) pendingCount++;
-
-        const numPrice = parseInt(b.total.replace(/[^0-9]/g, '')) || 0;
-        totalRevenue += numPrice;
-
         const card = document.createElement('div');
-        card.className = `booking-card ${isConfirmed ? 'confirmed' : ''}`;
+        card.className = 'booking-card';
         card.innerHTML = `
-          <div class="b-head">
-            <div class="b-user">
-              <h3>${b.name}</h3>
-              <p>@${b.username} • ${b.phone}</p>
+          <div class="booking-head">
+            <div>
+              <div class="guest-title">${b.name} (@${b.username || 'клиент'})</div>
+              <a href="tel:${b.phone}" class="guest-phone">📞 ${b.phone}</a>
             </div>
-            <div class="b-badge ${isConfirmed ? 'badge-confirmed' : 'badge-pending'}">
-              ${isConfirmed ? 'Подтверждено' : 'Проверка СБП'}
-            </div>
+            <span class="table-status-tag ${isConfirmed ? 'status-free' : 'status-busy'}">
+              ${isConfirmed ? '✓ ДЕПОЗИТ ПОЛУЧЕН' : '⏳ ПРОВЕРКА СБП'}
+            </span>
           </div>
-          <div class="b-details">
-            📍 <strong>${b.tableName}</strong><br>
-            ⏰ <strong>${b.date} • ${b.time}</strong><br>
-            💨 <strong>${b.hookahs} кальян(а) [${b.hookahType}]</strong><br>
-            💳 Депозит: <strong>${b.total}</strong>
+          <div class="booking-details">
+            📍 <strong>${b.tableName}</strong> • ⏰ ${b.date} в <strong>${b.time}</strong><br>
+            💨 Кальяны: <strong>${b.hookahs} шт (${b.hookahType})</strong><br>
+            ${b.drinks ? `🍵 Чай/бар: <strong>${b.drinks}</strong><br>` : ''}
+            ${b.comment ? `💬 Комментарий: <em>«${b.comment}»</em><br>` : ''}
+            💳 Депозит к зачислению: <strong>${b.total}</strong>
           </div>
-          <div class="b-actions">
-            ${!isConfirmed ? `<button class="act-btn act-confirm" onclick="confirmBooking('${b.id}')">✓ Депозит поступил</button>` : `<button class="act-btn" style="background:#222;color:#777;cursor:default;">Оплачено</button>`}
+          <div class="booking-actions">
+            ${!isConfirmed ? `<button class="btn-act btn-ok" onclick="confirmBooking('${b.id}')">✓ Депозит поступил</button>` : `<button class="btn-act btn-ok" style="opacity: 0.5; cursor: default;">Подтверждено</button>`}
+            <button class="btn-act btn-del" onclick="deleteBooking('${b.id}')">Удалить</button>
           </div>
         `;
         feed.appendChild(card);
       });
-
-      document.getElementById('mRevenue').innerText = totalRevenue.toLocaleString('ru-RU') + ' ₽';
-      document.getElementById('mPending').innerText = pendingCount;
-      document.getElementById('mCount').innerText = bookings.length;
     }
 
-    function confirmBooking(id) {
+    function confirmBooking(bookingId) {
+      haptic();
       let bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
-      const item = bookings.find(b => b.id === id);
+      const item = bookings.find(x => x.id === bookingId);
       if (item) {
         item.status = 'confirmed';
         localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
+        syncChannel.postMessage({ type: 'booking_confirmed', id: bookingId });
         renderBookings();
-        showToast('Депозит подтверждён!');
       }
     }
 
-    function switchTab(tab, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tabTables').style.display = (tab === 'tables') ? 'block' : 'none';
-      document.getElementById('tabBookings').style.display = (tab === 'bookings') ? 'block' : 'none';
+    function deleteBooking(bookingId) {
+      haptic();
+      if (!confirm('Удалить эту бронь из списка?')) return;
+      let bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+      bookings = bookings.filter(x => x.id !== bookingId);
+      localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
+      renderBookings();
     }
 
-    function showToast(text) {
-      const toast = document.getElementById('toast');
-      toast.innerText = text;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 2200);
+    function clearAllBookings() {
+      haptic();
+      if (confirm('Очистить весь список броней?')) {
+        localStorage.removeItem('cokol_bookings');
+        renderBookings();
+      }
     }
 
+    syncChannel.onmessage = (e) => {
+      if (e.data?.type === 'table_state_changed') renderTables();
+      if (e.data?.type === 'new_booking') {
+        renderBookings();
+        renderTables();
+      }
+    };
+
+    // Старт
+    initAuth();
     renderTimeSlots();
-    renderMatrix();
-    renderBookings();
+    renderTables();
   </script>
 </body>
 </html>
