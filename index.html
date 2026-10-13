@@ -83,6 +83,12 @@
     }
     .card-body span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: block; margin-bottom: 2px; }
     .card-body strong { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .pending-cashback-badge {
+      display: inline-block; font-size: 10px; font-weight: 700; color: #f1c40f;
+      background: rgba(241, 196, 15, 0.12); border: 1px solid rgba(241, 196, 15, 0.3);
+      padding: 2px 6px; border-radius: 4px; margin-top: 4px;
+    }
+
     .card-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
     .card-flip-hint { font-size: 10px; font-weight: 600; color: var(--gold); display: inline-flex; align-items: center; gap: 4px; }
 
@@ -91,7 +97,7 @@
     .progress-labels span { color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
     .progress-labels strong { color: var(--gold); }
     .progress-track { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 58%; background: linear-gradient(90deg, #d4af37, #f7d774); border-radius: 10px; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #d4af37, #f7d774); border-radius: 10px; transition: width 0.4s ease; }
     .perks-list { display: grid; grid-template-columns: 1fr; gap: 4px; font-size: 10px; color: #e1e3e8; margin: 4px 0; }
     .perks-item { display: flex; align-items: center; gap: 6px; }
     .perks-item::before { content: '✓'; color: var(--green); font-weight: 800; font-size: 10px; }
@@ -367,8 +373,9 @@
     .form-group { margin-bottom: 10px; }
     .form-group:last-child { margin-bottom: 0; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
+    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; transition: 0.2s; }
     .form-group input:focus { border-color: var(--border-light); }
+    .form-group input.input-error { border-color: var(--accent) !important; background: rgba(214, 40, 57, 0.08) !important; }
 
     /* Юридический дисклеймер */
     .legal-disclaimer {
@@ -411,7 +418,6 @@
       padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800;
       color: #fff; margin-bottom: 12px; letter-spacing: 0.05em;
     }
-    .sbp-header-badge svg { width: 16px; height: 16px; }
     .sbp-amount-box { margin-bottom: 14px; }
     .sbp-amount-box span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
     .sbp-amount-box strong { font-size: 28px; font-weight: 800; color: #fff; display: block; letter-spacing: -0.02em; margin-top: 2px; }
@@ -426,7 +432,6 @@
       position: absolute; width: 34px; height: 34px; background: #fff; border-radius: 8px;
       display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
-    .sbp-qr-center-logo svg { width: 24px; height: 24px; }
 
     .sbp-details-card {
       background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
@@ -450,6 +455,7 @@
       text-transform: uppercase; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(46, 204, 113, 0.3);
       margin-bottom: 8px; transition: 0.2s;
     }
+    .sbp-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .sbp-confirm-btn:active { transform: scale(0.98); }
     .sbp-cancel-btn {
       background: transparent; color: var(--text-muted); border: none; font-size: 11px;
@@ -518,11 +524,14 @@
         <div class="card-side card-front">
           <div class="card-head">
             <div class="card-name" id="cardGuestName">Гость</div>
-            <div class="card-badge">SILVER • 3%</div>
+            <div class="card-badge" id="cardFrontBadge">SILVER • 3%</div>
           </div>
           <div class="card-body">
             <span>Баланс привилегий</span>
-            <strong>300 ₽</strong>
+            <strong id="cardBalanceAmount">0 ₽</strong>
+            <div id="pendingCashbackWrap" style="display: none;">
+              <span class="pending-cashback-badge" id="pendingCashbackBadge">⏳ +0 ₽ на проверке СБП</span>
+            </div>
           </div>
           <div class="card-foot">
             <span>Списание до 50% чека</span>
@@ -534,27 +543,27 @@
         <div class="card-side card-back">
           <div class="card-head">
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold);">Программа лояльности</div>
-            <div class="card-badge" style="border-color: var(--gold); color: #ffd700;">GOLD • 5%</div>
+            <div class="card-badge" id="cardBackBadge" style="border-color: var(--gold); color: #ffd700;">GOLD • 5%</div>
           </div>
 
           <div class="progress-box">
             <div class="progress-labels">
-              <span>До статуса GOLD</span>
-              <strong>Осталось 10 500 ₽</strong>
+              <span id="nextTierLabel">До статуса GOLD</span>
+              <strong id="toNextTierAmount">Осталось 25 000 ₽</strong>
             </div>
             <div class="progress-track">
-              <div class="progress-fill"></div>
+              <div class="progress-fill" id="loyaltyProgressBar"></div>
             </div>
           </div>
 
           <div class="perks-list">
-            <div class="perks-item">Кэшбэк 5% со всех депозитов и покуров</div>
-            <div class="perks-item">Списание до 50% от суммы счёта</div>
+            <div class="perks-item" id="perkCashbackDesc">Кэшбэк 3% со всех подтверждённых броней</div>
+            <div class="perks-item">Списание бонусов до 50% от суммы счёта</div>
             <div class="perks-item">Подарочный чай ко дню рождения</div>
           </div>
 
           <div class="card-foot">
-            <span style="font-size: 10px;">Накоплено: 14 500 / 25 000 ₽</span>
+            <span id="loyaltySpentSummary" style="font-size: 10px;">Накоплено: 0 / 25 000 ₽</span>
             <div class="card-flip-hint" style="color: var(--text-muted);">Баланс ↺</div>
           </div>
         </div>
@@ -818,15 +827,15 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контактные данные -->
+    <!-- Контактные данные с маской телефона -->
     <div class="unified-card">
       <div class="form-group">
-        <label>Имя гостя</label>
+        <label>Имя гостя *</label>
         <input type="text" id="guestNameInput" value="" placeholder="Ваше имя">
       </div>
       <div class="form-group">
-        <label>Телефон для подтверждения брони</label>
-        <input type="tel" id="guestPhoneInput" value="" placeholder="+7 (9XX) XXX-XX-XX">
+        <label>Телефон для подтверждения брони *</label>
+        <input type="tel" id="guestPhoneInput" value="" placeholder="+7 (9XX) XXX-XX-XX" maxlength="18">
       </div>
     </div>
 
@@ -855,7 +864,7 @@
     <div class="sbp-modal-box">
       
       <div class="sbp-header-badge">
-        <svg viewBox="0 0 32 32" fill="none">
+        <svg viewBox="0 0 32 32" fill="none" style="width:16px;height:16px;">
           <path d="M12.5 4L5 16.5H19.5L12.5 4Z" fill="#1D71B8"/>
           <path d="M19.5 16.5L27 28.5H12.5L19.5 16.5Z" fill="#F5A81C"/>
           <path d="M12.5 28.5L5 16.5H12.5L19.5 28.5H12.5Z" fill="#E41B23"/>
@@ -872,7 +881,7 @@
       <div class="sbp-qr-wrapper">
         <img id="sbpQrImage" src="" alt="QR-код СБП">
         <div class="sbp-qr-center-logo">
-          <svg viewBox="0 0 32 32" fill="none">
+          <svg viewBox="0 0 32 32" fill="none" style="width:24px;height:24px;">
             <path d="M12.5 4L5 16.5H19.5L12.5 4Z" fill="#1D71B8"/>
             <path d="M19.5 16.5L27 28.5H12.5L19.5 16.5Z" fill="#F5A81C"/>
             <path d="M12.5 28.5L5 16.5H12.5L19.5 28.5H12.5Z" fill="#E41B23"/>
@@ -901,12 +910,12 @@
         </div>
       </div>
 
-      <button class="sbp-confirm-btn" onclick="confirmSbpPayment()">Я оплатил(а) депозит</button>
+      <button class="sbp-confirm-btn" id="sbpConfirmActionBtn" onclick="confirmSbpPayment()">Я оплатил(а) депозит</button>
       <button class="sbp-cancel-btn" onclick="closeSbpModal()">Вернуться к заказу</button>
     </div>
   </div>
 
-  <!-- Модальное окно подтверждения (для браузера) -->
+  <!-- Модальное окно подтверждения (для браузера вне TG) -->
   <div class="modal-backdrop" id="modal">
     <div class="success-modal-box">
       <div class="success-icon-badge">✓</div>
@@ -941,22 +950,13 @@
       recipient: "ЦОКОЛЬ Lounge"
     };
 
-    // Проверка 18+
-    function checkAgeVerification() {
-      const isVerified = localStorage.getItem('cokol_age_confirmed');
-      if (!isVerified) {
-        document.getElementById('ageModal').style.display = 'flex';
-      }
-    }
-
-    function confirmAge() {
-      haptic('impact');
-      localStorage.setItem('cokol_age_confirmed', 'true');
-      document.getElementById('ageModal').style.display = 'none';
-    }
+    // Флаг защиты от спама и повторных отправок
+    let isSubmitting = false;
 
     // Telegram Mini App
     const tg = window.Telegram?.WebApp;
+    const tgUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : 'guest_profile';
+
     if (tg) {
       try {
         tg.ready();
@@ -976,6 +976,138 @@
       if (type === 'impact') tg.HapticFeedback.impactOccurred('medium');
       else if (type === 'selection') tg.HapticFeedback.selectionChanged();
       else if (type === 'notification') tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    // 18+ проверка
+    function checkAgeVerification() {
+      const isVerified = localStorage.getItem('cokol_age_confirmed');
+      if (!isVerified) {
+        document.getElementById('ageModal').style.display = 'flex';
+      }
+    }
+    function confirmAge() {
+      haptic('impact');
+      localStorage.setItem('cokol_age_confirmed', 'true');
+      document.getElementById('ageModal').style.display = 'none';
+    }
+
+    // АВТОМАСКА ТЕЛЕФОНА +7 (XXX) XXX-XX-XX
+    const phoneInput = document.getElementById('guestPhoneInput');
+    phoneInput.addEventListener('input', function(e) {
+      this.classList.remove('input-error');
+      let val = this.value.replace(/\D/g, '');
+      if (!val) { this.value = ''; return; }
+      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
+      
+      let res = '+7 ';
+      if (val.length > 0) res += '(' + val.substring(0, 3);
+      if (val.length >= 3) res += ') ' + val.substring(3, 6);
+      if (val.length >= 6) res += '-' + val.substring(6, 8);
+      if (val.length >= 8) res += '-' + val.substring(8, 10);
+      this.value = res;
+    });
+
+    // ДВИЖОК ПРОГРАММЫ ЛОЯЛЬНОСТИ С ЗАЩИТОЙ ОТ АБУЗА
+    const LOYALTY_STORAGE_KEY = 'cokol_loyalty_' + tgUserId;
+
+    function getLoyaltyProfile() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(LOYALTY_STORAGE_KEY));
+        if (stored && typeof stored === 'object') {
+          return {
+            spent: Number(stored.spent) || 0,
+            balance: Number(stored.balance) || 0,
+            pendingCashback: Number(stored.pendingCashback) || 0,
+            lastBookingAt: Number(stored.lastBookingAt) || 0
+          };
+        }
+      } catch (e) {}
+      return { spent: 0, balance: 0, pendingCashback: 0, lastBookingAt: 0 };
+    }
+
+    function saveLoyaltyProfile(data) {
+      localStorage.setItem(LOYALTY_STORAGE_KEY, JSON.stringify(data));
+      updateLoyaltyUI();
+    }
+
+    function updateLoyaltyUI() {
+      const data = getLoyaltyProfile();
+      const spent = data.spent;
+      const balance = data.balance;
+      const pending = data.pendingCashback;
+
+      let currentTier = 'SILVER';
+      let currentRate = 0.03;
+      let nextTier = 'GOLD';
+      let nextThreshold = 25000;
+      let prevThreshold = 0;
+
+      if (spent >= 50000) {
+        currentTier = 'PLATINUM';
+        currentRate = 0.07;
+        nextTier = 'MAX';
+        nextThreshold = 50000;
+        prevThreshold = 50000;
+      } else if (spent >= 25000) {
+        currentTier = 'GOLD';
+        currentRate = 0.05;
+        nextTier = 'PLATINUM';
+        nextThreshold = 50000;
+        prevThreshold = 25000;
+      }
+
+      // Лицевая сторона карты
+      const frontBadge = document.getElementById('cardFrontBadge');
+      if (frontBadge) frontBadge.innerText = `${currentTier} • ${Math.round(currentRate * 100)}%`;
+      
+      const balanceEl = document.getElementById('cardBalanceAmount');
+      if (balanceEl) balanceEl.innerText = `${balance.toLocaleString('ru-RU')} ₽`;
+
+      // Статус ожидания депозита
+      const pendingWrap = document.getElementById('pendingCashbackWrap');
+      const pendingBadge = document.getElementById('pendingCashbackBadge');
+      if (pending > 0) {
+        pendingWrap.style.display = 'block';
+        pendingBadge.innerText = `⏳ +${pending} ₽ на проверке СБП`;
+      } else {
+        pendingWrap.style.display = 'none';
+      }
+
+      // Обратная сторона
+      const backBadge = document.getElementById('cardBackBadge');
+      const nextLabel = document.getElementById('nextTierLabel');
+      const toNextEl = document.getElementById('toNextTierAmount');
+      const progressFill = document.getElementById('loyaltyProgressBar');
+      const summaryEl = document.getElementById('loyaltySpentSummary');
+      const perkDesc = document.getElementById('perkCashbackDesc');
+
+      if (perkDesc) perkDesc.innerText = `Кэшбэк ${Math.round(currentRate * 100)}% со всех подтверждённых броней`;
+
+      if (currentTier === 'PLATINUM') {
+        if (backBadge) backBadge.innerText = 'PLATINUM • 7%';
+        if (nextLabel) nextLabel.innerText = 'Максимальный статус';
+        if (toNextEl) toNextEl.innerText = 'Максимум привилегий';
+        if (progressFill) progressFill.style.width = '100%';
+        if (summaryEl) summaryEl.innerText = `Накоплено: ${spent.toLocaleString('ru-RU')} ₽`;
+      } else {
+        const remaining = Math.max(0, nextThreshold - spent);
+        const progressPercent = Math.min(100, Math.max(0, ((spent - prevThreshold) / (nextThreshold - prevThreshold)) * 100));
+        
+        if (backBadge) backBadge.innerText = `${nextTier} • ${nextTier === 'GOLD' ? '5%' : '7%'}`;
+        if (nextLabel) nextLabel.innerText = `До статуса ${nextTier}`;
+        if (toNextEl) toNextEl.innerText = `Осталось ${remaining.toLocaleString('ru-RU')} ₽`;
+        if (progressFill) progressFill.style.width = `${progressPercent}%`;
+        if (summaryEl) summaryEl.innerText = `Накоплено: ${spent.toLocaleString('ru-RU')} / ${nextThreshold.toLocaleString('ru-RU')} ₽`;
+      }
+
+      const expectedCashback = Math.round(currentCalculatedTotal * currentRate);
+      const cashbackLabel = document.getElementById('cashbackLabel');
+      if (cashbackLabel) cashbackLabel.innerText = `+${expectedCashback.toLocaleString('ru-RU')} ₽ кэшбэком`;
+    }
+
+    function toggleCardFlip() {
+      haptic('impact');
+      document.getElementById('cardFlipper').classList.toggle('is-flipped');
     }
 
     // Кинопоказы
@@ -1089,15 +1221,14 @@
     let activeTablePhotoSrc = HALL_PHOTO_SRC;
     let activeTablePhotoFallback = HALL_PHOTO_FALLBACK;
 
-    // СИНХРОНИЗАЦИЯ ЧЕРЕЗ BROADCASTCHANNEL
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
     function getTableState(time) {
-      const data = localStorage.getItem('cokol_tables_' + time);
-      if (data) {
-        try { return JSON.parse(data); } catch(e){}
+      try {
+        return JSON.parse(localStorage.getItem('cokol_tables_' + time)) || {};
+      } catch(e) {
+        return {};
       }
-      return {};
     }
 
     function setTableState(time, state) {
@@ -1122,18 +1253,9 @@
     }
 
     syncChannel.onmessage = (event) => {
-      if (event.data?.type === 'table_state_changed') {
-        updateTablesAvailability();
-      }
+      if (event.data?.type === 'table_state_changed') updateTablesAvailability();
     };
-    window.addEventListener('storage', () => {
-      updateTablesAvailability();
-    });
-
-    function toggleCardFlip() {
-      haptic('impact');
-      document.getElementById('cardFlipper').classList.toggle('is-flipped');
-    }
+    window.addEventListener('storage', () => updateTablesAvailability());
 
     function calculateEndTime(startStr) {
       const [h, m] = startStr.split(':').map(Number);
@@ -1169,7 +1291,6 @@
 
         const card = document.createElement('div');
         card.className = `movie-poster-card ${isPast ? 'past-movie' : ''}`;
-        
         card.onclick = () => openPosterModal(event.img, event.fallback, event.date, dateDisplay, isPast, event.time);
 
         card.innerHTML = `
@@ -1201,7 +1322,6 @@
           selectMovieSession(isoDate, sessionTime || '20:00');
         };
       }
-
       modal.style.display = 'flex';
     }
 
@@ -1491,7 +1611,10 @@
       const orderSum = hookahsCost + drinksTotal;
       const finalDeposit = isVipSelected ? Math.max(2000, orderSum) : orderSum;
       currentCalculatedTotal = finalDeposit;
-      const cashback = Math.round(finalDeposit * 0.03);
+
+      const profile = getLoyaltyProfile();
+      const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
+      const cashback = Math.round(finalDeposit * currentRate);
 
       document.getElementById('priceLabel').innerText = finalDeposit.toLocaleString('ru-RU') + ' ₽';
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
@@ -1553,11 +1676,33 @@
       el.classList.add('active');
     }
 
+    // ВАЛИДАЦИЯ ДАННЫХ ПЕРЕД ОТКРЫТИЕМ ОПЛАТЫ
     function openSbpModal() {
+      const nameInput = document.getElementById('guestNameInput');
+      const phoneInput = document.getElementById('guestPhoneInput');
+      const nameVal = nameInput.value.trim();
+      const phoneDigits = phoneInput.value.replace(/\D/g, '');
+
+      if (!nameVal || nameVal.length < 2) {
+        haptic('notification');
+        nameInput.classList.add('input-error');
+        nameInput.focus();
+        alert('Пожалуйста, укажите имя гостя для бронирования.');
+        return;
+      }
+
+      if (phoneDigits.length < 11) {
+        haptic('notification');
+        phoneInput.classList.add('input-error');
+        phoneInput.focus();
+        alert('Пожалуйста, введите полный номер телефона для связи (+7 9XX XXX-XX-XX).');
+        return;
+      }
+
       const currentState = getTableState(selectedStartTime);
       if (currentState[currentTableId] === 'busy') {
         haptic('notification');
-        alert(`⚠️ Извините! Пока вы выбирали меню, ${currentTableName} уже был занят на ${selectedStartTime}. Выберите другой свободный стол на схеме зала.`);
+        alert(`⚠️ Извините! ${currentTableName} уже занят на ${selectedStartTime}. Выберите свободный стол на схеме.`);
         updateTablesAvailability();
         return;
       }
@@ -1582,38 +1727,59 @@
 
     function copySbpPhone() {
       haptic('notification');
-      const cleanPhone = SBP_CONFIG.phone;
-      navigator.clipboard.writeText(cleanPhone).then(() => {
+      navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => {
         const btn = document.querySelector('.copy-phone-btn span');
         const oldText = btn.innerText;
         btn.innerText = "Скопировано!";
         setTimeout(() => { btn.innerText = oldText; }, 2000);
       }).catch(() => {
-        alert("Номер для перевода: " + cleanPhone);
+        alert("Номер для СБП: " + SBP_CONFIG.phone);
       });
     }
 
-    // Подтверждение платежа и отправка в Telegram
+    // ПОДТВЕРЖДЕНИЕ ПЛАТЕЖА С ЗАЩИТОЙ ОТ АБУЗА
     function confirmSbpPayment() {
+      if (isSubmitting) return;
+
+      const profile = getLoyaltyProfile();
+      const now = Date.now();
+
+      // Anti-Spam: ограничение 45 секунд между заявками
+      if (now - profile.lastBookingAt < 45000) {
+        haptic('notification');
+        alert('⏳ Вы недавно отправили заявку. Пожалуйста, подождите 45 секунд перед следующей бронью.');
+        return;
+      }
+
+      isSubmitting = true;
+      const confirmBtn = document.getElementById('sbpConfirmActionBtn');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'Отправка в бар...';
+      }
+
       haptic('notification');
       closeSbpModal();
 
       const name = document.getElementById('guestNameInput').value.trim() || 'Гость';
-      const phone = document.getElementById('guestPhoneInput').value.trim() || '+7 (9XX) XXX-XX-XX';
+      const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Помечаем стол как занятый в локальной базе
+      // 1. Помечаем стол как занятый в локальной шахматке
       const state = getTableState(selectedStartTime);
       state[currentTableId] = 'busy';
       setTableState(selectedStartTime, state);
       updateTablesAvailability();
 
-      // 2. Формируем объект брони
-      let bookings = [];
-      try {
-        bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
-      } catch(e){}
+      // 2. Расчет честного кэшбэка в статус PENDING
+      const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
+      const earnedCashback = Math.round(currentCalculatedTotal * currentRate);
 
+      profile.pendingCashback += earnedCashback;
+      profile.lastBookingAt = now;
+      saveLoyaltyProfile(profile);
+
+      // 3. Формируем объект брони
       let drinksNames = [];
       selectedDrinks.forEach(item => drinksNames.push(item.name));
       const drinksSummary = drinksNames.join(', ');
@@ -1632,42 +1798,62 @@
         drinks: drinksSummary,
         comment: comment,
         total: currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽',
+        cashbackEarned: earnedCashback,
         status: 'pending'
       };
 
+      let bookings = [];
+      try {
+        bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+      } catch(e){}
       bookings.unshift(newBooking);
       localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
       syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
 
-      // 3. ПЕРЕДАЧА ДАННЫХ В TELEGRAM BOT ЧЕРЕЗ SENDDATA
-      if (window.Telegram?.WebApp?.sendData) {
+      // 4. Отправка в бот через sendData и принудительное закрытие
+      if (window.Telegram?.WebApp) {
         try {
-          window.Telegram.WebApp.sendData(JSON.stringify(newBooking));
+          if (window.Telegram.WebApp.sendData) {
+            window.Telegram.WebApp.sendData(JSON.stringify(newBooking));
+          }
+        } catch(err) {
+          console.warn("sendData error:", err);
+        }
+        
+        try {
+          window.Telegram.WebApp.close();
           return;
         } catch(err) {
-          console.error("sendData error:", err);
+          console.warn("close error:", err);
         }
       }
 
-      // 4. Показываем всплывающее окно при открытии вне Telegram
+      // 5. Всплывающее окно для браузера вне Telegram
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
 
       modalText.innerHTML = `
-        <strong>${name}</strong>, платёж принят в обработку!<br><br>
+        <strong>${name}</strong>, заявка принята в обработку!<br><br>
         📅 Сеанс: <strong>${selectedDateLabel}</strong><br>
         ⏰ Время: <strong>${selectedStartTime} – ${endStr} (1.5 ч)</strong><br>
         📍 Локация: <strong>${currentTableName}</strong><br>
         💨 Заказ: <strong>${hookahs} кальян(а) [${newBooking.hookahType}]</strong>
         ${drinksSummary ? `<br>🍵 Напитки: <strong>${drinksSummary}</strong>` : ''}
         ${comment ? `<br>💬 Пожелание: <em>«${comment}»</em>` : ''}<br><br>
-        Внесён депозит: <strong>${newBooking.total}</strong><br>
-        Начислено на карту: <strong style="color:var(--green)">${document.getElementById('cashbackLabel').innerText}</strong><br><br>
-        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован за вами. Администратор уже видит вашу бронь!</span>
+        Депозит к оплате: <strong>${newBooking.total}</strong><br>
+        <span style="color:#f1c40f;">⏳ +${earnedCashback} ₽ кэшбэка поступит на карту после подтверждения перевода СБП.</span><br><br>
+        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован за вами. Администратор проверяет поступление средств.</span>
       `;
-
       modal.style.display = 'flex';
+
+      setTimeout(() => {
+        isSubmitting = false;
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerText = 'Я оплатил(а) депозит';
+        }
+      }, 3000);
     }
 
     function closeModal() { 
@@ -1675,7 +1861,7 @@
       document.getElementById('modal').style.display = 'none'; 
     }
 
-    // 3 клика по логотипу — секретный вход в админку
+    // 3 клика по названию — секретный переход в админку
     let brandClicks = 0;
     let brandTimer = null;
     function handleBrandClick() {
@@ -1694,6 +1880,7 @@
     buildAfisha();
     renderCategory('energy');
     selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false);
+    updateLoyaltyUI();
   </script>
 </body>
 </html>
