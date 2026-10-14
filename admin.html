@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ЦОКОЛЬ Lounge | Шахматка зала</title>
+  <title>ЦОКОЛЬ Lounge | Шахматка зала & Управление</title>
 
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,6 @@
     :root {
       --bg: #0b0c0f;
       --surface: #12141a;
-      --surface-hover: #181b24;
       --border: rgba(255, 255, 255, 0.08);
       --border-light: rgba(255, 255, 255, 0.14);
       --accent: #d62839;
@@ -28,9 +27,10 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
-    .container { max-width: 480px; margin: 0 auto; padding: 18px 16px; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+    .container { max-width: 520px; margin: 0 auto; padding: 18px 16px; }
 
+    /* Пароль */
     .pin-overlay {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
@@ -38,27 +38,17 @@
     }
     .pin-card {
       background: var(--surface); border: 1px solid var(--border-light);
-      border-radius: 20px; padding: 26px 20px; max-width: 340px; width: 100%;
-      text-align: center; box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+      border-radius: 20px; padding: 26px 20px; max-width: 340px; width: 100%; text-align: center;
     }
-    .pin-icon {
-      width: 50px; height: 50px; border-radius: 50%;
-      background: var(--accent-soft); border: 1px solid var(--accent);
-      color: var(--accent); font-size: 20px; display: flex;
-      align-items: center; justify-content: center; margin: 0 auto 14px;
-    }
-    .pin-card h2 { font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .pin-card h2 { font-size: 17px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
     .pin-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
     .pin-input {
       width: 100%; background: var(--bg); border: 1px solid var(--border-light);
-      border-radius: 10px; padding: 12px; color: #fff; font-size: 15px;
-      text-align: center; outline: none; margin-bottom: 12px; transition: 0.2s;
+      border-radius: 10px; padding: 12px; color: #fff; font-size: 15px; text-align: center; outline: none; margin-bottom: 12px;
     }
-    .pin-input:focus { border-color: var(--accent); }
     .pin-btn {
       width: 100%; background: var(--accent); color: #fff; border: none;
-      padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
-      cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase;
     }
     .pin-error { font-size: 11px; color: var(--accent); margin-top: 8px; display: none; }
 
@@ -66,63 +56,129 @@
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
-    .admin-header h1 { font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .admin-header h1 { font-size: 17px; font-weight: 800; text-transform: uppercase; }
     .admin-header h1 span { color: var(--accent); }
-    .logout-btn {
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-muted); padding: 5px 10px; border-radius: 6px;
-      font-size: 11px; font-weight: 600; cursor: pointer;
-    }
-
+    .head-actions { display: flex; gap: 8px; align-items: center; }
+    .logout-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    
     .section-title {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px;
+      letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px;
       display: flex; justify-content: space-between; align-items: center;
     }
-    .slots-scroll {
-      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px;
-      margin-bottom: 18px; scrollbar-width: none;
+
+    .dates-scroll, .slots-scroll {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px; scrollbar-width: none;
     }
-    .slots-scroll::-webkit-scrollbar { display: none; }
-    .slot-pill {
+    .dates-scroll::-webkit-scrollbar, .slots-scroll::-webkit-scrollbar { display: none; }
+
+    .date-pill, .slot-pill {
       background: var(--surface); border: 1px solid var(--border);
       padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
       color: var(--text-muted); white-space: nowrap; flex-shrink: 0; cursor: pointer;
     }
-    .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+    .date-pill.active, .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
+    /* Таблицы столов */
     .tables-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .table-admin-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; padding: 12px 14px; display: flex;
-      justify-content: space-between; align-items: center; transition: 0.2s;
+      justify-content: space-between; align-items: center;
     }
     .table-admin-card.busy { border-color: rgba(214, 40, 57, 0.4); background: rgba(214, 40, 57, 0.04); }
     .table-info h4 { font-size: 13px; font-weight: 700; color: #fff; }
     .table-info p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     
+    .table-actions { display: flex; gap: 6px; align-items: center; }
     .status-toggle-btn {
-      padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 700;
-      letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; border: none;
-      transition: 0.2s; min-width: 110px; text-align: center;
+      padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; cursor: pointer; border: none; min-width: 95px; text-align: center;
     }
     .btn-free { background: var(--green-soft); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
     .btn-busy { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(214, 40, 57, 0.4); }
-
-    .session-info-badge {
-      background: rgba(214, 40, 57, 0.08); border: 1px solid rgba(214, 40, 57, 0.2);
-      border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #f19fa7; margin-bottom: 16px;
+    .release-btn {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-light);
+      color: var(--gold); padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer;
     }
+
+    /* Кнопка записи */
+    .action-bar { display: flex; gap: 8px; margin-bottom: 24px; }
+    .action-btn-main {
+      flex: 1; background: var(--accent); color: #fff; border: none;
+      padding: 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    /* Карточки броней в смене */
+    .bookings-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+    .booking-feed-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .bfc-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+    .bfc-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+    .bfc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
+    .b-badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .badge-pending { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+    .badge-confirmed { background: var(--green-soft); color: var(--green); }
+    .badge-seated { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+    .badge-completed { background: rgba(255, 255, 255, 0.08); color: #888; }
+
+    /* Поиск гостя */
+    .loyalty-search-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px; margin-bottom: 24px;
+    }
+    .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .search-row input {
+      flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; color: #fff; font-size: 14px; outline: none;
+    }
+    .search-row button {
+      background: var(--surface); border: 1px solid var(--border-light); color: #fff;
+      padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .loyalty-result-card {
+      background: var(--bg); border: 1px solid var(--border-light); border-radius: 10px;
+      padding: 12px; display: none;
+    }
+    .lrc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .lrc-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .lrc-btn {
+      flex: 1; background: var(--surface); border: 1px solid var(--border-light); color: #fff;
+      padding: 7px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+
+    /* Модалка ручной брони */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; padding: 16px;
+    }
+    .modal-box {
+      background: #14161f; border: 1px solid var(--border-light); border-radius: 16px;
+      padding: 20px; max-width: 380px; width: 100%;
+    }
+    .modal-box h3 { font-size: 15px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 700; }
+    .form-group input, .form-group select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; color: #fff; font-size: 13px; outline: none;
+    }
+    .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .modal-actions button { flex: 1; padding: 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
 
-  <!-- Блокировка паролем -->
+  <!-- Вход -->
   <div class="pin-overlay" id="pinOverlay">
     <div class="pin-card">
-      <div class="pin-icon">🔒</div>
+      <div style="font-size: 26px; margin-bottom: 10px;">🔒</div>
       <h2>ЦОКОЛЬ Admin</h2>
-      <p>Введите рабочий пароль смены для доступа к шахматке зала</p>
+      <p>Рабочий пароль смены для доступа к шахматке зала</p>
       <input type="password" id="pinInput" class="pin-input" placeholder="Пароль администратора" autofocus>
       <button class="pin-btn" onclick="checkPin()">Войти в панель</button>
       <div class="pin-error" id="pinError">Неверный пароль администратора</div>
@@ -130,47 +186,131 @@
   </div>
 
   <div class="container" id="adminApp" style="display: none;">
-    <!-- Шапка -->
     <div class="admin-header">
       <div>
         <h1>ЦОКОЛЬ<span>.</span> Шахматка</h1>
         <div style="font-size: 11px; color: var(--green);">● Смена открыта</div>
       </div>
-      <button class="logout-btn" onclick="logout()">Выйти</button>
+      <div class="head-actions">
+        <button class="logout-btn" onclick="syncEverything()">Обновить ↺</button>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+      </div>
     </div>
 
-    <div class="session-info-badge">
-      ℹ️ <strong>Регламент 1.5 часа:</strong> клик по статусу стола переключает бронь сразу на 3 слота (на 90 минут вперед).
+    <!-- Быстрое действие -->
+    <div class="action-bar">
+      <button class="action-btn-main" onclick="openManualBookingModal()">➕ Записать гостя по звонку</button>
     </div>
+
+    <!-- Выбор дня -->
+    <div class="section-title">
+      <span>1. Дата календаря</span>
+      <span id="currentDateLabel" style="color: var(--accent); font-weight: 800;">Сегодня</span>
+    </div>
+    <div class="dates-scroll" id="adminDatesContainer"></div>
 
     <!-- Выбор времени -->
     <div class="section-title">
-      <span>1. Выберите слот времени</span>
+      <span>2. Слот времени (1.5 ч)</span>
       <span id="currentSlotLabel" style="color: var(--accent); font-weight: 800;">18:00</span>
     </div>
     <div class="slots-scroll" id="slotsContainer"></div>
 
     <!-- Сетка столов -->
     <div class="section-title">
-      <span>2. Состояние столов на выбранный слот</span>
+      <span>3. Состояние столов на слот</span>
       <span style="font-size: 10px; color: var(--text-muted);">Клик для смены 1.5 ч</span>
     </div>
     <div class="tables-grid" id="tablesContainer"></div>
+
+    <!-- Журнал смены -->
+    <div class="section-title">
+      <span>4. Журнал броней на день</span>
+      <span id="bookingsCountBadge" style="color: var(--gold); font-size: 11px; font-weight: 700;">0 броней</span>
+    </div>
+    <div class="bookings-box" id="bookingsFeed">
+      <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">Записей нет</div>
+    </div>
+
+    <!-- Поиск лояльности -->
+    <div class="section-title">
+      <span>5. Поиск гостя по базе лояльности</span>
+    </div>
+    <div class="loyalty-search-box">
+      <div class="search-row">
+        <input type="tel" id="loyaltySearchInput" placeholder="+7 (9XX) XXX-XX-XX">
+        <button onclick="searchLoyaltyGuest()">Найти</button>
+      </div>
+      <div class="loyalty-result-card" id="loyaltyResultCard">
+        <div class="lrc-head">
+          <strong id="lrcName">Иван</strong>
+          <span id="lrcTier" class="b-badge badge-confirmed">GOLD • 5%</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted);">
+          Баланс: <strong id="lrcBalance" style="color:#fff;">1 250 ₽</strong> • Потрачено: <span id="lrcSpent">27 000 ₽</span>
+        </div>
+        <div class="lrc-actions">
+          <button class="lrc-btn" onclick="adjustGuestBonus(100)">+100 баллов</button>
+          <button class="lrc-btn" onclick="adjustGuestBonus(300)">+300 баллов</button>
+          <button class="lrc-btn" style="color:var(--accent);" onclick="adjustGuestBonus(-100)">-100 баллов</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка ручной брони -->
+  <div class="modal-overlay" id="manualBookingModal">
+    <div class="modal-box">
+      <h3>Запись гостя (по звонку)</h3>
+      <div class="form-group">
+        <label>Имя гостя *</label>
+        <input type="text" id="manName" placeholder="Иван">
+      </div>
+      <div class="form-group">
+        <label>Телефон *</label>
+        <input type="tel" id="manPhone" placeholder="+7 9XX XXX-XX-XX">
+      </div>
+      <div class="form-group">
+        <label>Стол</label>
+        <select id="manTable"></select>
+      </div>
+      <div class="form-group">
+        <label>Время начала</label>
+        <select id="manTime"></select>
+      </div>
+      <div class="form-group">
+        <label>Кол-во кальянов</label>
+        <select id="manHookahs">
+          <option value="1">1 кальян (1 500 ₽)</option>
+          <option value="2">2 кальяна (3 000 ₽)</option>
+          <option value="3">3 кальяна (4 500 ₽)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Пожелания</label>
+        <input type="text" id="manComment" placeholder="Цитрус, покрепче, без мяты">
+      </div>
+      <div class="modal-actions">
+        <button style="background: var(--surface); color: var(--text-muted);" onclick="closeManualBookingModal()">Отмена</button>
+        <button style="background: var(--accent); color: #fff;" onclick="submitManualBooking()">Записать</button>
+      </div>
+    </div>
   </div>
 
   <script>
     const ADMIN_PIN = "tcklbel723daqw";
+    const API_BASE = "http://localhost:8000";
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
     const tableDefs = [
-      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 персон (Депозит 2 000 ₽)' },
-      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 персон (Депозит 2 000 ₽)' },
-      { id: 't1', name: 'Стол №1', desc: 'У экрана • Красный диван + 2 стула' },
-      { id: 't2', name: 'Стол №2', desc: 'Центр зала • Красный диван + 2 стула' },
-      { id: 't3', name: 'Стол №3', desc: 'Уютный угол • Красный диван + 2 стула' },
-      { id: 't4', name: 'Стол №4', desc: 'Перед экраном • Двухсторонние диваны' },
-      { id: 't5', name: 'Стол №5', desc: 'Центр зала • Большой стол' },
-      { id: 't6', name: 'Стол №6', desc: 'Зона у бара • 2 стула + диван' }
+      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 чел' },
+      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 чел' },
+      { id: 't1', name: 'Стол №1', desc: 'Красный диван + 2 стула' },
+      { id: 't2', name: 'Стол №2', desc: 'Центр зала' },
+      { id: 't3', name: 'Стол №3', desc: 'Уютный угол' },
+      { id: 't4', name: 'Стол №4', desc: 'Перед экраном' },
+      { id: 't5', name: 'Стол №5', desc: 'Большой стол' },
+      { id: 't6', name: 'Стол №6', desc: 'Зона у бара' }
     ];
 
     const timeSlots = [
@@ -181,11 +321,12 @@
       '00:00', '00:30', '01:00'
     ];
 
+    let currentSelectedDateIso = '';
     let currentSelectedSlot = '18:00';
+    let activeSearchedPhone = '';
 
     function checkPin() {
-      const val = document.getElementById('pinInput').value.trim();
-      if (val === ADMIN_PIN) {
+      if (document.getElementById('pinInput').value.trim() === ADMIN_PIN) {
         sessionStorage.setItem('cokol_admin_auth', 'ok');
         document.getElementById('pinOverlay').style.display = 'none';
         document.getElementById('adminApp').style.display = 'block';
@@ -195,7 +336,7 @@
       }
     }
 
-    document.getElementById('pinInput').addEventListener('keyup', function(e) {
+    document.getElementById('pinInput').addEventListener('keyup', (e) => {
       if (e.key === 'Enter') checkPin();
     });
 
@@ -211,8 +352,37 @@
     }
 
     function initAdminPanel() {
+      renderDates();
       renderSlotPills();
-      renderTablesGrid();
+      populateManualModalSelects();
+      syncEverything();
+    }
+
+    function renderDates() {
+      const container = document.getElementById('adminDatesContainer');
+      container.innerHTML = '';
+      const now = new Date();
+
+      for (let i = 0; i < 14; i++) {
+        const d = new Date();
+        d.setDate(now.getDate() + i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const label = i === 0 ? 'Сегодня' : `${d.getDate()} окт`;
+
+        const pill = document.createElement('div');
+        pill.className = `date-pill ${i === 0 ? 'active' : ''}`;
+        pill.innerText = label;
+        pill.onclick = () => {
+          document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          currentSelectedDateIso = iso;
+          document.getElementById('currentDateLabel').innerText = label;
+          syncEverything();
+        };
+        container.appendChild(pill);
+
+        if (i === 0) currentSelectedDateIso = iso;
+      }
     }
 
     function renderSlotPills() {
@@ -232,21 +402,24 @@
       });
     }
 
-    function getSlotState(time) {
-      try {
-        return JSON.parse(localStorage.getItem('cokol_tables_' + time)) || {};
-      } catch (e) {
-        return {};
-      }
+    function getLocalSchedule(dateIso) {
+      try { return JSON.parse(localStorage.getItem('cokol_sched_' + dateIso)) || {}; }
+      catch (e) { return {}; }
+    }
+
+    function saveLocalSchedule(dateIso, data) {
+      localStorage.setItem('cokol_sched_' + dateIso, JSON.stringify(data));
+      syncChannel.postMessage({ type: 'table_state_changed', date: dateIso });
     }
 
     function renderTablesGrid() {
       const container = document.getElementById('tablesContainer');
       container.innerHTML = '';
-      const state = getSlotState(currentSelectedSlot);
+      const sched = getLocalSchedule(currentSelectedDateIso);
+      const slotData = sched[currentSelectedSlot] || {};
 
       tableDefs.forEach(tbl => {
-        const isBusy = (state[tbl.id] === 'busy');
+        const isBusy = (slotData[tbl.id] === 'busy');
         const card = document.createElement('div');
         card.className = `table-admin-card ${isBusy ? 'busy' : ''}`;
 
@@ -255,44 +428,322 @@
             <h4>${tbl.name}</h4>
             <p>${tbl.desc}</p>
           </div>
-          <button class="status-toggle-btn ${isBusy ? 'btn-busy' : 'btn-free'}" onclick="toggleTableStatus('${tbl.id}')">
-            ${isBusy ? '🔴 ЗАНЯТ' : '🟢 СВОБОДЕН'}
-          </button>
+          <div class="table-actions">
+            ${isBusy ? `<button class="release-btn" onclick="releaseTableEarly('${tbl.id}')">Освободить</button>` : ''}
+            <button class="status-toggle-btn ${isBusy ? 'btn-busy' : 'btn-free'}" onclick="toggleTableStatus('${tbl.id}')">
+              ${isBusy ? '🔴 ЗАНЯТ' : '🟢 СВОБОДЕН'}
+            </button>
+          </div>
         `;
         container.appendChild(card);
       });
     }
 
-    // 1.5 ЧАСОВОЕ ПЕРЕКЛЮЧЕНИЕ СЛОТОВ АДМИНОМ
-    function getSessionSlots(startTime) {
-      const idx = timeSlots.indexOf(startTime);
-      if (idx === -1) return [startTime];
-      return timeSlots.slice(idx, Math.min(timeSlots.length, idx + 3));
-    }
+    // Переключение стола на 1.5 часа (3 слота)
+    async function toggleTableStatus(tableId) {
+      const sched = getLocalSchedule(currentSelectedDateIso);
+      const slotData = sched[currentSelectedSlot] || {};
+      const willBeBusy = (slotData[tableId] !== 'busy');
 
-    function toggleTableStatus(tableId) {
-      const slotsToChange = getSessionSlots(currentSelectedSlot);
-      const currentState = getSlotState(currentSelectedSlot);
-      const willBeBusy = (currentState[tableId] !== 'busy');
+      const startIdx = timeSlots.indexOf(currentSelectedSlot);
+      const sessionSlots = timeSlots.slice(startIdx, Math.min(timeSlots.length, startIdx + 3));
 
-      slotsToChange.forEach(slot => {
-        const state = getSlotState(slot);
-        if (willBeBusy) {
-          state[tableId] = 'busy';
-        } else {
-          delete state[tableId];
-        }
-        localStorage.setItem('cokol_tables_' + slot, JSON.stringify(state));
-        syncChannel.postMessage({ type: 'table_state_changed', time: slot });
+      sessionSlots.forEach(slot => {
+        if (!sched[slot]) sched[slot] = {};
+        if (willBeBusy) sched[slot][tableId] = 'busy';
+        else delete sched[slot][tableId];
       });
 
+      saveLocalSchedule(currentSelectedDateIso, sched);
       renderTablesGrid();
+
+      // Отправка на бэкенд
+      try {
+        await fetch(`${API_BASE}/api/schedule/toggle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date_iso: currentSelectedDateIso, time: currentSelectedSlot, table_id: tableId, busy: willBeBusy })
+        });
+      } catch (e) {}
+    }
+
+    // Досрочное освобождение стола
+    async function releaseTableEarly(tableId) {
+      if (!confirm("Освободить этот стол досрочно для следующих гостей?")) return;
+
+      const sched = getLocalSchedule(currentSelectedDateIso);
+      const startIdx = timeSlots.indexOf(currentSelectedSlot);
+      const slotsToFree = timeSlots.slice(startIdx);
+
+      slotsToFree.forEach(slot => {
+        if (sched[slot] && sched[slot][tableId]) {
+          delete sched[slot][tableId];
+        }
+      });
+
+      saveLocalSchedule(currentSelectedDateIso, sched);
+      renderTablesGrid();
+      loadBookingsFeed();
+
+      try {
+        await fetch(`${API_BASE}/api/bookings/release`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date_iso: currentSelectedDateIso, table_id: tableId, from_time: currentSelectedSlot })
+        });
+      } catch (e) {}
+    }
+
+    // Загрузка журнала смены
+    async function loadBookingsFeed() {
+      const feed = document.getElementById('bookingsFeed');
+      let bookings = [];
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings?date=${currentSelectedDateIso}`);
+        if (res.ok) bookings = await res.json();
+      } catch (e) {}
+
+      // Fallback на локальные данные
+      if (!bookings.length) {
+        try {
+          const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+          bookings = local.filter(b => b.dateIso === currentSelectedDateIso || (b.date && b.date.includes(currentSelectedDateIso.slice(-2))));
+        } catch (e) {}
+      }
+
+      document.getElementById('bookingsCountBadge').innerText = `${bookings.length} записей`;
+
+      if (!bookings.length) {
+        feed.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">На этот день броней пока нет</div>';
+        return;
+      }
+
+      feed.innerHTML = '';
+      bookings.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'booking-feed-card';
+
+        let badgeClass = 'badge-pending';
+        let badgeText = 'Ожидает СБП';
+        if (b.status === 'confirmed') { badgeClass = 'badge-confirmed'; badgeText = 'Подтверждён'; }
+        else if (b.status === 'seated') { badgeClass = 'badge-seated'; badgeText = 'В зале'; }
+        else if (b.status === 'completed') { badgeClass = 'badge-completed'; badgeText = 'Завершён'; }
+        else if (b.status === 'rejected') { badgeClass = 'badge-completed'; badgeText = 'Отменён'; }
+
+        card.innerHTML = `
+          <div class="bfc-head">
+            <span>${b.table_name || b.tableName} • ${b.time} – ${b.end_time || b.endTime || '1.5 ч'}</span>
+            <span class="b-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="bfc-sub">
+            👤 <strong>${b.name}</strong> (${b.phone || 'без телефона'})<br>
+            💨 ${b.hookahs || 1} кальян [${b.hookah_type || b.hookahType || 'Классика'}]
+            ${b.comment ? `<br>💬 «${b.comment}»` : ''}
+          </div>
+          <div class="bfc-foot">
+            <span>Чек / Депозит: <strong>${b.total_price || b.total}</strong></span>
+            <span style="color:var(--text-muted); font-size:10px;">ID: ${b.id.slice(-6)}</span>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    // Синхронизация всех блоков страницы
+    async function syncEverything() {
+      // Подтягиваем актуальное расписание с сервера
+      try {
+        const res = await fetch(`${API_BASE}/api/schedule?date=${currentSelectedDateIso}`);
+        if (res.ok) {
+          const serverSched = await res.json();
+          saveLocalSchedule(currentSelectedDateIso, serverSched);
+        }
+      } catch (e) {}
+
+      renderTablesGrid();
+      loadBookingsFeed();
+    }
+
+    // МОДАЛКА РУЧНОЙ БРОНИ
+    function populateManualModalSelects() {
+      const tableSel = document.getElementById('manTable');
+      const timeSel = document.getElementById('manTime');
+      tableSel.innerHTML = '';
+      timeSel.innerHTML = '';
+
+      tableDefs.forEach(t => {
+        tableSel.innerHTML += `<option value="${t.id}">${t.name} (${t.desc})</option>`;
+      });
+      timeSlots.forEach(s => {
+        timeSel.innerHTML += `<option value="${s}" ${s === '18:00' ? 'selected' : ''}>${s}</option>`;
+      });
+    }
+
+    function openManualBookingModal() {
+      document.getElementById('manualBookingModal').style.display = 'flex';
+      document.getElementById('manName').focus();
+    }
+    function closeManualBookingModal() {
+      document.getElementById('manualBookingModal').style.display = 'none';
+    }
+
+    async function submitManualBooking() {
+      const name = document.getElementById('manName').value.trim();
+      const phone = document.getElementById('manPhone').value.trim();
+      const tableId = document.getElementById('manTable').value;
+      const time = document.getElementById('manTime').value;
+      const hookahs = parseInt(document.getElementById('manHookahs').value) || 1;
+      const comment = document.getElementById('manComment').value.trim();
+
+      if (!name) { alert("Укажите имя гостя!"); return; }
+      if (!phone || phone.length < 6) { alert("Укажите телефон для связи!"); return; }
+
+      const tblObj = tableDefs.find(t => t.id === tableId);
+      const tableName = tblObj ? tblObj.name : "Стол";
+
+      // Расчет времени окончания (1.5 ч)
+      const [h, m] = time.split(':').map(Number);
+      const endTotalM = h * 60 + m + 90;
+      const endTime = `${String(Math.floor(endTotalM / 60) % 24).padStart(2, '0')}:${String(endTotalM % 60).padStart(2, '0')}`;
+
+      // Локальная блокировка слотов
+      const sched = getLocalSchedule(currentSelectedDateIso);
+      const startIdx = timeSlots.indexOf(time);
+      const sessionSlots = timeSlots.slice(startIdx, Math.min(timeSlots.length, startIdx + 3));
+      sessionSlots.forEach(s => {
+        if (!sched[s]) sched[s] = {};
+        sched[s][tableId] = 'busy';
+      });
+      saveLocalSchedule(currentSelectedDateIso, sched);
+
+      const bookingRecord = {
+        id: 'b_man_' + Date.now(),
+        name: name,
+        phone: phone,
+        tableId: tableId,
+        tableName: tableName,
+        time: time,
+        endTime: endTime,
+        date: document.getElementById('currentDateLabel').innerText,
+        dateIso: currentSelectedDateIso,
+        hookahs: hookahs,
+        hookahType: 'Классика',
+        comment: comment,
+        total: `${hookahs * 1500} ₽`,
+        totalNum: hookahs * 1500,
+        status: 'confirmed'
+      };
+
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.unshift(bookingRecord);
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+      } catch (e) {}
+
+      // Отправка на бэкенд
+      try {
+        await fetch(`${API_BASE}/api/bookings/manual`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date_iso: currentSelectedDateIso,
+            date_label: document.getElementById('currentDateLabel').innerText,
+            time: time,
+            end_time: endTime,
+            table_id: tableId,
+            table_name: tableName,
+            name: name,
+            phone: phone,
+            hookahs: hookahs,
+            comment: comment,
+            total_num: hookahs * 1500
+          })
+        });
+      } catch (e) {}
+
+      closeManualBookingModal();
+      document.getElementById('manName').value = '';
+      document.getElementById('manPhone').value = '';
+      document.getElementById('manComment').value = '';
+
+      syncEverything();
+      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован!`);
+    }
+
+    // ПОИСК ГОСТЯ И УПРАВЛЕНИЕ ЛОЯЛЬНОСТЬЮ
+    async function searchLoyaltyGuest() {
+      const query = document.getElementById('loyaltySearchInput').value.trim();
+      if (!query) return;
+
+      activeSearchedPhone = query;
+      let guestData = null;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/loyalty/search?phone=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.found) guestData = data;
+        }
+      } catch (e) {}
+
+      // Fallback на локальные данные
+      if (!guestData) {
+        const clean = query.replace(/\D/g, '');
+        try {
+          const stored = JSON.parse(localStorage.getItem('cokol_loyalty_p_' + clean));
+          if (stored) {
+            guestData = { name: "Гость", phone: query, spent: stored.spent || 0, balance: stored.balance || 0, tier: stored.spent >= 50000 ? 'PLATINUM' : (stored.spent >= 25000 ? 'GOLD' : 'SILVER') };
+          }
+        } catch (e) {}
+      }
+
+      const card = document.getElementById('loyaltyResultCard');
+      if (guestData) {
+        document.getElementById('lrcName').innerText = `${guestData.name || 'Гость'} (${guestData.phone})`;
+        document.getElementById('lrcTier').innerText = `${guestData.tier} • ${guestData.tier === 'PLATINUM' ? '7%' : (guestData.tier === 'GOLD' ? '5%' : '3%')}`;
+        document.getElementById('lrcBalance').innerText = `${Number(guestData.balance).toLocaleString('ru-RU')} ₽`;
+        document.getElementById('lrcSpent').innerText = `${Number(guestData.spent).toLocaleString('ru-RU')} ₽`;
+        card.style.display = 'block';
+      } else {
+        alert("Гость с таким номером ещё не зарегистрирован в системе лояльности.");
+        card.style.display = 'none';
+      }
+    }
+
+    async function adjustGuestBonus(delta) {
+      if (!activeSearchedPhone) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/loyalty/adjust`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: activeSearchedPhone, delta: delta })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'ok') {
+            document.getElementById('lrcBalance').innerText = `${Number(data.new_balance).toLocaleString('ru-RU')} ₽`;
+            alert(`Баланс обновлен: ${delta > 0 ? '+' : ''}${delta} ₽`);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Локальный fallback
+      const clean = activeSearchedPhone.replace(/\D/g, '');
+      const key = 'cokol_loyalty_p_' + clean;
+      try {
+        const stored = JSON.parse(localStorage.getItem(key)) || { spent: 0, balance: 0 };
+        stored.balance = Math.max(0, (stored.balance || 0) + delta);
+        localStorage.setItem(key, JSON.stringify(stored));
+        document.getElementById('lrcBalance').innerText = `${Number(stored.balance).toLocaleString('ru-RU')} ₽`;
+        alert(`Баланс обновлен (локально): ${delta > 0 ? '+' : ''}${delta} ₽`);
+      } catch (e) {}
     }
 
     syncChannel.onmessage = (event) => {
-      if (event.data?.type === 'table_state_changed' || event.data?.type === 'new_booking') {
-        renderTablesGrid();
-      }
+      if (event.data?.type === 'table_state_changed') syncEverything();
     };
   </script>
 </body>
