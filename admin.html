@@ -22,6 +22,7 @@
       --green: #2ecc71;
       --green-soft: rgba(46, 204, 113, 0.15);
       --gold: #d4af37;
+      --blue: #3498db;
       --text: #f4f5f7;
       --text-muted: #7b808e;
       --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
@@ -120,12 +121,28 @@
     .bfc-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
     .bfc-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
     .bfc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
+    
     .b-badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
     .badge-pending { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
     .badge-confirmed { background: var(--green-soft); color: var(--green); }
-    .badge-seated { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+    .badge-seated { background: rgba(52, 152, 219, 0.15); color: var(--blue); }
     .badge-completed { background: rgba(255, 255, 255, 0.08); color: #888; }
     .badge-rejected { background: rgba(214, 40, 57, 0.15); color: var(--accent); }
+
+    /* Кнопки управления в карточке брони */
+    .bfc-actions-bar {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border);
+    }
+    .bf-act-btn {
+      flex: 1; min-width: 110px; padding: 7px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
+      cursor: pointer; border: 1px solid var(--border-light); background: var(--bg); color: #fff;
+      text-align: center; text-transform: uppercase; transition: 0.2s;
+    }
+    .bf-act-btn:hover { border-color: #fff; }
+    .bf-btn-seat { border-color: rgba(52, 152, 219, 0.5); color: var(--blue); }
+    .bf-btn-extend { border-color: rgba(241, 196, 15, 0.5); color: var(--gold); }
+    .bf-btn-finish { border-color: rgba(46, 204, 113, 0.6); color: var(--green); }
+    .bf-btn-cancel { border-color: rgba(214, 40, 57, 0.4); color: var(--accent); }
 
     /* Поиск гостя */
     .loyalty-search-box {
@@ -152,7 +169,7 @@
       padding: 7px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
     }
 
-    /* Модалка ручной брони */
+    /* Модалки */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: none; align-items: center; justify-content: center;
@@ -167,7 +184,7 @@
     .form-group label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 700; }
     .form-group input, .form-group select {
       width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 9px 12px; color: #fff; font-size: 13px; outline: none;
+      padding: 10px 12px; color: #fff; font-size: 14px; outline: none;
     }
     .tariff-hint-text { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 4px; display: block; }
     .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
@@ -251,7 +268,7 @@
           <span id="lrcTier" class="b-badge badge-confirmed">SILVER • 3%</span>
         </div>
         <div style="font-size: 11px; color: var(--text-muted);">
-          Баланс: <strong id="lrcBalance" style="color:#fff;">0 ₽</strong> • Потрачено: <span id="lrcSpent">0 ₽</span>
+          Баланс: <strong id="lrcBalance" style="color:#fff;">0 ₽</strong> • Потрачено всего: <span id="lrcSpent">0 ₽</span>
         </div>
         <div class="lrc-actions">
           <button class="lrc-btn" onclick="adjustGuestBonus(100)">+100 баллов</button>
@@ -262,7 +279,7 @@
     </div>
   </div>
 
-  <!-- Модалка ручной брони -->
+  <!-- Модалка ручной брони по звонку -->
   <div class="modal-overlay" id="manualBookingModal">
     <div class="modal-box">
       <h3>Запись гостя (по звонку)</h3>
@@ -302,6 +319,29 @@
     </div>
   </div>
 
+  <!-- Калькулятор закрытия счёта и начисления кэшбэка -->
+  <div class="modal-overlay" id="closeVisitModal">
+    <div class="modal-box">
+      <h3>Расчёт и закрытие счёта</h3>
+      <p id="closeVisitGuestDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></p>
+      
+      <div class="form-group">
+        <label>Итоговая сумма чека к оплате (₽) *</label>
+        <input type="number" id="closeVisitTotalInput" placeholder="1500" oninput="updateCloseVisitCashbackPreview()">
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Бонусная система гостя:</div>
+        <strong id="closeVisitCashbackPreview" style="font-size: 13px; color: var(--green);">Кэшбэк: +45 ₽ (3%)</strong>
+      </div>
+
+      <div class="modal-actions">
+        <button style="background: var(--surface); color: var(--text-muted);" onclick="closeCloseVisitModal()">Отмена</button>
+        <button style="background: var(--green); color: #fff;" onclick="submitCloseVisit()">🏁 Рассчитать и закрыть</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const ADMIN_PIN = "tcklbel723daqw";
     const API_BASE = "http://localhost:8000";
@@ -329,6 +369,7 @@
     let currentSelectedDateIso = '';
     let currentSelectedSlot = '18:00';
     let activeSearchedPhone = '';
+    let activeClosingBooking = null;
 
     function checkPin() {
       if (document.getElementById('pinInput').value.trim() === ADMIN_PIN) {
@@ -407,6 +448,12 @@
       });
     }
 
+    function cleanDigitsPhone(p) {
+      let c = (p || '').replace(/\D/g, '');
+      if (c.length === 11 && (c[0] === '7' || c[0] === '8')) c = '7' + c.slice(1);
+      return c;
+    }
+
     function getLocalSchedule(dateIso) {
       try { return JSON.parse(localStorage.getItem('cokol_sched_' + dateIso)) || {}; }
       catch (e) { return {}; }
@@ -470,7 +517,6 @@
       } catch (e) {}
     }
 
-    // Досрочное освобождение стола (переводит в Завершён)
     async function releaseTableEarly(tableId) {
       if (!confirm("Освободить этот стол досрочно и завершить бронь?")) return;
 
@@ -485,7 +531,6 @@
       });
       saveLocalSchedule(currentSelectedDateIso, sched);
 
-      // Локальное обновление статуса
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.forEach(b => {
@@ -498,7 +543,6 @@
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
       } catch (e) {}
 
-      // Серверное обновление статуса
       try {
         await fetch(`${API_BASE}/api/bookings/release`, {
           method: 'POST',
@@ -508,6 +552,249 @@
       } catch (e) {}
 
       syncEverything();
+    }
+
+    // 1. ПРОДЛЕНИЕ СТОЛА (+1.5 ЧАСА)
+    async function extendBooking(bookingId) {
+      let booking = null;
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        booking = local.find(b => b.id === bookingId);
+      } catch (e) {}
+
+      if (!booking) return;
+
+      const tableId = booking.tableId || booking.table_id;
+      const tableName = booking.tableName || booking.table_name;
+      const currentEndTime = booking.endTime || booking.end_time || '19:30';
+      const dateIso = booking.dateIso || currentSelectedDateIso;
+
+      // Находим слот, с которого начинается продление (старое время окончания)
+      const startExtIdx = timeSlots.indexOf(currentEndTime);
+      if (startExtIdx === -1 || startExtIdx + 3 > timeSlots.length) {
+        alert("⚠️ Продление невозможно: заведение закрывается!");
+        return;
+      }
+
+      // Проверяем, свободны ли следующие 3 слота (1.5 часа)
+      const sched = getLocalSchedule(dateIso);
+      const extSlots = timeSlots.slice(startExtIdx, startExtIdx + 3);
+
+      for (let s of extSlots) {
+        if (sched[s] && sched[s][tableId] === 'busy') {
+          alert(`⚠️ Нельзя продлить стол: на слот ${s} этот стол уже забронирован другими гостями!`);
+          return;
+        }
+      }
+
+      if (!confirm(`Продлить отдых за столом ${tableName} ещё на 1.5 часа (до ${timeSlots[startExtIdx + 3] || 'закрытия'})?\nК счёту добавится перезабивка кальяна (+1 500 ₽).`)) {
+        return;
+      }
+
+      // Блокируем новые слоты в расписании
+      extSlots.forEach(s => {
+        if (!sched[s]) sched[s] = {};
+        sched[s][tableId] = 'busy';
+      });
+      saveLocalSchedule(dateIso, sched);
+
+      const [h, m] = currentEndTime.split(':').map(Number);
+      const newEndTotalM = h * 60 + m + 90;
+      const newEndTime = `${String(Math.floor(newEndTotalM / 60) % 24).padStart(2, '0')}:${String(newEndTotalM % 60).padStart(2, '0')}`;
+      const newTotalNum = Number(booking.totalNum || booking.total_num || 1500) + 1500;
+      const newHookahs = Number(booking.hookahs || 1) + 1;
+
+      // Обновляем локально
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.forEach(b => {
+          if (b.id === bookingId) {
+            b.endTime = newEndTime;
+            b.end_time = newEndTime;
+            b.totalNum = newTotalNum;
+            b.total_num = newTotalNum;
+            b.total = `${newTotalNum.toLocaleString('ru-RU')} ₽`;
+            b.total_price = `${newTotalNum.toLocaleString('ru-RU')} ₽`;
+            b.hookahs = newHookahs;
+          }
+        });
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+      } catch (e) {}
+
+      // Обновляем на сервере
+      try {
+        await fetch(`${API_BASE}/api/bookings/extend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ booking_id: bookingId, extra_minutes: 90, extra_amount: 1500.0 })
+        });
+      } catch (e) {}
+
+      syncEverything();
+      alert(`🎉 Стол ${tableName} успешно продлен до ${newEndTime}!\nНовая сумма счёта: ${newTotalNum.toLocaleString('ru-RU')} ₽.`);
+    }
+
+    // 2. КАЛЬКУЛЯТОР ФАКТИЧЕСКОГО ЧЕКА И НАЧИСЛЕНИЕ ЛОЯЛЬНОСТИ
+    function openCloseVisitModal(bookingId) {
+      let booking = null;
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        booking = local.find(b => b.id === bookingId);
+      } catch (e) {}
+
+      if (!booking) return;
+      activeClosingBooking = booking;
+
+      const gName = booking.name || 'Гость';
+      const gPhone = booking.phone || 'без телефона';
+      const gTable = booking.tableName || booking.table_name || 'Стол';
+      const currentBill = Number(booking.totalNum || booking.total_num || 1500);
+
+      document.getElementById('closeVisitGuestDesc').innerHTML = `
+        Гость: <strong>${gName}</strong> (${gPhone})<br>
+        Стол: <strong>${gTable}</strong> • Текущий депозит/заказ: <strong>${currentBill.toLocaleString('ru-RU')} ₽</strong>
+      `;
+      document.getElementById('closeVisitTotalInput').value = currentBill;
+      updateCloseVisitCashbackPreview();
+      document.getElementById('closeVisitModal').style.display = 'flex';
+      document.getElementById('closeVisitTotalInput').focus();
+    }
+
+    function closeCloseVisitModal() {
+      document.getElementById('closeVisitModal').style.display = 'none';
+      activeClosingBooking = null;
+    }
+
+    function updateCloseVisitCashbackPreview() {
+      if (!activeClosingBooking) return;
+      const val = parseFloat(document.getElementById('closeVisitTotalInput').value) || 0;
+      
+      const cleanPhone = cleanDigitsPhone(activeClosingBooking.phone);
+      let spent = 0;
+      try {
+        const stored = JSON.parse(localStorage.getItem('cokol_loyalty_p_' + cleanPhone));
+        if (stored) spent = stored.spent || 0;
+      } catch (e) {}
+
+      const rate = spent >= 50000 ? 0.07 : (spent >= 25000 ? 0.05 : 0.03);
+      const earned = Math.round(val * rate);
+      document.getElementById('closeVisitCashbackPreview').innerText = `Кэшбэк гостю: +${earned.toLocaleString('ru-RU')} ₽ (${Math.round(rate * 100)}%)`;
+    }
+
+    async function submitCloseVisit() {
+      if (!activeClosingBooking) return;
+      const finalAmount = parseFloat(document.getElementById('closeVisitTotalInput').value);
+      if (isNaN(finalAmount) || finalAmount <= 0) {
+        alert("Укажите корректную сумму чека!");
+        return;
+      }
+
+      const bookingId = activeClosingBooking.id;
+      const bItem = activeClosingBooking;
+
+      // 1. Обновляем статус брони и финальную сумму в локальной памяти
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.forEach(b => {
+          if (b.id === bookingId) {
+            b.status = 'completed';
+            b.totalNum = finalAmount;
+            b.total_num = finalAmount;
+            b.total = `${finalAmount.toLocaleString('ru-RU')} ₽`;
+            b.total_price = `${finalAmount.toLocaleString('ru-RU')} ₽`;
+          }
+        });
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+      } catch (e) {}
+
+      // 2. Начисляем реальный кэшбэк на номер гостя
+      const cleanPhone = cleanDigitsPhone(bItem.phone);
+      let newBalance = 0;
+      if (cleanPhone && cleanPhone.length >= 10) {
+        const key = 'cokol_loyalty_p_' + cleanPhone;
+        let profile = { name: bItem.name, spent: 0, balance: 0, tier: 'SILVER' };
+        try {
+          const stored = JSON.parse(localStorage.getItem(key));
+          if (stored) profile = stored;
+        } catch (e) {}
+
+        const rate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
+        const earned = Math.round(finalAmount * rate);
+
+        profile.spent = (Number(profile.spent) || 0) + finalAmount;
+        profile.balance = (Number(profile.balance) || 0) + earned;
+        profile.tier = profile.spent >= 50000 ? 'PLATINUM' : (profile.spent >= 25000 ? 'GOLD' : 'SILVER');
+        if (bItem.name) profile.name = bItem.name;
+
+        localStorage.setItem(key, JSON.stringify(profile));
+        newBalance = profile.balance;
+      }
+
+      // 3. Освобождаем стол в расписании
+      freeTableForBooking(bItem);
+
+      // 4. Отправляем финальный чек и статус на бэкенд
+      try {
+        await fetch(`${API_BASE}/api/bookings/close_visit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ booking_id: bookingId, final_total: finalAmount })
+        });
+      } catch (e) {}
+
+      closeCloseVisitModal();
+      syncEverything();
+
+      if (activeSearchedPhone && cleanDigitsPhone(activeSearchedPhone) === cleanPhone) {
+        searchLoyaltyGuest();
+      }
+
+      alert(`🏁 Визит закрыт!\nСчёт: ${finalAmount.toLocaleString('ru-RU')} ₽.\nНа карту гостя ${bItem.name} начислено кэшбэка.\nБаланс карты: ${newBalance.toLocaleString('ru-RU')} ₽.`);
+    }
+
+    async function setBookingStatus(bookingId, newStatus) {
+      let bItem = null;
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.forEach(b => {
+          if (b.id === bookingId) {
+            b.status = newStatus;
+            bItem = b;
+          }
+        });
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+      } catch (e) {}
+
+      if (newStatus === 'rejected' && bItem) {
+        freeTableForBooking(bItem);
+      }
+
+      try {
+        await fetch(`${API_BASE}/api/bookings/update_status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ booking_id: bookingId, status: newStatus })
+        });
+      } catch (e) {}
+
+      syncEverything();
+    }
+
+    function freeTableForBooking(bItem) {
+      const tId = bItem.tableId || bItem.table_id;
+      const dIso = bItem.dateIso || currentSelectedDateIso;
+      const tTime = bItem.time;
+
+      const sched = getLocalSchedule(dIso);
+      const startIdx = timeSlots.indexOf(tTime);
+      const slotsToFree = (startIdx !== -1) ? timeSlots.slice(startIdx) : [tTime];
+
+      slotsToFree.forEach(slot => {
+        if (sched[slot] && sched[slot][tId]) {
+          delete sched[slot][tId];
+        }
+      });
+      saveLocalSchedule(dIso, sched);
     }
 
     async function loadBookingsFeed() {
@@ -545,6 +832,26 @@
         else if (b.status === 'completed') { badgeClass = 'badge-completed'; badgeText = 'Завершён'; }
         else if (b.status === 'rejected') { badgeClass = 'badge-rejected'; badgeText = 'Отменён'; }
 
+        let actionButtonsHtml = '';
+        if (b.status === 'confirmed' || b.status === 'pending') {
+          actionButtonsHtml = `
+            <div class="bfc-actions-bar">
+              <button class="bf-act-btn bf-btn-seat" onclick="setBookingStatus('${b.id}', 'seated')">🛋 Гости в зале</button>
+              <button class="bf-act-btn bf-btn-extend" onclick="extendBooking('${b.id}')">⏱ Продлить (+1.5 ч)</button>
+              <button class="bf-act-btn bf-btn-finish" onclick="openCloseVisitModal('${b.id}')">🏁 Закрыть счёт</button>
+              <button class="bf-act-btn bf-btn-cancel" onclick="setBookingStatus('${b.id}', 'rejected')">❌ Отмена</button>
+            </div>
+          `;
+        } else if (b.status === 'seated') {
+          actionButtonsHtml = `
+            <div class="bfc-actions-bar">
+              <button class="bf-act-btn bf-btn-extend" onclick="extendBooking('${b.id}')">⏱ Продлить (+1.5 ч)</button>
+              <button class="bf-act-btn bf-btn-finish" style="flex:2;" onclick="openCloseVisitModal('${b.id}')">🏁 Закрыть счёт (+ кэшбэк)</button>
+              <button class="bf-act-btn bf-btn-cancel" onclick="setBookingStatus('${b.id}', 'rejected')">❌ Отмена</button>
+            </div>
+          `;
+        }
+
         card.innerHTML = `
           <div class="bfc-head">
             <span>${b.table_name || b.tableName} • ${b.time} – ${b.end_time || b.endTime || '1.5 ч'}</span>
@@ -556,9 +863,10 @@
             ${b.comment ? `<br>💬 «${b.comment}»` : ''}
           </div>
           <div class="bfc-foot">
-            <span>Чек: <strong>${b.total_price || b.total}</strong></span>
+            <span>Счёт: <strong>${b.total_price || b.total}</strong></span>
             <span style="color:var(--text-muted); font-size:10px;">ID: ${b.id.slice(-6)}</span>
           </div>
+          ${actionButtonsHtml}
         `;
         feed.appendChild(card);
       });
@@ -639,6 +947,7 @@
       if (!name) { alert("Укажите имя гостя!"); return; }
       if (!phone || phone.length < 6) { alert("Укажите телефон для связи и лояльности!"); return; }
 
+      const cleanPhone = cleanDigitsPhone(phone);
       const tblObj = tableDefs.find(t => t.id === tableId);
       const tableName = tblObj ? tblObj.name : "Стол";
       const isVip = tblObj ? tblObj.isVip : false;
@@ -652,7 +961,6 @@
       const endTotalM = h * 60 + m + 90;
       const endTime = `${String(Math.floor(endTotalM / 60) % 24).padStart(2, '0')}:${String(endTotalM % 60).padStart(2, '0')}`;
 
-      // Локальная блокировка
       const sched = getLocalSchedule(currentSelectedDateIso);
       const startIdx = timeSlots.indexOf(time);
       const sessionSlots = timeSlots.slice(startIdx, Math.min(timeSlots.length, startIdx + 3));
@@ -686,7 +994,21 @@
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
       } catch (e) {}
 
-      // Серверная запись и регистрация в лояльности
+      if (cleanPhone) {
+        const key = 'cokol_loyalty_p_' + cleanPhone;
+        let existing = null;
+        try { existing = JSON.parse(localStorage.getItem(key)); } catch(e){}
+        if (!existing) {
+          localStorage.setItem(key, JSON.stringify({
+            name: name,
+            phone: phone,
+            spent: 0,
+            balance: 0,
+            tier: 'SILVER'
+          }));
+        }
+      }
+
       try {
         await fetch(`${API_BASE}/api/bookings/manual`, {
           method: 'POST',
@@ -714,7 +1036,7 @@
       document.getElementById('manComment').value = '';
 
       syncEverything();
-      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован! Сумма: ${finalPrice.toLocaleString('ru-RU')} ₽`);
+      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован!\nКэшбэк на номер ${phone} начислится после закрытия визита кнопкой [Закрыть счёт].`);
     }
 
     async function searchLoyaltyGuest() {
@@ -733,11 +1055,17 @@
       } catch (e) {}
 
       if (!guestData) {
-        const clean = query.replace(/\D/g, '');
+        const clean = cleanDigitsPhone(query);
         try {
           const stored = JSON.parse(localStorage.getItem('cokol_loyalty_p_' + clean));
           if (stored) {
-            guestData = { name: "Гость", phone: query, spent: stored.spent || 0, balance: stored.balance || 0, tier: stored.spent >= 50000 ? 'PLATINUM' : (stored.spent >= 25000 ? 'GOLD' : 'SILVER') };
+            guestData = { 
+              name: stored.name || "Гость", 
+              phone: query, 
+              spent: stored.spent || 0, 
+              balance: stored.balance || 0, 
+              tier: stored.tier || (stored.spent >= 50000 ? 'PLATINUM' : (stored.spent >= 25000 ? 'GOLD' : 'SILVER'))
+            };
           }
         } catch (e) {}
       }
@@ -774,7 +1102,7 @@
         }
       } catch (e) {}
 
-      const clean = activeSearchedPhone.replace(/\D/g, '');
+      const clean = cleanDigitsPhone(activeSearchedPhone);
       const key = 'cokol_loyalty_p_' + clean;
       try {
         const stored = JSON.parse(localStorage.getItem(key)) || { spent: 0, balance: 0 };
@@ -785,7 +1113,6 @@
       } catch (e) {}
     }
 
-    // Очистка старых тестовых броней
     async function clearLegacyTests() {
       if (!confirm("Очистить все тестовые брони и освободить столы смены?")) return;
       localStorage.removeItem('cokol_bookings');

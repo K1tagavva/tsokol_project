@@ -163,13 +163,25 @@ class ToggleTableRequest(BaseModel):
     table_id: str
     busy: bool
 
+class UpdateStatusRequest(BaseModel):
+    booking_id: str
+    status: str
+
+class CloseVisitRequest(BaseModel):
+    booking_id: str
+    final_total: float
+
+class ExtendBookingRequest(BaseModel):
+    booking_id: str
+    extra_minutes: int = 90
+    extra_amount: float = 1500.0
+
 # API ЭНДПОИНТЫ
 @app.get("/api/schedule")
 async def get_schedule(date: str):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 1. Автоматическая синхронизация: берем все активные брони на этот день
     cursor.execute("""
         SELECT time_slot, table_id, id FROM bookings
         WHERE (date_iso = ? OR booking_date LIKE ?)
@@ -256,6 +268,137 @@ async def get_bookings(date: str):
         })
     return result
 
+@app.post("/api/bookings/close_visit")
+async def close_visit_endpoint(req: CloseVisitRequest):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, phone, table_id, date_iso FROM bookings WHERE id = ?", (req.booking_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return {"status": "error", "message": "Бронь не найдена"}
+
+    name, phone, table_id, date_iso = row
+    clean_phone = "".join(filter(str.isdigit, phone or ""))
+    if len(clean_phone) == 11 and clean_phone[0] in ('7', '8'):
+        clean_phone = "7" + clean_phone[1:]
+
+    # Узнаем текущий статус накоплений клиента
+    current_spent = 0.0
+    if clean_phone:
+        cursor.execute("SELECT spent FROM loyalty_clients WHERE phone = ?", (clean_phone,))
+        spent_row = cursor.fetchone()
+        if spent_row:
+            current_spent = spent_row[0] or 0.0
+
+    rate = 0.07 if current_spent >= 50000 else (0.05 if current_spent >= 25000 else 0.03)
+    calc_cb = round(req.final_total * rate)
+
+    # Обновляем бронь
+    cursor.execute("""
+        UPDATE bookings
+        SET status = 'completed',
+            total_num = ?,
+            total_price = ?,
+            cashback = ?
+        WHERE id = ?
+    """, (req.final_total, f"{req.final_total:,.0f} ₽", calc_cb, req.booking_id))
+
+    # Освобождаем стол в расписании
+    cursor.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
+
+    # Начисляем баллы
+    if clean_phone:
+        cursor.execute("""
+            INSERT INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
+            VALUES (?, NULL, ?, ?, ?, 'SILVER')
+            ON CONFLICT(phone) DO UPDATE SET
+                spent = spent + excluded.spent,
+                balance = balance + excluded.balance,
+                tier = CASE
+                    WHEN (spent + excluded.spent) >= 50000 THEN 'PLATINUM'
+                    WHEN (spent + excluded.spent) >= 25000 THEN 'GOLD'
+                    ELSE 'SILVER'
+                END
+        """, (clean_phone, name, req.final_total, calc_cb))
+
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "cashback": calc_cb, "final_total": req.final_total}
+
+@app.post("/api/bookings/extend")
+async def extend_booking_endpoint(req: ExtendBookingRequest):
+    time_slots = [
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+        '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
+        '21:00', '21:30', '22:00', '22:30', '23:00', '23:30',
+        '00:00', '00:30', '01:00'
+    ]
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT table_id, end_time, date_iso, total_num, hookahs FROM bookings WHERE id = ?", (req.booking_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return {"status": "error", "message": "Бронь не найдена"}
+
+    table_id, end_time, date_iso, total_num, hookahs = row
+    start_ext_idx = time_slots.index(end_time) if end_time in time_slots else -1
+
+    if start_ext_idx == -1:
+        conn.close()
+        return {"status": "error", "message": "Неверное время окончания"}
+
+    ext_slots = time_slots[start_ext_idx:min(len(time_slots), start_ext_idx + 3)]
+    for s in ext_slots:
+        cursor.execute("SELECT booking_id FROM table_schedules WHERE date_iso = ? AND time_slot = ? AND table_id = ?", (date_iso, s, table_id))
+        conflict = cursor.fetchone()
+        if conflict and conflict[0] != req.booking_id:
+            conn.close()
+            return {"status": "collision", "message": f"Слот {s} уже занят другой бронью!"}
+
+    # Блокируем новые слоты
+    for s in ext_slots:
+        cursor.execute("""
+            INSERT OR REPLACE INTO table_schedules (date_iso, time_slot, table_id, status, booking_id)
+            VALUES (?, ?, ?, 'busy', ?)
+        """, (date_iso, s, table_id, req.booking_id))
+
+    # Рассчитываем новое время окончания (+90 мин)
+    h, m = map(int, end_time.split(':'))
+    new_end_total_m = h * 60 + m + req.extra_minutes
+    new_end_time = f"{((new_end_total_m // 60) % 24):02d}:{(new_end_total_m % 60):02d}"
+    new_total_num = (total_num or 0) + req.extra_amount
+    new_hookahs = (hookahs or 1) + 1
+
+    cursor.execute("""
+        UPDATE bookings
+        SET end_time = ?,
+            total_num = ?,
+            total_price = ?,
+            hookahs = ?
+        WHERE id = ?
+    """, (new_end_time, new_total_num, f"{new_total_num:,.0f} ₽", new_hookahs, req.booking_id))
+
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "new_end_time": new_end_time, "new_total": new_total_num}
+
+@app.post("/api/bookings/update_status")
+async def update_booking_status(req: UpdateStatusRequest):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE bookings SET status = ? WHERE id = ?", (req.status, req.booking_id))
+    if req.status in ("completed", "rejected"):
+        cursor.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
 @app.post("/api/bookings/manual")
 async def create_manual_booking(req: ManualBookingRequest):
     time_slots = [
@@ -294,7 +437,6 @@ async def create_manual_booking(req: ManualBookingRequest):
             VALUES (?, ?, ?, 'busy', ?)
         """, (req.date_iso, s, req.table_id, b_id))
 
-    # Сразу регистрируем в лояльности для мгновенного поиска
     if clean_phone:
         cursor.execute("""
             INSERT OR IGNORE INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
@@ -322,7 +464,6 @@ async def release_table(req: TableReleaseRequest):
     for s in slots_to_free:
         cursor.execute("DELETE FROM table_schedules WHERE date_iso = ? AND table_id = ? AND time_slot = ?", (req.date_iso, req.table_id, s))
     
-    # Перевод брони в статус completed
     cursor.execute("""
         UPDATE bookings SET status = 'completed'
         WHERE (date_iso = ? OR booking_date LIKE ?)
@@ -405,11 +546,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckRequest):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=17"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=19"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=17")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=19")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -435,7 +576,7 @@ async def cmd_admin(message: types.Message):
         await message.answer("⛔ У вас нет прав доступа к панели управления.")
         return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=17"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=19"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\n\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -532,7 +673,7 @@ async def handle_webapp_data(message: types.Message):
         if clean_phone:
             cursor.execute("""
                 INSERT OR IGNORE INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
-                VALUES (?, ?, ?, 0, 0, 'SILVER')
+                VALUES (?, NULL, ?, 0, 0, 'SILVER')
             """, (clean_phone, message.from_user.id, name))
         conn.commit()
         conn.close()
@@ -746,7 +887,7 @@ async def main():
         await bot.set_chat_menu_button(
             menu_button=MenuButtonWebApp(
                 text="💨 Забронировать",
-                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=17")
+                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=19")
             )
         )
     except Exception:
