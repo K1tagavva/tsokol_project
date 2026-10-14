@@ -101,7 +101,7 @@
     .perks-item { display: flex; align-items: center; gap: 6px; }
     .perks-item::before { content: '✓'; color: var(--green); font-weight: 800; font-size: 10px; }
 
-    /* MONTHLY CINEMA AFISHA */
+    /* Cinema Afisha */
     .cinema-afisha-section {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 14px 14px 16px; margin-bottom: 22px;
@@ -503,7 +503,7 @@
   </div>
 
   <div class="container">
-    <!-- Header без скрытых кликов -->
+    <!-- Header -->
     <header class="header">
       <div class="brand-group">
         <h1>ЦОКОЛЬ<span>.</span></h1>
@@ -523,14 +523,14 @@
             <div class="card-badge" id="cardFrontBadge">SILVER • 3%</div>
           </div>
           <div class="card-body">
-            <span>Баланс привилегий</span>
+            <span>Баланс лояльности</span>
             <strong id="cardBalanceAmount">0 ₽</strong>
             <div id="pendingCashbackWrap" style="display: none;">
               <span class="pending-cashback-badge" id="pendingCashbackBadge">⏳ +0 ₽ на проверке СБП</span>
             </div>
           </div>
           <div class="card-foot">
-            <span>Списание до 50% чека</span>
+            <span id="cardFootPhone">По номеру телефона</span>
             <div class="card-flip-hint">Условия уровня ↺</div>
           </div>
         </div>
@@ -553,7 +553,7 @@
           </div>
 
           <div class="perks-list">
-            <div class="perks-item" id="perkCashbackDesc">Кэшбэк 3% со всех подтверждённых броней</div>
+            <div class="perks-item" id="perkCashbackDesc">Кэшбэк 3% со всех подтверждённых счетов</div>
             <div class="perks-item">Списание бонусов до 50% от суммы счёта</div>
             <div class="perks-item">Подарочный чай ко дню рождения</div>
           </div>
@@ -636,7 +636,7 @@
         </g>
 
         <!-- VIP 2 -->
-        <g id="node-vip2" class="tbl-node" onclick="selectItem('vip2', 'VIP 2 Большая (до 8 чел)', 'PlayStation 5 • Большой ТВ • Шторка', true)">
+        <g id="node-vip2" class="tbl-node" onclick="selectItem('vip2', 'VIP 2 Большая (до 8 чел)', 'PlayStation 5 • Большой ТВ 65&quot; • Шторка', true)">
           <rect x="14" y="136" width="82" height="106" class="tbl-zone" />
           <text x="55" y="182" class="svg-text-bold">VIP 2</text>
           <text x="55" y="198" class="svg-text-sub">PS5 • 8 чел</text>
@@ -769,7 +769,7 @@
 
       <!-- Бренды табака -->
       <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
-        <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист из меню:</div>
+        <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист:</div>
         <div class="pill-group">
           <div class="pill-btn gold" onclick="toggleBrand(this, 'Bonche')">Bonche (сигарный лист)</div>
           <div class="pill-btn" onclick="toggleBrand(this, 'Satyr')">Satyr (крафт)</div>
@@ -823,21 +823,20 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контактные данные -->
+    <!-- Контактные данные гостя -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
         <input type="text" id="guestNameInput" value="" placeholder="Ваше имя">
       </div>
       <div class="form-group">
-        <label>Телефон для подтверждения брони *</label>
+        <label>Телефон для подтверждения и лояльности *</label>
         <input type="tel" id="guestPhoneInput" value="" placeholder="+7 (9XX) XXX-XX-XX" maxlength="18">
       </div>
     </div>
 
-    <!-- Юридический дисклеймер без ссылок на админку -->
     <div class="legal-disclaimer">
-      Информация носит ознакомительный характер для гостей заведения ЦОКОЛЬ Lounge, не является публичной офертой, рекламой или дистанционной продажей табачной продукции. Курение вредит вашему здоровью. Вход строго 18+.
+      Информация носит ознакомительный характер для гостей заведения ЦОКОЛЬ Lounge, не является публичной офертой или рекламой табачной продукции. Вход строго 18+.
     </div>
   </div>
 
@@ -871,7 +870,6 @@
         <strong id="sbpModalAmount">1 500 ₽</strong>
       </div>
 
-      <!-- QR-код -->
       <div class="sbp-qr-wrapper">
         <img id="sbpQrImage" src="" alt="QR-код СБП">
         <div class="sbp-qr-center-logo">
@@ -883,7 +881,6 @@
         </div>
       </div>
 
-      <!-- Реквизиты -->
       <div class="sbp-details-card">
         <div class="sbp-detail-row">
           <span class="sbp-detail-label">Получатель:</span>
@@ -937,7 +934,6 @@
   </div>
 
   <script>
-    // Реквизиты СБП
     const SBP_CONFIG = {
       phone: "+7 (980) 123-45-67",
       bank: "Т-Банк (Тинькофф) / Сбер",
@@ -948,7 +944,7 @@
 
     // Telegram Mini App
     const tg = window.Telegram?.WebApp;
-    const tgUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : 'guest_profile';
+    const tgUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : 'guest';
 
     if (tg) {
       try {
@@ -959,9 +955,7 @@
           document.getElementById('guestNameInput').value = userName;
           document.getElementById('cardGuestName').innerText = userName;
         }
-      } catch (e) {
-        console.log("TG WebApp инициализирован");
-      }
+      } catch (e) {}
     }
 
     function haptic(type = 'selection') {
@@ -984,28 +978,19 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // Автомаска телефона +7 (XXX) XXX-XX-XX
-    const phoneInput = document.getElementById('guestPhoneInput');
-    phoneInput.addEventListener('input', function(e) {
-      this.classList.remove('input-error');
-      let val = this.value.replace(/\D/g, '');
-      if (!val) { this.value = ''; return; }
-      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
-      
-      let res = '+7 ';
-      if (val.length > 0) res += '(' + val.substring(0, 3);
-      if (val.length >= 3) res += ') ' + val.substring(3, 6);
-      if (val.length >= 6) res += '-' + val.substring(6, 8);
-      if (val.length >= 8) res += '-' + val.substring(8, 10);
-      this.value = res;
-    });
+    // ДВИЖОК ЛОЯЛЬНОСТИ ПО НОМЕРУ ТЕЛЕФОНА
+    let activeUserPhone = localStorage.getItem('cokol_last_phone') || '';
 
-    // ДВИЖОК ПРОГРАММЫ ЛОЯЛЬНОСТИ
-    const LOYALTY_STORAGE_KEY = 'cokol_loyalty_' + tgUserId;
+    function getLoyaltyKey() {
+      if (activeUserPhone && activeUserPhone.length >= 10) {
+        return 'cokol_loyalty_p_' + activeUserPhone;
+      }
+      return 'cokol_loyalty_tg_' + tgUserId;
+    }
 
     function getLoyaltyProfile() {
       try {
-        const stored = JSON.parse(localStorage.getItem(LOYALTY_STORAGE_KEY));
+        const stored = JSON.parse(localStorage.getItem(getLoyaltyKey()));
         if (stored && typeof stored === 'object') {
           return {
             spent: Number(stored.spent) || 0,
@@ -1019,7 +1004,7 @@
     }
 
     function saveLoyaltyProfile(data) {
-      localStorage.setItem(LOYALTY_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(getLoyaltyKey(), JSON.stringify(data));
       updateLoyaltyUI();
     }
 
@@ -1049,14 +1034,17 @@
         prevThreshold = 25000;
       }
 
-      // Лицевая сторона карты
       const frontBadge = document.getElementById('cardFrontBadge');
       if (frontBadge) frontBadge.innerText = `${currentTier} • ${Math.round(currentRate * 100)}%`;
       
       const balanceEl = document.getElementById('cardBalanceAmount');
       if (balanceEl) balanceEl.innerText = `${balance.toLocaleString('ru-RU')} ₽`;
 
-      // Статус ожидания депозита
+      const footPhone = document.getElementById('cardFootPhone');
+      if (footPhone) {
+        footPhone.innerText = activeUserPhone ? `Карта: +7 ${activeUserPhone.slice(-10)}` : 'Списание до 50% чека';
+      }
+
       const pendingWrap = document.getElementById('pendingCashbackWrap');
       const pendingBadge = document.getElementById('pendingCashbackBadge');
       if (pending > 0) {
@@ -1066,7 +1054,6 @@
         pendingWrap.style.display = 'none';
       }
 
-      // Обратная сторона
       const backBadge = document.getElementById('cardBackBadge');
       const nextLabel = document.getElementById('nextTierLabel');
       const toNextEl = document.getElementById('toNextTierAmount');
@@ -1103,6 +1090,55 @@
       document.getElementById('cardFlipper').classList.toggle('is-flipped');
     }
 
+    // Автомаска телефона и моментальный поиск по базе
+    const phoneInput = document.getElementById('guestPhoneInput');
+    phoneInput.addEventListener('input', function(e) {
+      this.classList.remove('input-error');
+      let val = this.value.replace(/\D/g, '');
+      if (!val) { this.value = ''; return; }
+      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
+      
+      let res = '+7 ';
+      if (val.length > 0) res += '(' + val.substring(0, 3);
+      if (val.length >= 3) res += ') ' + val.substring(3, 6);
+      if (val.length >= 6) res += '-' + val.substring(6, 8);
+      if (val.length >= 8) res += '-' + val.substring(8, 10);
+      this.value = res;
+
+      const cleanDigits = this.value.replace(/\D/g, '');
+      if (cleanDigits.length === 11) {
+        activeUserPhone = cleanDigits;
+        localStorage.setItem('cokol_last_phone', cleanDigits);
+        
+        // Синхронизация с сервером
+        fetch('/api/loyalty/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: cleanDigits, telegram_id: tgUserId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.found) {
+            saveLoyaltyProfile({
+              spent: data.spent || 0,
+              balance: data.balance || 0,
+              pendingCashback: 0,
+              lastBookingAt: Date.now()
+            });
+            if (data.name) {
+              document.getElementById('guestNameInput').value = data.name;
+              document.getElementById('cardGuestName').innerText = data.name;
+            }
+          } else {
+            updateLoyaltyUI();
+          }
+        })
+        .catch(() => {
+          updateLoyaltyUI();
+        });
+      }
+    });
+
     // Кинопоказы
     const CINEMA_EVENTS = [
       { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
@@ -1112,15 +1148,14 @@
       { date: "2026-10-31", time: "20:00", img: "img/sun5.jpg", fallback: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    // Фото и бейджи
     const HALL_PHOTO_SRC = "img/hall.jpg";
     const HALL_PHOTO_FALLBACK = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80";
     const VIP_PHOTO_FALLBACK_1 = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80";
     const VIP_PHOTO_FALLBACK_2 = "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80";
 
     const tableBadgesData = {
-      vip1: ["PlayStation 5", "До 4 персон", "Приватная шторка", "ТВ 55\""],
-      vip2: ["Большая VIP", "PlayStation 5", "ТВ 65\"", "До 8 персон"],
+      vip1: ["PlayStation 5 (0 ₽)", "До 4 персон", "Депозит 2 000 ₽", "ТВ 55\""],
+      vip2: ["Большая VIP", "PlayStation 5 (0 ₽)", "ТВ 65\"", "Депозит 2 000 ₽"],
       t1: ["Вид на проектор", "Красный диван", "2 мягких стула"],
       t2: ["Центр зала", "Красный диван", "Камерный свет"],
       t3: ["Уютный угол", "Красный диван", "Приглушённый звук"],
@@ -1129,7 +1164,6 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
-    // Меню
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -1231,17 +1265,12 @@
 
     function updateTablesAvailability() {
       const state = getTableState(selectedStartTime);
-
       allTableIds.forEach(id => {
         const node = document.getElementById('node-' + id);
         if (!node) return;
-
         const isBusy = (state[id] === 'busy');
-        if (isBusy) {
-          node.classList.add('is-busy');
-        } else {
-          node.classList.remove('is-busy');
-        }
+        if (isBusy) node.classList.add('is-busy');
+        else node.classList.remove('is-busy');
       });
     }
 
@@ -1452,7 +1481,7 @@
       const notice = document.getElementById('ratioNotice');
       const expectedHookahs = Math.ceil(guests / 3);
       if (hookahs < expectedHookahs) {
-        notice.innerHTML = `⚠️ <strong>Внимание:</strong> на компанию из ${guests} гостей рекомендуется от <strong>${expectedHookahs} кальянов</strong>, чтобы чаша не перегревалась.`;
+        notice.innerHTML = `⚠️ <strong>Внимание:</strong> на ${guests} гостей рекомендуется от <strong>${expectedHookahs} кальянов</strong>, чтобы чаша не перегревалась.`;
         notice.style.background = 'rgba(214, 40, 57, 0.14)';
         notice.style.borderColor = 'rgba(214, 40, 57, 0.4)';
       } else {
@@ -1593,6 +1622,7 @@
       if (slider) slider.scrollBy({ left: dir * 140, behavior: 'smooth' });
     }
 
+    // МАТЕМАТИКА ДЕПОЗИТА: VIP = минимум 2000 ₽ (покур + чай), обычный стол = сумма заказа
     function updateTotal() {
       const baseHookahRate = isLunchTime ? 1000 : 1500;
       const premiumExtra = isPremium ? 500 : 0;
@@ -1631,7 +1661,7 @@
       currentTableId = id;
       currentTableName = title;
       document.getElementById('selTitle').innerText = title;
-      document.getElementById('selDesc').innerText = desc;
+      
       isVipSelected = isVip;
 
       const imgEl = document.getElementById('tablePhotoImg');
@@ -1639,10 +1669,12 @@
 
       if (isVip) {
         hintEl.innerText = "🔍 VIP-комната";
+        document.getElementById('selDesc').innerText = "PS5 бесплатно • Депозит 2 000 ₽ (кальян + напитки в счёт). Продление сессии заказом кальяна.";
         activeTablePhotoSrc = (id === 'vip2') ? "img/vip2.jpg" : "img/vip1.jpg";
         activeTablePhotoFallback = (id === 'vip2') ? VIP_PHOTO_FALLBACK_2 : VIP_PHOTO_FALLBACK_1;
       } else {
         hintEl.innerText = "🔍 Фото зала";
+        document.getElementById('selDesc').innerText = desc;
         activeTablePhotoSrc = HALL_PHOTO_SRC;
         activeTablePhotoFallback = HALL_PHOTO_FALLBACK;
       }
@@ -1669,7 +1701,6 @@
       el.classList.add('active');
     }
 
-    // ВАЛИДАЦИЯ ДАННЫХ ПЕРЕД ОПЛАТОЙ
     function openSbpModal() {
       const nameInput = document.getElementById('guestNameInput');
       const phoneInput = document.getElementById('guestPhoneInput');
@@ -1695,7 +1726,7 @@
       const currentState = getTableState(selectedStartTime);
       if (currentState[currentTableId] === 'busy') {
         haptic('notification');
-        alert(`⚠️ Извините! ${currentTableName} уже занят на ${selectedStartTime}. Выберите свободный стол на схеме.`);
+        alert(`⚠️ ${currentTableName} уже занят на ${selectedStartTime}. Выберите свободный стол на схеме.`);
         updateTablesAvailability();
         return;
       }
@@ -1730,17 +1761,15 @@
       });
     }
 
-    // ПОДТВЕРЖДЕНИЕ ПЛАТЕЖА
     function confirmSbpPayment() {
       if (isSubmitting) return;
 
       const profile = getLoyaltyProfile();
       const now = Date.now();
 
-      // Anti-Spam: 45 секунд между заявками
       if (now - profile.lastBookingAt < 45000) {
         haptic('notification');
-        alert('⏳ Вы недавно отправили заявку. Пожалуйста, подождите 45 секунд перед следующей бронью.');
+        alert('⏳ Вы недавно отправили заявку. Подождите 45 секунд перед следующей бронью.');
         return;
       }
 
@@ -1758,13 +1787,11 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Помечаем стол как занятый
       const state = getTableState(selectedStartTime);
       state[currentTableId] = 'busy';
       setTableState(selectedStartTime, state);
       updateTablesAvailability();
 
-      // 2. Расчет кэшбэка в статус PENDING
       const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
       const earnedCashback = Math.round(currentCalculatedTotal * currentRate);
 
@@ -1772,7 +1799,6 @@
       profile.lastBookingAt = now;
       saveLoyaltyProfile(profile);
 
-      // 3. Формируем объект брони
       let drinksNames = [];
       selectedDrinks.forEach(item => drinksNames.push(item.name));
       const drinksSummary = drinksNames.join(', ');
@@ -1780,7 +1806,8 @@
       const newBooking = {
         id: 'b_' + Date.now(),
         name: name,
-        username: tg?.initDataUnsafe?.user?.username || 'клиент',
+        username: tg?.initDataUnsafe?.user?.username || 'гость',
+        telegram_id: tgUserId,
         phone: phone,
         tableId: currentTableId,
         tableName: currentTableName,
@@ -1791,6 +1818,7 @@
         drinks: drinksSummary,
         comment: comment,
         total: currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽',
+        totalNum: currentCalculatedTotal,
         cashbackEarned: earnedCashback,
         status: 'pending'
       };
@@ -1803,7 +1831,7 @@
       localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
       syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
 
-      // 4. Отправка в бот через sendData и принудительное закрытие
+      // Передача в Telegram Bot
       if (window.Telegram?.WebApp) {
         try {
           if (window.Telegram.WebApp.sendData) {
@@ -1821,7 +1849,7 @@
         }
       }
 
-      // 5. Модалка для браузера вне TG
+      // Браузерный fallback
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
@@ -1835,7 +1863,7 @@
         ${drinksSummary ? `<br>🍵 Напитки: <strong>${drinksSummary}</strong>` : ''}
         ${comment ? `<br>💬 Пожелание: <em>«${comment}»</em>` : ''}<br><br>
         Депозит к оплате: <strong>${newBooking.total}</strong><br>
-        <span style="color:#f1c40f;">⏳ +${earnedCashback} ₽ кэшбэка поступит на карту после подтверждения перевода СБП.</span><br><br>
+        <span style="color:#f1c40f;">⏳ +${earnedCashback} ₽ кэшбэка будет начислено после подтверждения СБП.</span><br><br>
         <span style="font-size: 11px; color: var(--green);">Стол зафиксирован за вами. Администратор проверяет поступление средств.</span>
       `;
       modal.style.display = 'flex';
