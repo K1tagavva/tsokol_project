@@ -284,7 +284,6 @@ async def close_visit_endpoint(req: CloseVisitRequest):
     if len(clean_phone) == 11 and clean_phone[0] in ('7', '8'):
         clean_phone = "7" + clean_phone[1:]
 
-    # Узнаем текущий статус накоплений клиента
     current_spent = 0.0
     if clean_phone:
         cursor.execute("SELECT spent FROM loyalty_clients WHERE phone = ?", (clean_phone,))
@@ -295,7 +294,6 @@ async def close_visit_endpoint(req: CloseVisitRequest):
     rate = 0.07 if current_spent >= 50000 else (0.05 if current_spent >= 25000 else 0.03)
     calc_cb = round(req.final_total * rate)
 
-    # Обновляем бронь
     cursor.execute("""
         UPDATE bookings
         SET status = 'completed',
@@ -305,10 +303,8 @@ async def close_visit_endpoint(req: CloseVisitRequest):
         WHERE id = ?
     """, (req.final_total, f"{req.final_total:,.0f} ₽", calc_cb, req.booking_id))
 
-    # Освобождаем стол в расписании
     cursor.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
 
-    # Начисляем баллы
     if clean_phone:
         cursor.execute("""
             INSERT INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
@@ -361,14 +357,12 @@ async def extend_booking_endpoint(req: ExtendBookingRequest):
             conn.close()
             return {"status": "collision", "message": f"Слот {s} уже занят другой бронью!"}
 
-    # Блокируем новые слоты
     for s in ext_slots:
         cursor.execute("""
             INSERT OR REPLACE INTO table_schedules (date_iso, time_slot, table_id, status, booking_id)
             VALUES (?, ?, ?, 'busy', ?)
         """, (date_iso, s, table_id, req.booking_id))
 
-    # Рассчитываем новое время окончания (+90 мин)
     h, m = map(int, end_time.split(':'))
     new_end_total_m = h * 60 + m + req.extra_minutes
     new_end_time = f"{((new_end_total_m // 60) % 24):02d}:{(new_end_total_m % 60):02d}"
@@ -546,11 +540,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckRequest):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=19"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=20"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=19")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=20")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -576,7 +570,7 @@ async def cmd_admin(message: types.Message):
         await message.answer("⛔ У вас нет прав доступа к панели управления.")
         return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=19"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=20"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\n\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -887,7 +881,7 @@ async def main():
         await bot.set_chat_menu_button(
             menu_button=MenuButtonWebApp(
                 text="💨 Забронировать",
-                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=19")
+                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=20")
             )
         )
     except Exception:

@@ -151,7 +151,6 @@
     }
     .session-window-banner strong { color: #fff; }
 
-    /* Предупреждение об укороченном сеансе (1 час) */
     .short-session-warning {
       display: none;
       background: rgba(241, 196, 15, 0.12);
@@ -181,7 +180,6 @@
     .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; }
     .sofa-red { fill: #d62839; }
 
-    /* ЗАНЯТЫЙ СТОЛ */
     .tbl-node.is-busy { cursor: not-allowed !important; }
     .tbl-node.is-busy .tbl-body, .tbl-node.is-busy .tbl-zone { fill: #121318 !important; stroke: #1f2129 !important; opacity: 0.4; }
     .tbl-node.is-busy .sofa-red, .tbl-node.is-busy .tbl-chair { fill: #242630 !important; opacity: 0.35; }
@@ -196,7 +194,6 @@
     .svg-text-sub { fill: var(--text-muted); font-size: 8px; text-anchor: middle; dominant-baseline: middle; }
     .svg-text-num { fill: #fff; font-size: 12px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
 
-    /* Photo & details */
     .table-live-card {
       background: var(--surface); border: 1px solid var(--border-light);
       border-radius: 16px; overflow: hidden; margin-bottom: 22px;
@@ -374,7 +371,6 @@
 </head>
 <body>
 
-  <!-- 18+ -->
   <div class="age-modal-backdrop" id="ageModal">
     <div class="age-modal-box">
       <div class="age-badge-big">18+</div>
@@ -470,7 +466,6 @@
       <strong id="sessionWindowText">18:00 – 19:30 (1.5 часа)</strong>
     </div>
 
-    <!-- Предупреждение об укороченном 1-часовом сеансе -->
     <div class="short-session-warning" id="shortSessionWarning">
       ⚠️ <strong>Внимание (укороченный сеанс 1 час):</strong> следующий гость забронировал этот стол на <span id="nextBookingAlertTime">18:00</span>. Ваш отдых продлится строго до этого времени.
     </div>
@@ -768,14 +763,6 @@
   </div>
 
   <script>
-    // 1. АВТООЧИСТКА ВСЕХ СТАРЫХ КРИВЫХ КЛЮЧЕЙ
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('cokol_tables_') || k.startsWith('cokol_table_'))) {
-        localStorage.removeItem(k);
-      }
-    }
-
     const SBP_CONFIG = {
       phone: "+7 (980) 123-45-67",
       bank: "Т-Банк (Тинькофф) / Сбер",
@@ -991,7 +978,6 @@
 
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
-    // 2. ДВИЖОК РАСПИСАНИЯ СТРОГО ПО ДАТАМ
     function getDaySchedule(dateIso) {
       try {
         return JSON.parse(localStorage.getItem('cokol_sched_' + dateIso)) || {};
@@ -1005,27 +991,19 @@
       syncChannel.postMessage({ type: 'table_state_changed', date: dateIso });
     }
 
-    // 3. УМНАЯ ПРОВЕРКА ДОСТУПНОСТИ:
-    // Возвращает: 'busy' | 'short' | 'free'
     function checkTableAvailability(tableId, dateIso, startTime) {
       const sched = getDaySchedule(dateIso);
       const idx = rawTimes.indexOf(startTime);
       if (idx === -1) return 'free';
 
-      // А. Сам слот уже занят
       if (sched[startTime]?.[tableId] === 'busy') return 'busy';
 
-      // Б. Следующий слот (через 30 мин) занят:
-      // До брони всего 30 минут — сеанс невозможен (БЛОКИРУЕМ!)
       const next30 = rawTimes[idx + 1];
       if (next30 && sched[next30]?.[tableId] === 'busy') return 'busy';
 
-      // В. Слот через 60 мин занят (а через 30 мин свободен):
-      // Есть ровно 1 час до следующей брони — РАЗРЕШАЕМ С ПРЕДУПРЕЖДЕНИЕМ!
       const next60 = rawTimes[idx + 2];
       if (next60 && sched[next60]?.[tableId] === 'busy') return 'short';
 
-      // Г. Полный свободный сеанс на 1.5 часа
       return 'free';
     }
 
@@ -1052,7 +1030,9 @@
     }
 
     syncChannel.onmessage = (event) => {
-      if (event.data?.type === 'table_state_changed') updateTablesAvailability();
+      if (event.data?.type === 'table_state_changed' || event.data?.type === 'new_booking') {
+        updateTablesAvailability();
+      }
     };
     window.addEventListener('storage', () => updateTablesAvailability());
 
@@ -1063,7 +1043,7 @@
       
       if (status === 'short') {
         isCurrentSessionShort = true;
-        const endMinutes = h * 60 + m + 60; // Ровно 1 час
+        const endMinutes = h * 60 + m + 60;
         const endH = Math.floor(endMinutes / 60) % 24;
         const endM = endMinutes % 60;
         const endStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
@@ -1073,7 +1053,7 @@
         warningBox.style.display = 'block';
       } else {
         isCurrentSessionShort = false;
-        const endMinutes = h * 60 + m + 90; // Полные 1.5 часа
+        const endMinutes = h * 60 + m + 90;
         const endH = Math.floor(endMinutes / 60) % 24;
         const endM = endMinutes % 60;
         const endStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
@@ -1525,9 +1505,7 @@
       navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
     }
 
-    // БРОНИРОВАНИЕ:
-    // Если сеанс стандартный — занимает 3 слота (1.5 часа).
-    // Если сеанс укороченный до след. брони — занимает 2 слота (1 час).
+    // БРОНИРОВАНИЕ ГОСТЕМ
     function confirmSbpPayment() {
       if (isSubmitting) return;
       isSubmitting = true;
@@ -1539,6 +1517,7 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
+      // 1. Блокируем слоты в расписании (3 слота по умолчанию или 2 если укороченный)
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
@@ -1573,7 +1552,7 @@
         date: selectedDateLabel,
         dateIso: selectedDateIso,
         hookahs: hookahs,
-        hookahType: isPremium ? `PREMIUM (${selectedBrandName})` : 'Классика',
+        hookahType: isPremium ? `PREMIUM (${selectedBrandName})` : (isLunchTime ? 'Обед (1 000 ₽)' : 'Классика'),
         drinks: drinksSummary,
         comment: comment,
         total: currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽',
@@ -1582,6 +1561,15 @@
         status: 'pending'
       };
 
+      // 2. ВАЖНО: СОХРАНЯЕМ В ЛОКАЛЬНЫЙ ЖУРНАЛ БРОНЕЙ, ЧТОБЫ АДМИНКА ЕГО ВИДЕЛА СРАЗУ
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.unshift(newBooking);
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+        syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
+      } catch (e) {}
+
+      // 3. Отправка в бот
       if (window.Telegram?.WebApp?.sendData) {
         try {
           window.Telegram.WebApp.sendData(JSON.stringify(newBooking));

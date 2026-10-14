@@ -90,16 +90,18 @@
       justify-content: space-between; align-items: center;
     }
     .table-admin-card.busy { border-color: rgba(214, 40, 57, 0.4); background: rgba(214, 40, 57, 0.04); }
+    .table-admin-card.buffer { border-color: rgba(241, 196, 15, 0.4); background: rgba(241, 196, 15, 0.04); }
     .table-info h4 { font-size: 13px; font-weight: 700; color: #fff; }
     .table-info p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     
     .table-actions { display: flex; gap: 6px; align-items: center; }
     .status-toggle-btn {
       padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 700;
-      text-transform: uppercase; cursor: pointer; border: none; min-width: 95px; text-align: center;
+      text-transform: uppercase; cursor: pointer; border: none; min-width: 105px; text-align: center;
     }
     .btn-free { background: var(--green-soft); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
     .btn-busy { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(214, 40, 57, 0.4); }
+    .btn-buffer { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.4); }
     .release-btn {
       background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-light);
       color: var(--gold); padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer;
@@ -129,12 +131,11 @@
     .badge-completed { background: rgba(255, 255, 255, 0.08); color: #888; }
     .badge-rejected { background: rgba(214, 40, 57, 0.15); color: var(--accent); }
 
-    /* Кнопки управления в карточке брони */
     .bfc-actions-bar {
       display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border);
     }
     .bf-act-btn {
-      flex: 1; min-width: 110px; padding: 7px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
+      flex: 1; min-width: 105px; padding: 7px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
       cursor: pointer; border: 1px solid var(--border-light); background: var(--bg); color: #fff;
       text-align: center; text-transform: uppercase; transition: 0.2s;
     }
@@ -319,7 +320,7 @@
     </div>
   </div>
 
-  <!-- Калькулятор закрытия счёта и начисления кэшбэка -->
+  <!-- Калькулятор закрытия счёта -->
   <div class="modal-overlay" id="closeVisitModal">
     <div class="modal-box">
       <h3>Расчёт и закрытие счёта</h3>
@@ -464,31 +465,72 @@
       syncChannel.postMessage({ type: 'table_state_changed', date: dateIso });
     }
 
+    // УМНАЯ ПРОВЕРКА СТАТУСА ДЛЯ АДМИНИСТРАТОРА (С УЧЕТОМ БУФЕРА 30 МИНУТ)
+    function getAdminTableStatus(tableId, dateIso, time) {
+      const sched = getLocalSchedule(dateIso);
+      const idx = timeSlots.indexOf(time);
+      if (idx === -1) return { state: 'free', label: '🟢 СВОБОДЕН' };
+
+      // 1. Слот занят прямо сейчас
+      if (sched[time]?.[tableId] === 'busy') {
+        return { state: 'busy', label: '🔴 ЗАНЯТ' };
+      }
+
+      // 2. Следующий слот (через 30 мин) занят — значит сейчас окно 30 мин, куда сесть нельзя!
+      const next30 = timeSlots[idx + 1];
+      if (next30 && sched[next30]?.[tableId] === 'busy') {
+        return { state: 'buffer', label: '🔴 ЗАНЯТ (окно 30м)' };
+      }
+
+      // 3. Через 60 минут занят — доступно окно ровно на 1 час
+      const next60 = timeSlots[idx + 2];
+      if (next60 && sched[next60]?.[tableId] === 'busy') {
+        return { state: 'short', label: '🟡 СВОБОДЕН (1 ч)' };
+      }
+
+      return { state: 'free', label: '🟢 СВОБОДЕН' };
+    }
+
     function renderTablesGrid() {
       const container = document.getElementById('tablesContainer');
       container.innerHTML = '';
-      const sched = getLocalSchedule(currentSelectedDateIso);
-      const slotData = sched[currentSelectedSlot] || {};
 
       tableDefs.forEach(tbl => {
-        const isBusy = (slotData[tbl.id] === 'busy');
+        const info = getAdminTableStatus(tbl.id, currentSelectedDateIso, currentSelectedSlot);
         const card = document.createElement('div');
-        card.className = `table-admin-card ${isBusy ? 'busy' : ''}`;
+        const isBusy = (info.state === 'busy');
+        const isBuffer = (info.state === 'buffer');
+        const isShort = (info.state === 'short');
+
+        card.className = `table-admin-card ${isBusy ? 'busy' : (isBuffer ? 'buffer' : '')}`;
+
+        let btnClass = 'btn-free';
+        if (isBusy) btnClass = 'btn-busy';
+        else if (isBuffer) btnClass = 'btn-busy';
+        else if (isShort) btnClass = 'btn-buffer';
 
         card.innerHTML = `
           <div class="table-info">
             <h4>${tbl.name}</h4>
-            <p>${tbl.desc}</p>
+            <p>${isBuffer ? '⚠️ Недоступен: через 30 мин следующая бронь' : tbl.desc}</p>
           </div>
           <div class="table-actions">
             ${isBusy ? `<button class="release-btn" onclick="releaseTableEarly('${tbl.id}')">Освободить</button>` : ''}
-            <button class="status-toggle-btn ${isBusy ? 'btn-busy' : 'btn-free'}" onclick="toggleTableStatus('${tbl.id}')">
-              ${isBusy ? '🔴 ЗАНЯТ' : '🟢 СВОБОДЕН'}
+            <button class="status-toggle-btn ${btnClass}" onclick="handleTableStatusClick('${tbl.id}', '${info.state}')">
+              ${info.label}
             </button>
           </div>
         `;
         container.appendChild(card);
       });
+    }
+
+    function handleTableStatusClick(tableId, state) {
+      if (state === 'buffer') {
+        alert("⚠️ Внимание: этот слот недоступен, так как через 30 минут за этот стол уже садятся забронировавшие гости! Покур за 30 минут невозможен.");
+        return;
+      }
+      toggleTableStatus(tableId);
     }
 
     async function toggleTableStatus(tableId) {
@@ -554,7 +596,7 @@
       syncEverything();
     }
 
-    // 1. ПРОДЛЕНИЕ СТОЛА (+1.5 ЧАСА)
+    // ПРОДЛЕНИЕ СТОЛА (+1.5 ЧАСА)
     async function extendBooking(bookingId) {
       let booking = null;
       try {
@@ -562,21 +604,22 @@
         booking = local.find(b => b.id === bookingId);
       } catch (e) {}
 
-      if (!booking) return;
+      if (!booking) {
+        alert("Бронь не найдена в памяти!");
+        return;
+      }
 
       const tableId = booking.tableId || booking.table_id;
-      const tableName = booking.tableName || booking.table_name;
-      const currentEndTime = booking.endTime || booking.end_time || '19:30';
+      const tableName = booking.tableName || booking.table_name || 'Стол';
+      const currentEndTime = booking.endTime || booking.end_time || '18:30';
       const dateIso = booking.dateIso || currentSelectedDateIso;
 
-      // Находим слот, с которого начинается продление (старое время окончания)
       const startExtIdx = timeSlots.indexOf(currentEndTime);
       if (startExtIdx === -1 || startExtIdx + 3 > timeSlots.length) {
         alert("⚠️ Продление невозможно: заведение закрывается!");
         return;
       }
 
-      // Проверяем, свободны ли следующие 3 слота (1.5 часа)
       const sched = getLocalSchedule(dateIso);
       const extSlots = timeSlots.slice(startExtIdx, startExtIdx + 3);
 
@@ -587,11 +630,11 @@
         }
       }
 
-      if (!confirm(`Продлить отдых за столом ${tableName} ещё на 1.5 часа (до ${timeSlots[startExtIdx + 3] || 'закрытия'})?\nК счёту добавится перезабивка кальяна (+1 500 ₽).`)) {
+      const nextEndSlot = timeSlots[startExtIdx + 3] || '01:00';
+      if (!confirm(`Продлить сеанс за столом ${tableName} ещё на 1.5 часа (до ${nextEndSlot})?\nК счёту добавится перезабивка (+1 500 ₽).`)) {
         return;
       }
 
-      // Блокируем новые слоты в расписании
       extSlots.forEach(s => {
         if (!sched[s]) sched[s] = {};
         sched[s][tableId] = 'busy';
@@ -604,7 +647,6 @@
       const newTotalNum = Number(booking.totalNum || booking.total_num || 1500) + 1500;
       const newHookahs = Number(booking.hookahs || 1) + 1;
 
-      // Обновляем локально
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.forEach(b => {
@@ -621,7 +663,6 @@
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
       } catch (e) {}
 
-      // Обновляем на сервере
       try {
         await fetch(`${API_BASE}/api/bookings/extend`, {
           method: 'POST',
@@ -631,10 +672,10 @@
       } catch (e) {}
 
       syncEverything();
-      alert(`🎉 Стол ${tableName} успешно продлен до ${newEndTime}!\nНовая сумма счёта: ${newTotalNum.toLocaleString('ru-RU')} ₽.`);
+      alert(`🎉 Сеанс за столом ${tableName} успешно продлен до ${newEndTime}!\nНовая сумма счёта: ${newTotalNum.toLocaleString('ru-RU')} ₽.`);
     }
 
-    // 2. КАЛЬКУЛЯТОР ФАКТИЧЕСКОГО ЧЕКА И НАЧИСЛЕНИЕ ЛОЯЛЬНОСТИ
+    // КАЛЬКУЛЯТОР ФАКТИЧЕСКОГО ЧЕКА
     function openCloseVisitModal(bookingId) {
       let booking = null;
       try {
@@ -692,7 +733,6 @@
       const bookingId = activeClosingBooking.id;
       const bItem = activeClosingBooking;
 
-      // 1. Обновляем статус брони и финальную сумму в локальной памяти
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.forEach(b => {
@@ -707,7 +747,6 @@
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
       } catch (e) {}
 
-      // 2. Начисляем реальный кэшбэк на номер гостя
       const cleanPhone = cleanDigitsPhone(bItem.phone);
       let newBalance = 0;
       if (cleanPhone && cleanPhone.length >= 10) {
@@ -730,10 +769,8 @@
         newBalance = profile.balance;
       }
 
-      // 3. Освобождаем стол в расписании
       freeTableForBooking(bItem);
 
-      // 4. Отправляем финальный чек и статус на бэкенд
       try {
         await fetch(`${API_BASE}/api/bookings/close_visit`, {
           method: 'POST',
@@ -806,12 +843,17 @@
         if (res.ok) bookings = await res.json();
       } catch (e) {}
 
-      if (!bookings.length) {
-        try {
-          const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
-          bookings = local.filter(b => b.dateIso === currentSelectedDateIso || (b.date && b.date.includes(currentSelectedDateIso.slice(-2))));
-        } catch (e) {}
-      }
+      // Объединяем с локальными бронями
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        const localForDay = local.filter(b => b.dateIso === currentSelectedDateIso || (b.date && b.date.includes(currentSelectedDateIso.slice(-2))));
+        
+        localForDay.forEach(lb => {
+          if (!bookings.some(sb => sb.id === lb.id)) {
+            bookings.push(lb);
+          }
+        });
+      } catch (e) {}
 
       document.getElementById('bookingsCountBadge').innerText = `${bookings.length} записей`;
 
@@ -836,7 +878,7 @@
         if (b.status === 'confirmed' || b.status === 'pending') {
           actionButtonsHtml = `
             <div class="bfc-actions-bar">
-              <button class="bf-act-btn bf-btn-seat" onclick="setBookingStatus('${b.id}', 'seated')">🛋 Гости в зале</button>
+              <button class="bf-act-btn bf-btn-seat" onclick="setBookingStatus('${b.id}', 'seated')">🛋 В зал</button>
               <button class="bf-act-btn bf-btn-extend" onclick="extendBooking('${b.id}')">⏱ Продлить (+1.5 ч)</button>
               <button class="bf-act-btn bf-btn-finish" onclick="openCloseVisitModal('${b.id}')">🏁 Закрыть счёт</button>
               <button class="bf-act-btn bf-btn-cancel" onclick="setBookingStatus('${b.id}', 'rejected')">❌ Отмена</button>
@@ -1036,7 +1078,7 @@
       document.getElementById('manComment').value = '';
 
       syncEverything();
-      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован!\nКэшбэк на номер ${phone} начислится после закрытия визита кнопкой [Закрыть счёт].`);
+      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован!`);
     }
 
     async function searchLoyaltyGuest() {
@@ -1128,7 +1170,9 @@
     }
 
     syncChannel.onmessage = (event) => {
-      if (event.data?.type === 'table_state_changed') syncEverything();
+      if (event.data?.type === 'table_state_changed' || event.data?.type === 'new_booking') {
+        syncEverything();
+      }
     };
   </script>
 </body>
