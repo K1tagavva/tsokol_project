@@ -19,7 +19,8 @@ from aiogram.types import (
     KeyboardButton,
     WebAppInfo,
     InlineKeyboardMarkup,
-    InlineKeyboardButton
+    InlineKeyboardButton,
+    MenuButtonWebApp
 )
 from aiogram.client.session.aiohttp import AiohttpSession
 
@@ -29,7 +30,6 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_IDS_RAW = os.getenv("ADMIN_IDS", "").strip()
 ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_RAW.split(",") if x.strip().isdigit()]
 
-# ID владельца заведения для финансовых отчетов и возвратов
 OWNER_ID_RAW = os.getenv("OWNER_ID", "").strip()
 OWNER_ID = int(OWNER_ID_RAW) if OWNER_ID_RAW.isdigit() else (ADMIN_IDS[0] if ADMIN_IDS else 0)
 
@@ -133,11 +133,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckRequest):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=9"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=12"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=9")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=12")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -148,8 +148,8 @@ async def cmd_start(message: types.Message):
     greeting = (
         f"👋 Приветствуем в **ЦОКОЛЬ Lounge**, {message.from_user.first_name}!\n\n"
         "💨 Атмосферный лаунж-бар в Белгороде (ул. Королёва, 4Д)\n"
-        "🎮 Отдельные VIP-комнаты с PlayStation 5 (аренда 0 ₽, депозит 2 000 ₽ на покур и бар)\n"
-        "🍵 Премиальная чайная карта и крафтовые лимонады\n"
+        "🎮 Отдельные VIP-комнаты с PlayStation 5 (депозит 2 000 ₽ на покур и бар)\n"
+        "🍵 Премиальная китайская чайная карта и крафтовые лимонады\n"
         "🎬 Воскресные кинопоказы на большом экране\n\n"
         "Для выбора стола и бронирования нажмите кнопку ниже 👇"
     )
@@ -163,7 +163,7 @@ async def cmd_admin(message: types.Message):
         await message.answer("⛔ У вас нет прав доступа к панели управления.")
         return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=9"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=12"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\n\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -191,7 +191,6 @@ async def cmd_summary(message: types.Message):
     )
     await message.answer(text, parse_mode="Markdown")
 
-# Прием данных из Mini App
 @dp.message(F.web_app_data)
 async def handle_webapp_data(message: types.Message):
     try:
@@ -271,7 +270,7 @@ async def handle_webapp_data(message: types.Message):
     except Exception as e:
         print(f"Ошибка при обработке webapp_data: {e}")
 
-# Клавиатура дозаказов в зале
+# Меню бара для дозаказов в зале
 def make_order_keyboard(booking_id: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -279,7 +278,7 @@ def make_order_keyboard(booking_id: str):
             InlineKeyboardButton(text="🍵 Чай (+500 ₽)", callback_data=f"add_tea500_{booking_id}")
         ],
         [
-            InlineKeyboardButton(text="🫖 Габа/Премиум (+700 ₽)", callback_data=f"add_tea700_{booking_id}"),
+            InlineKeyboardButton(text="🫖 Премиум/ГАБА (+700 ₽)", callback_data=f"add_tea700_{booking_id}"),
             InlineKeyboardButton(text="🥤 Лимонад (+250 ₽)", callback_data=f"add_lem250_{booking_id}")
         ],
         [
@@ -287,14 +286,11 @@ def make_order_keyboard(booking_id: str):
         ]
     ])
 
-# Обработка действий администратора и владельца
 @dp.callback_query(F.data.startswith(("ok_", "no_", "seated_", "add_", "finish_", "refund_", "owner_refund_done_")))
 async def handle_booking_callback(call: types.CallbackQuery):
     data = call.data
 
-    # Обработка кнопки владельца о завершении возврата
     if data.startswith("owner_refund_done_"):
-        b_id = data.replace("owner_refund_done_", "")
         await call.message.edit_text(call.message.text + "\n\n✅ **Возврат средств выполнен владельцем по СБП.**", parse_mode="Markdown", reply_markup=None)
         await call.answer("Возврат подтвержден!")
         return
@@ -359,7 +355,7 @@ async def handle_booking_callback(call: types.CallbackQuery):
         await call.answer("Посадка зафиксирована!")
         return
 
-    # 3. ДОЗАКАЗЫ В ЗАЛЕ (РАЗНЫЕ ЦЕНЫ БАРА)
+    # 3. ДОЗАКАЗЫ В ЗАЛЕ
     elif action == "add":
         sub = parts[1]
         real_id = "_".join(parts[2:])
@@ -392,7 +388,7 @@ async def handle_booking_callback(call: types.CallbackQuery):
         await call.answer(f"Добавлено: {item_title}")
         return
 
-    # 4. ФИНАЛЬНЫЙ РАСЧЕТ И КЭШБЭК
+    # 4. ФИНАЛЬНЫЙ РАСЧЕТ И НАЧИСЛЕНИЕ ЛОЯЛЬНОСТИ
     elif action == "finish":
         cursor.execute("UPDATE bookings SET status = 'completed' WHERE id = ?", (booking_id,))
         if clean_phone:
@@ -415,7 +411,7 @@ async def handle_booking_callback(call: types.CallbackQuery):
         await call.answer("Визит завершен, баллы начислены!")
         return
 
-    # 5. ОТКЛОНЕНИЕ (ДЕПОЗИТ НЕ ПРИШЕЛ)
+    # 5. ОТКЛОНЕНИЕ БРОНИ
     elif action == "no":
         cursor.execute("UPDATE bookings SET status = 'rejected' WHERE id = ?", (booking_id,))
         conn.commit()
@@ -436,7 +432,7 @@ async def handle_booking_callback(call: types.CallbackQuery):
         await call.answer("Бронь отклонена.")
         return
 
-    # 6. ВОЗВРАТ 70% (ПРАВИЛО МЕНЕЕ 1.5 ЧАСА) С УВЕДОМЛЕНИЕМ ВЛАДЕЛЬЦУ
+    # 6. ВОЗВРАТ 70% ВЛАДЕЛЬЦУ (ПРАВИЛО МЕНЕЕ 1.5 ЧАСА)
     elif action == "refund":
         refund_amount = round(total_num * 0.7)
         fee_amount = total_num - refund_amount
@@ -444,7 +440,6 @@ async def handle_booking_callback(call: types.CallbackQuery):
         conn.commit()
         conn.close()
 
-        # Карточка для владельца заведения
         owner_card = (
             f"🚨 **ЗАЯВКА НА ВОЗВРАТ ДЕПОЗИТА (70%)**\n\n"
             f"👤 Гость: **{name}**\n"
@@ -476,6 +471,19 @@ async def handle_booking_callback(call: types.CallbackQuery):
 
 async def main():
     print("🚀 Сервер ЦОКОЛЬ и Telegram-бот запущены!")
+    
+    # Сброс кэша кнопки меню в Telegram
+    try:
+        await bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(
+                text="💨 Забронировать",
+                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=12")
+            )
+        )
+        print("✅ Системная кнопка меню Telegram обновлена до v=12!")
+    except Exception as e:
+        print(f"Кнопка меню: {e}")
+
     config = uvicorn.Config(app=app, host="0.0.0.0", port=8000, log_level="info")
     server = uvicorn.Server(config)
     await asyncio.gather(server.serve(), dp.start_polling(bot))

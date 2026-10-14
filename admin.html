@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ЦОКОЛЬ Lounge | Панель администратора</title>
+  <title>ЦОКОЛЬ Lounge | Шахматка зала</title>
 
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +31,6 @@
     body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
     .container { max-width: 480px; margin: 0 auto; padding: 18px 16px; }
 
-    /* Экран входа по паролю */
     .pin-overlay {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
@@ -63,7 +62,6 @@
     }
     .pin-error { font-size: 11px; color: var(--accent); margin-top: 8px; display: none; }
 
-    /* Шапка админки */
     .admin-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
@@ -76,7 +74,6 @@
       font-size: 11px; font-weight: 600; cursor: pointer;
     }
 
-    /* Блок тайм-слотов */
     .section-title {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px;
@@ -94,7 +91,6 @@
     }
     .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
-    /* Карточки столов в шахматке */
     .tables-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .table-admin-card {
       background: var(--surface); border: 1px solid var(--border);
@@ -113,26 +109,15 @@
     .btn-free { background: var(--green-soft); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
     .btn-busy { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(214, 40, 57, 0.4); }
 
-    /* Секция ленты броней */
-    .bookings-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px;
+    .session-info-badge {
+      background: rgba(214, 40, 57, 0.08); border: 1px solid rgba(214, 40, 57, 0.2);
+      border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #f19fa7; margin-bottom: 16px;
     }
-    .booking-item {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
-    }
-    .booking-item:last-child { margin-bottom: 0; }
-    .b-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
-    .b-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
-    .b-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800; }
-    .badge-pending { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
-    .badge-confirmed { background: var(--green-soft); color: var(--green); }
   </style>
 </head>
 <body>
 
-  <!-- Экран блокировки паролем -->
+  <!-- Блокировка паролем -->
   <div class="pin-overlay" id="pinOverlay">
     <div class="pin-card">
       <div class="pin-icon">🔒</div>
@@ -154,6 +139,10 @@
       <button class="logout-btn" onclick="logout()">Выйти</button>
     </div>
 
+    <div class="session-info-badge">
+      ℹ️ <strong>Регламент 1.5 часа:</strong> клик по статусу стола переключает бронь сразу на 3 слота (на 90 минут вперед).
+    </div>
+
     <!-- Выбор времени -->
     <div class="section-title">
       <span>1. Выберите слот времени</span>
@@ -164,18 +153,9 @@
     <!-- Сетка столов -->
     <div class="section-title">
       <span>2. Состояние столов на выбранный слот</span>
-      <span style="font-size: 10px; color: var(--text-muted);">Кликните для смены</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Клик для смены 1.5 ч</span>
     </div>
     <div class="tables-grid" id="tablesContainer"></div>
-
-    <!-- Лента броней -->
-    <div class="section-title" style="margin-top: 10px;">
-      <span>3. Последние брони из бота</span>
-      <button onclick="loadBookingsFeed()" style="background: none; border: none; color: var(--accent); font-size: 10px; font-weight: 700; cursor: pointer;">Обновить ↺</button>
-    </div>
-    <div class="bookings-box" id="bookingsFeed">
-      <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Нет активных броней</div>
-    </div>
   </div>
 
   <script>
@@ -203,7 +183,6 @@
 
     let currentSelectedSlot = '18:00';
 
-    // Вход по паролю
     function checkPin() {
       const val = document.getElementById('pinInput').value.trim();
       if (val === ADMIN_PIN) {
@@ -225,7 +204,6 @@
       location.reload();
     }
 
-    // Проверка сохранённой авторизации
     if (sessionStorage.getItem('cokol_admin_auth') === 'ok') {
       document.getElementById('pinOverlay').style.display = 'none';
       document.getElementById('adminApp').style.display = 'block';
@@ -235,7 +213,6 @@
     function initAdminPanel() {
       renderSlotPills();
       renderTablesGrid();
-      loadBookingsFeed();
     }
 
     function renderSlotPills() {
@@ -286,56 +263,37 @@
       });
     }
 
+    // 1.5 ЧАСОВОЕ ПЕРЕКЛЮЧЕНИЕ СЛОТОВ АДМИНОМ
+    function getSessionSlots(startTime) {
+      const idx = timeSlots.indexOf(startTime);
+      if (idx === -1) return [startTime];
+      return timeSlots.slice(idx, Math.min(timeSlots.length, idx + 3));
+    }
+
     function toggleTableStatus(tableId) {
-      const state = getSlotState(currentSelectedSlot);
-      if (state[tableId] === 'busy') {
-        delete state[tableId];
-      } else {
-        state[tableId] = 'busy';
-      }
-      localStorage.setItem('cokol_tables_' + currentSelectedSlot, JSON.stringify(state));
-      syncChannel.postMessage({ type: 'table_state_changed', time: currentSelectedSlot });
+      const slotsToChange = getSessionSlots(currentSelectedSlot);
+      const currentState = getSlotState(currentSelectedSlot);
+      const willBeBusy = (currentState[tableId] !== 'busy');
+
+      slotsToChange.forEach(slot => {
+        const state = getSlotState(slot);
+        if (willBeBusy) {
+          state[tableId] = 'busy';
+        } else {
+          delete state[tableId];
+        }
+        localStorage.setItem('cokol_tables_' + slot, JSON.stringify(state));
+        syncChannel.postMessage({ type: 'table_state_changed', time: slot });
+      });
+
       renderTablesGrid();
     }
 
     syncChannel.onmessage = (event) => {
       if (event.data?.type === 'table_state_changed' || event.data?.type === 'new_booking') {
         renderTablesGrid();
-        loadBookingsFeed();
       }
     };
-
-    function loadBookingsFeed() {
-      const box = document.getElementById('bookingsFeed');
-      let bookings = [];
-      try {
-        bookings = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
-      } catch (e) {}
-
-      if (bookings.length === 0) {
-        box.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Нет активных броней</div>';
-        return;
-      }
-
-      box.innerHTML = '';
-      bookings.slice(0, 10).forEach(b => {
-        const item = document.createElement('div');
-        item.className = 'booking-item';
-        const isPending = b.status === 'pending';
-        item.innerHTML = `
-          <div class="b-head">
-            <span>${b.tableName} • ${b.time}</span>
-            <span class="b-badge ${isPending ? 'badge-pending' : 'badge-confirmed'}">${isPending ? 'Ожидает СБП' : 'Подтверждён'}</span>
-          </div>
-          <div class="b-desc">
-            👤 ${b.name} (${b.phone || 'без телефона'})<br>
-            💨 ${b.hookahs || 1} кальян [${b.hookahType || 'Классика'}] • Чек: <strong>${b.total || '1 500 ₽'}</strong>
-            ${b.comment ? `<br>💬 «${b.comment}»` : ''}
-          </div>
-        `;
-        box.appendChild(item);
-      });
-    }
   </script>
 </body>
 </html>

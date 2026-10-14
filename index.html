@@ -767,7 +767,6 @@
         </div>
       </div>
 
-      <!-- Бренды табака -->
       <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
         <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист:</div>
         <div class="pill-group">
@@ -855,7 +854,6 @@
   <!-- Модальное окно СБП -->
   <div class="sbp-modal-backdrop" id="sbpModal">
     <div class="sbp-modal-box">
-      
       <div class="sbp-header-badge">
         <svg viewBox="0 0 32 32" fill="none" style="width:16px;height:16px;">
           <path d="M12.5 4L5 16.5H19.5L12.5 4Z" fill="#1D71B8"/>
@@ -906,7 +904,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно браузера -->
+  <!-- Модальное окно подтверждения -->
   <div class="modal-backdrop" id="modal">
     <div class="success-modal-box">
       <div class="success-icon-badge">✓</div>
@@ -942,7 +940,6 @@
 
     let isSubmitting = false;
 
-    // Telegram Mini App
     const tg = window.Telegram?.WebApp;
     const tgUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : 'guest';
 
@@ -965,7 +962,6 @@
       else if (type === 'notification') tg.HapticFeedback.notificationOccurred('success');
     }
 
-    // 18+ проверка
     function checkAgeVerification() {
       const isVerified = localStorage.getItem('cokol_age_confirmed');
       if (!isVerified) {
@@ -978,7 +974,7 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // ДВИЖОК ЛОЯЛЬНОСТИ ПО НОМЕРУ ТЕЛЕФОНА
+    // ДВИЖОК ЛОЯЛЬНОСТИ
     let activeUserPhone = localStorage.getItem('cokol_last_phone') || '';
 
     function getLoyaltyKey() {
@@ -992,10 +988,16 @@
       try {
         const stored = JSON.parse(localStorage.getItem(getLoyaltyKey()));
         if (stored && typeof stored === 'object') {
+          const now = Date.now();
+          let pending = Number(stored.pendingCashback) || 0;
+          // Сбрасываем плашку ожидания через 3 минуты
+          if (stored.lastBookingAt && (now - stored.lastBookingAt > 180000)) {
+            pending = 0;
+          }
           return {
             spent: Number(stored.spent) || 0,
             balance: Number(stored.balance) || 0,
-            pendingCashback: Number(stored.pendingCashback) || 0,
+            pendingCashback: pending,
             lastBookingAt: Number(stored.lastBookingAt) || 0
           };
         }
@@ -1090,7 +1092,7 @@
       document.getElementById('cardFlipper').classList.toggle('is-flipped');
     }
 
-    // Автомаска телефона и моментальный поиск по базе
+    // Автомаска телефона и поиск по серверу
     const phoneInput = document.getElementById('guestPhoneInput');
     phoneInput.addEventListener('input', function(e) {
       this.classList.remove('input-error');
@@ -1110,7 +1112,6 @@
         activeUserPhone = cleanDigits;
         localStorage.setItem('cokol_last_phone', cleanDigits);
         
-        // Синхронизация с сервером
         fetch('/api/loyalty/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1133,13 +1134,10 @@
             updateLoyaltyUI();
           }
         })
-        .catch(() => {
-          updateLoyaltyUI();
-        });
+        .catch(() => updateLoyaltyUI());
       }
     });
 
-    // Кинопоказы
     const CINEMA_EVENTS = [
       { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
       { date: "2026-10-11", time: "20:00", img: "img/sun2.jpg", fallback: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=400&q=80" },
@@ -1223,7 +1221,7 @@
       '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
       '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
       '21:00', '21:30', '22:00', '22:30', '23:00', '23:30',
-      '00:00', '00:30'
+      '00:00', '00:30', '01:00'
     ];
 
     const allTableIds = ['vip1', 'vip2', 't1', 't2', 't3', 't4', 't5', 't6'];
@@ -1263,12 +1261,27 @@
       syncChannel.postMessage({ type: 'table_state_changed', time: time });
     }
 
+    // 1.5 ЧАСОВАЯ СЕССИЯ (3 СЛОТА ПОДРЯД)
+    function getSessionSlots(startTime) {
+      const idx = rawTimes.indexOf(startTime);
+      if (idx === -1) return [startTime];
+      return rawTimes.slice(idx, Math.min(rawTimes.length, idx + 3));
+    }
+
+    function isTableBusyForSession(tableId, startTime) {
+      const sessionSlots = getSessionSlots(startTime);
+      for (let slot of sessionSlots) {
+        const state = getTableState(slot);
+        if (state[tableId] === 'busy') return true;
+      }
+      return false;
+    }
+
     function updateTablesAvailability() {
-      const state = getTableState(selectedStartTime);
       allTableIds.forEach(id => {
         const node = document.getElementById('node-' + id);
         if (!node) return;
-        const isBusy = (state[id] === 'busy');
+        const isBusy = isTableBusyForSession(id, selectedStartTime);
         if (isBusy) node.classList.add('is-busy');
         else node.classList.remove('is-busy');
       });
@@ -1622,7 +1635,6 @@
       if (slider) slider.scrollBy({ left: dir * 140, behavior: 'smooth' });
     }
 
-    // МАТЕМАТИКА ДЕПОЗИТА: VIP = минимум 2000 ₽ (покур + чай), обычный стол = сумма заказа
     function updateTotal() {
       const baseHookahRate = isLunchTime ? 1000 : 1500;
       const premiumExtra = isPremium ? 500 : 0;
@@ -1646,10 +1658,9 @@
     }
 
     function selectItem(id, title, desc, isVip) {
-      const state = getTableState(selectedStartTime);
-      if (state[id] === 'busy') {
+      if (isTableBusyForSession(id, selectedStartTime)) {
         haptic('notification');
-        alert(`⚠️ ${title} уже ЗАНЯТ на ${selectedStartTime}! Пожалуйста, выберите другой свободный стол на схеме.`);
+        alert(`⚠️ ${title} ЗАНЯТ на время сеанса (1.5 ч с ${selectedStartTime})! Выберите другой свободный стол на схеме.`);
         return;
       }
 
@@ -1723,10 +1734,9 @@
         return;
       }
 
-      const currentState = getTableState(selectedStartTime);
-      if (currentState[currentTableId] === 'busy') {
+      if (isTableBusyForSession(currentTableId, selectedStartTime)) {
         haptic('notification');
-        alert(`⚠️ ${currentTableName} уже занят на ${selectedStartTime}. Выберите свободный стол на схеме.`);
+        alert(`⚠️ ${currentTableName} уже занят на время этого сеанса! Выберите свободный стол на схеме.`);
         updateTablesAvailability();
         return;
       }
@@ -1787,9 +1797,13 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      const state = getTableState(selectedStartTime);
-      state[currentTableId] = 'busy';
-      setTableState(selectedStartTime, state);
+      // ЗАНИМАЕМ ВСЕ 3 СЛОТА СЕАНСА
+      const sessionSlots = getSessionSlots(selectedStartTime);
+      sessionSlots.forEach(slotTime => {
+        const slotState = getTableState(slotTime);
+        slotState[currentTableId] = 'busy';
+        setTableState(slotTime, slotState);
+      });
       updateTablesAvailability();
 
       const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
@@ -1831,7 +1845,6 @@
       localStorage.setItem('cokol_bookings', JSON.stringify(bookings));
       syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
 
-      // Передача в Telegram Bot
       if (window.Telegram?.WebApp) {
         try {
           if (window.Telegram.WebApp.sendData) {
@@ -1840,7 +1853,6 @@
         } catch(err) {
           console.warn("sendData error:", err);
         }
-        
         try {
           window.Telegram.WebApp.close();
           return;
@@ -1849,7 +1861,7 @@
         }
       }
 
-      // Браузерный fallback
+      // Fallback модалка для обычного браузера
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
@@ -1863,7 +1875,7 @@
         ${drinksSummary ? `<br>🍵 Напитки: <strong>${drinksSummary}</strong>` : ''}
         ${comment ? `<br>💬 Пожелание: <em>«${comment}»</em>` : ''}<br><br>
         Депозит к оплате: <strong>${newBooking.total}</strong><br>
-        <span style="color:#f1c40f;">⏳ +${earnedCashback} ₽ кэшбэка будет начислено после подтверждения СБП.</span><br><br>
+        <span style="color:#f1c40f;">⏳ +${earnedCashback} ₽ кэшбэка будет начислено после визита.</span><br><br>
         <span style="font-size: 11px; color: var(--green);">Стол зафиксирован за вами. Администратор проверяет поступление средств.</span>
       `;
       modal.style.display = 'flex';
@@ -1882,7 +1894,6 @@
       document.getElementById('modal').style.display = 'none'; 
     }
 
-    // Инициализация
     checkAgeVerification();
     buildCalendar();
     buildAfisha();
