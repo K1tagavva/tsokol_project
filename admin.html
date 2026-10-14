@@ -18,6 +18,7 @@
       --border-light: rgba(255, 255, 255, 0.14);
       --accent: #d62839;
       --accent-soft: rgba(214, 40, 57, 0.15);
+      --accent-glow: rgba(214, 40, 57, 0.3);
       --green: #2ecc71;
       --green-soft: rgba(46, 204, 113, 0.15);
       --gold: #d4af37;
@@ -58,9 +59,10 @@
     }
     .admin-header h1 { font-size: 17px; font-weight: 800; text-transform: uppercase; }
     .admin-header h1 span { color: var(--accent); }
-    .head-actions { display: flex; gap: 8px; align-items: center; }
-    .logout-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-    
+    .head-actions { display: flex; gap: 6px; align-items: center; }
+    .hdr-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+    .hdr-btn-danger { color: #f19fa7; border-color: rgba(214, 40, 57, 0.3); }
+
     .section-title {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px;
@@ -102,7 +104,6 @@
       color: var(--gold); padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer;
     }
 
-    /* Кнопка записи */
     .action-bar { display: flex; gap: 8px; margin-bottom: 24px; }
     .action-btn-main {
       flex: 1; background: var(--accent); color: #fff; border: none;
@@ -110,7 +111,7 @@
       text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 12px var(--accent-glow);
     }
 
-    /* Карточки броней в смене */
+    /* Карточки броней */
     .bookings-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .booking-feed-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
@@ -124,6 +125,7 @@
     .badge-confirmed { background: var(--green-soft); color: var(--green); }
     .badge-seated { background: rgba(52, 152, 219, 0.15); color: #3498db; }
     .badge-completed { background: rgba(255, 255, 255, 0.08); color: #888; }
+    .badge-rejected { background: rgba(214, 40, 57, 0.15); color: var(--accent); }
 
     /* Поиск гостя */
     .loyalty-search-box {
@@ -167,6 +169,7 @@
       width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
       padding: 9px 12px; color: #fff; font-size: 13px; outline: none;
     }
+    .tariff-hint-text { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 4px; display: block; }
     .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
     .modal-actions button { flex: 1; padding: 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
   </style>
@@ -192,8 +195,9 @@
         <div style="font-size: 11px; color: var(--green);">● Смена открыта</div>
       </div>
       <div class="head-actions">
-        <button class="logout-btn" onclick="syncEverything()">Обновить ↺</button>
-        <button class="logout-btn" onclick="logout()">Выйти</button>
+        <button class="hdr-btn" onclick="syncEverything()">Обновить ↺</button>
+        <button class="hdr-btn hdr-btn-danger" onclick="clearLegacyTests()">🧹 Очистить тесты</button>
+        <button class="hdr-btn" onclick="logout()">Выйти</button>
       </div>
     </div>
 
@@ -244,10 +248,10 @@
       <div class="loyalty-result-card" id="loyaltyResultCard">
         <div class="lrc-head">
           <strong id="lrcName">Иван</strong>
-          <span id="lrcTier" class="b-badge badge-confirmed">GOLD • 5%</span>
+          <span id="lrcTier" class="b-badge badge-confirmed">SILVER • 3%</span>
         </div>
         <div style="font-size: 11px; color: var(--text-muted);">
-          Баланс: <strong id="lrcBalance" style="color:#fff;">1 250 ₽</strong> • Потрачено: <span id="lrcSpent">27 000 ₽</span>
+          Баланс: <strong id="lrcBalance" style="color:#fff;">0 ₽</strong> • Потрачено: <span id="lrcSpent">0 ₽</span>
         </div>
         <div class="lrc-actions">
           <button class="lrc-btn" onclick="adjustGuestBonus(100)">+100 баллов</button>
@@ -267,24 +271,25 @@
         <input type="text" id="manName" placeholder="Иван">
       </div>
       <div class="form-group">
-        <label>Телефон *</label>
+        <label>Телефон * (для связи и лояльности)</label>
         <input type="tel" id="manPhone" placeholder="+7 9XX XXX-XX-XX">
       </div>
       <div class="form-group">
         <label>Стол</label>
-        <select id="manTable"></select>
+        <select id="manTable" onchange="updateManualPricingView()"></select>
       </div>
       <div class="form-group">
         <label>Время начала</label>
-        <select id="manTime"></select>
+        <select id="manTime" onchange="updateManualPricingView()"></select>
       </div>
       <div class="form-group">
-        <label>Кол-во кальянов</label>
-        <select id="manHookahs">
-          <option value="1">1 кальян (1 500 ₽)</option>
-          <option value="2">2 кальяна (3 000 ₽)</option>
-          <option value="3">3 кальяна (4 500 ₽)</option>
+        <label>Количество кальянов</label>
+        <select id="manHookahs" onchange="updateManualPricingView()">
+          <option value="1">1 кальян</option>
+          <option value="2">2 кальяна</option>
+          <option value="3">3 кальяна</option>
         </select>
+        <span class="tariff-hint-text" id="manTariffHint">Стандарт: 1 500 ₽</span>
       </div>
       <div class="form-group">
         <label>Пожелания</label>
@@ -303,14 +308,14 @@
     const syncChannel = new BroadcastChannel('cokol_bookings_sync');
 
     const tableDefs = [
-      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 чел' },
-      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 чел' },
-      { id: 't1', name: 'Стол №1', desc: 'Красный диван + 2 стула' },
-      { id: 't2', name: 'Стол №2', desc: 'Центр зала' },
-      { id: 't3', name: 'Стол №3', desc: 'Уютный угол' },
-      { id: 't4', name: 'Стол №4', desc: 'Перед экраном' },
-      { id: 't5', name: 'Стол №5', desc: 'Большой стол' },
-      { id: 't6', name: 'Стол №6', desc: 'Зона у бара' }
+      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 чел', isVip: true },
+      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 чел', isVip: true },
+      { id: 't1', name: 'Стол №1', desc: 'Красный диван + 2 стула', isVip: false },
+      { id: 't2', name: 'Стол №2', desc: 'Центр зала', isVip: false },
+      { id: 't3', name: 'Стол №3', desc: 'Уютный угол', isVip: false },
+      { id: 't4', name: 'Стол №4', desc: 'Перед экраном', isVip: false },
+      { id: 't5', name: 'Стол №5', desc: 'Большой стол', isVip: false },
+      { id: 't6', name: 'Стол №6', desc: 'Зона у бара', isVip: false }
     ];
 
     const timeSlots = [
@@ -439,7 +444,6 @@
       });
     }
 
-    // Переключение стола на 1.5 часа (3 слота)
     async function toggleTableStatus(tableId) {
       const sched = getLocalSchedule(currentSelectedDateIso);
       const slotData = sched[currentSelectedSlot] || {};
@@ -457,7 +461,6 @@
       saveLocalSchedule(currentSelectedDateIso, sched);
       renderTablesGrid();
 
-      // Отправка на бэкенд
       try {
         await fetch(`${API_BASE}/api/schedule/toggle`, {
           method: 'POST',
@@ -467,9 +470,9 @@
       } catch (e) {}
     }
 
-    // Досрочное освобождение стола
+    // Досрочное освобождение стола (переводит в Завершён)
     async function releaseTableEarly(tableId) {
-      if (!confirm("Освободить этот стол досрочно для следующих гостей?")) return;
+      if (!confirm("Освободить этот стол досрочно и завершить бронь?")) return;
 
       const sched = getLocalSchedule(currentSelectedDateIso);
       const startIdx = timeSlots.indexOf(currentSelectedSlot);
@@ -480,11 +483,22 @@
           delete sched[slot][tableId];
         }
       });
-
       saveLocalSchedule(currentSelectedDateIso, sched);
-      renderTablesGrid();
-      loadBookingsFeed();
 
+      // Локальное обновление статуса
+      try {
+        const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
+        local.forEach(b => {
+          if ((b.tableId === tableId || b.table_id === tableId) && (b.dateIso === currentSelectedDateIso || (b.date && b.date.includes(currentSelectedDateIso.slice(-2))))) {
+            if (b.status === 'confirmed' || b.status === 'seated' || b.status === 'pending') {
+              b.status = 'completed';
+            }
+          }
+        });
+        localStorage.setItem('cokol_bookings', JSON.stringify(local));
+      } catch (e) {}
+
+      // Серверное обновление статуса
       try {
         await fetch(`${API_BASE}/api/bookings/release`, {
           method: 'POST',
@@ -492,9 +506,10 @@
           body: JSON.stringify({ date_iso: currentSelectedDateIso, table_id: tableId, from_time: currentSelectedSlot })
         });
       } catch (e) {}
+
+      syncEverything();
     }
 
-    // Загрузка журнала смены
     async function loadBookingsFeed() {
       const feed = document.getElementById('bookingsFeed');
       let bookings = [];
@@ -504,7 +519,6 @@
         if (res.ok) bookings = await res.json();
       } catch (e) {}
 
-      // Fallback на локальные данные
       if (!bookings.length) {
         try {
           const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
@@ -529,7 +543,7 @@
         if (b.status === 'confirmed') { badgeClass = 'badge-confirmed'; badgeText = 'Подтверждён'; }
         else if (b.status === 'seated') { badgeClass = 'badge-seated'; badgeText = 'В зале'; }
         else if (b.status === 'completed') { badgeClass = 'badge-completed'; badgeText = 'Завершён'; }
-        else if (b.status === 'rejected') { badgeClass = 'badge-completed'; badgeText = 'Отменён'; }
+        else if (b.status === 'rejected') { badgeClass = 'badge-rejected'; badgeText = 'Отменён'; }
 
         card.innerHTML = `
           <div class="bfc-head">
@@ -542,7 +556,7 @@
             ${b.comment ? `<br>💬 «${b.comment}»` : ''}
           </div>
           <div class="bfc-foot">
-            <span>Чек / Депозит: <strong>${b.total_price || b.total}</strong></span>
+            <span>Чек: <strong>${b.total_price || b.total}</strong></span>
             <span style="color:var(--text-muted); font-size:10px;">ID: ${b.id.slice(-6)}</span>
           </div>
         `;
@@ -550,9 +564,7 @@
       });
     }
 
-    // Синхронизация всех блоков страницы
     async function syncEverything() {
-      // Подтягиваем актуальное расписание с сервера
       try {
         const res = await fetch(`${API_BASE}/api/schedule?date=${currentSelectedDateIso}`);
         if (res.ok) {
@@ -565,7 +577,6 @@
       loadBookingsFeed();
     }
 
-    // МОДАЛКА РУЧНОЙ БРОНИ
     function populateManualModalSelects() {
       const tableSel = document.getElementById('manTable');
       const timeSel = document.getElementById('manTime');
@@ -578,10 +589,39 @@
       timeSlots.forEach(s => {
         timeSel.innerHTML += `<option value="${s}" ${s === '18:00' ? 'selected' : ''}>${s}</option>`;
       });
+      updateManualPricingView();
+    }
+
+    function updateManualPricingView() {
+      const time = document.getElementById('manTime').value || '18:00';
+      const tableId = document.getElementById('manTable').value;
+      const hookahs = parseInt(document.getElementById('manHookahs').value) || 1;
+      const hint = document.getElementById('manTariffHint');
+
+      const [h] = time.split(':').map(Number);
+      const isLunch = (h >= 12 && h < 17);
+      const tbl = tableDefs.find(t => t.id === tableId);
+      const isVip = tbl ? tbl.isVip : false;
+
+      const baseRate = isLunch ? 1000 : 1500;
+      let total = baseRate * hookahs;
+      if (isVip) total = Math.max(2000, total);
+
+      if (isVip) {
+        hint.innerText = `VIP-тариф: депозит ${total.toLocaleString('ru-RU')} ₽ (PS5 бесплатно, покур + бар в счёт)`;
+        hint.style.color = 'var(--gold)';
+      } else if (isLunch) {
+        hint.innerText = `Обеденный тариф (до 17:00): ${total.toLocaleString('ru-RU')} ₽ (${hookahs} шт по 1 000 ₽)`;
+        hint.style.color = 'var(--green)';
+      } else {
+        hint.innerText = `Стандартный вечерний тариф: ${total.toLocaleString('ru-RU')} ₽ (${hookahs} шт по 1 500 ₽)`;
+        hint.style.color = 'var(--text-muted)';
+      }
     }
 
     function openManualBookingModal() {
       document.getElementById('manualBookingModal').style.display = 'flex';
+      updateManualPricingView();
       document.getElementById('manName').focus();
     }
     function closeManualBookingModal() {
@@ -597,17 +637,22 @@
       const comment = document.getElementById('manComment').value.trim();
 
       if (!name) { alert("Укажите имя гостя!"); return; }
-      if (!phone || phone.length < 6) { alert("Укажите телефон для связи!"); return; }
+      if (!phone || phone.length < 6) { alert("Укажите телефон для связи и лояльности!"); return; }
 
       const tblObj = tableDefs.find(t => t.id === tableId);
       const tableName = tblObj ? tblObj.name : "Стол";
+      const isVip = tblObj ? tblObj.isVip : false;
 
-      // Расчет времени окончания (1.5 ч)
       const [h, m] = time.split(':').map(Number);
+      const isLunch = (h >= 12 && h < 17);
+      const baseRate = isLunch ? 1000 : 1500;
+      let finalPrice = baseRate * hookahs;
+      if (isVip) finalPrice = Math.max(2000, finalPrice);
+
       const endTotalM = h * 60 + m + 90;
       const endTime = `${String(Math.floor(endTotalM / 60) % 24).padStart(2, '0')}:${String(endTotalM % 60).padStart(2, '0')}`;
 
-      // Локальная блокировка слотов
+      // Локальная блокировка
       const sched = getLocalSchedule(currentSelectedDateIso);
       const startIdx = timeSlots.indexOf(time);
       const sessionSlots = timeSlots.slice(startIdx, Math.min(timeSlots.length, startIdx + 3));
@@ -628,10 +673,10 @@
         date: document.getElementById('currentDateLabel').innerText,
         dateIso: currentSelectedDateIso,
         hookahs: hookahs,
-        hookahType: 'Классика',
+        hookahType: isLunch ? 'Обед (1 000 ₽)' : 'Классика',
         comment: comment,
-        total: `${hookahs * 1500} ₽`,
-        totalNum: hookahs * 1500,
+        total: `${finalPrice.toLocaleString('ru-RU')} ₽`,
+        totalNum: finalPrice,
         status: 'confirmed'
       };
 
@@ -641,7 +686,7 @@
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
       } catch (e) {}
 
-      // Отправка на бэкенд
+      // Серверная запись и регистрация в лояльности
       try {
         await fetch(`${API_BASE}/api/bookings/manual`, {
           method: 'POST',
@@ -656,8 +701,9 @@
             name: name,
             phone: phone,
             hookahs: hookahs,
+            hookah_type: isLunch ? 'Обед (1 000 ₽)' : 'Классика',
             comment: comment,
-            total_num: hookahs * 1500
+            total_num: finalPrice
           })
         });
       } catch (e) {}
@@ -668,10 +714,9 @@
       document.getElementById('manComment').value = '';
 
       syncEverything();
-      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован!`);
+      alert(`✅ Бронь создана: ${tableName} на ${time} – ${endTime} зафиксирован! Сумма: ${finalPrice.toLocaleString('ru-RU')} ₽`);
     }
 
-    // ПОИСК ГОСТЯ И УПРАВЛЕНИЕ ЛОЯЛЬНОСТЬЮ
     async function searchLoyaltyGuest() {
       const query = document.getElementById('loyaltySearchInput').value.trim();
       if (!query) return;
@@ -687,7 +732,6 @@
         }
       } catch (e) {}
 
-      // Fallback на локальные данные
       if (!guestData) {
         const clean = query.replace(/\D/g, '');
         try {
@@ -706,7 +750,7 @@
         document.getElementById('lrcSpent').innerText = `${Number(guestData.spent).toLocaleString('ru-RU')} ₽`;
         card.style.display = 'block';
       } else {
-        alert("Гость с таким номером ещё не зарегистрирован в системе лояльности.");
+        alert("Гость с таким номером ещё не зарегистрирован.");
         card.style.display = 'none';
       }
     }
@@ -724,13 +768,12 @@
           const data = await res.json();
           if (data.status === 'ok') {
             document.getElementById('lrcBalance').innerText = `${Number(data.new_balance).toLocaleString('ru-RU')} ₽`;
-            alert(`Баланс обновлен: ${delta > 0 ? '+' : ''}${delta} ₽`);
+            alert(`Баланс изменен: ${delta > 0 ? '+' : ''}${delta} ₽`);
             return;
           }
         }
       } catch (e) {}
 
-      // Локальный fallback
       const clean = activeSearchedPhone.replace(/\D/g, '');
       const key = 'cokol_loyalty_p_' + clean;
       try {
@@ -738,8 +781,23 @@
         stored.balance = Math.max(0, (stored.balance || 0) + delta);
         localStorage.setItem(key, JSON.stringify(stored));
         document.getElementById('lrcBalance').innerText = `${Number(stored.balance).toLocaleString('ru-RU')} ₽`;
-        alert(`Баланс обновлен (локально): ${delta > 0 ? '+' : ''}${delta} ₽`);
+        alert(`Баланс изменен (локально): ${delta > 0 ? '+' : ''}${delta} ₽`);
       } catch (e) {}
+    }
+
+    // Очистка старых тестовых броней
+    async function clearLegacyTests() {
+      if (!confirm("Очистить все тестовые брони и освободить столы смены?")) return;
+      localStorage.removeItem('cokol_bookings');
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('cokol_sched_')) localStorage.removeItem(k);
+      }
+      try {
+        await fetch(`${API_BASE}/api/bookings/clear_tests`, { method: 'POST' });
+      } catch(e) {}
+      syncEverything();
+      alert("Тестовые данные очищены!");
     }
 
     syncChannel.onmessage = (event) => {

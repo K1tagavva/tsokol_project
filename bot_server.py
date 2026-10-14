@@ -121,7 +121,6 @@ except Exception:
 bot = Bot(token=BOT_TOKEN, session=session) if session else Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# FastAPI приложение
 app = FastAPI(title="Cokol Lounge Full Admin API")
 app.add_middleware(
     CORSMiddleware,
@@ -131,7 +130,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic модели API
 class LoyaltyCheckRequest(BaseModel):
     phone: str = ""
     telegram_id: str | None = None
@@ -165,11 +163,38 @@ class ToggleTableRequest(BaseModel):
     table_id: str
     busy: bool
 
-# API ЭНДПОИНТЫ ДЛЯ АДМИНКИ И ПРИЛОЖЕНИЯ
+# API ЭНДПОИНТЫ
 @app.get("/api/schedule")
 async def get_schedule(date: str):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
+    
+    # 1. Автоматическая синхронизация: берем все активные брони на этот день
+    cursor.execute("""
+        SELECT time_slot, table_id, id FROM bookings
+        WHERE (date_iso = ? OR booking_date LIKE ?)
+          AND status IN ('confirmed', 'seated')
+    """, (date, f"%{date[-2:]}%"))
+    active_bookings = cursor.fetchall()
+
+    time_slots = [
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+        '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
+        '21:00', '21:30', '22:00', '22:30', '23:00', '23:30',
+        '00:00', '00:30', '01:00'
+    ]
+
+    for t_slot, t_id, b_id in active_bookings:
+        if t_id and t_slot in time_slots:
+            idx = time_slots.index(t_slot)
+            for s in time_slots[idx:min(len(time_slots), idx + 3)]:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO table_schedules (date_iso, time_slot, table_id, status, booking_id)
+                    VALUES (?, ?, ?, 'busy', ?)
+                """, (date, s, t_id, b_id))
+    conn.commit()
+
     cursor.execute("SELECT time_slot, table_id, status FROM table_schedules WHERE date_iso = ?", (date,))
     rows = cursor.fetchall()
     conn.close()
@@ -261,7 +286,6 @@ async def create_manual_booking(req: ManualBookingRequest):
         f"{req.total_num:,.0f} ₽", req.total_num
     ))
 
-    # Блокировка слотов в расписании (3 слота по 30 мин)
     idx = time_slots.index(req.time) if req.time in time_slots else -1
     slots_to_change = time_slots[idx:min(len(time_slots), idx + 3)] if idx != -1 else [req.time]
     for s in slots_to_change:
@@ -270,6 +294,7 @@ async def create_manual_booking(req: ManualBookingRequest):
             VALUES (?, ?, ?, 'busy', ?)
         """, (req.date_iso, s, req.table_id, b_id))
 
+    # Сразу регистрируем в лояльности для мгновенного поиска
     if clean_phone:
         cursor.execute("""
             INSERT OR IGNORE INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
@@ -297,12 +322,24 @@ async def release_table(req: TableReleaseRequest):
     for s in slots_to_free:
         cursor.execute("DELETE FROM table_schedules WHERE date_iso = ? AND table_id = ? AND time_slot = ?", (req.date_iso, req.table_id, s))
     
-    # Переводим бронь в статус completed
+    # Перевод брони в статус completed
     cursor.execute("""
         UPDATE bookings SET status = 'completed'
-        WHERE date_iso = ? AND table_id = ? AND status IN ('confirmed', 'seated')
-    """, (req.date_iso, req.table_id))
+        WHERE (date_iso = ? OR booking_date LIKE ?)
+          AND table_id = ?
+          AND status IN ('confirmed', 'seated', 'pending')
+    """, (req.date_iso, f"%{req.date_iso[-2:]}%", req.table_id))
 
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/api/bookings/clear_tests")
+async def clear_tests_endpoint():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM bookings")
+    cursor.execute("DELETE FROM table_schedules")
     conn.commit()
     conn.close()
     return {"status": "ok"}
@@ -366,14 +403,13 @@ async def check_loyalty_endpoint(req: LoyaltyCheckRequest):
         return {"found": True, "phone": row[0], "name": row[1], "spent": row[2], "balance": row[3], "tier": row[4]}
     return {"found": False, "spent": 0, "balance": 0, "tier": "SILVER"}
 
-# КЛАВИАТУРЫ И КОМАНДЫ БОТА
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=16"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=17"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=16")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=17")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -399,7 +435,7 @@ async def cmd_admin(message: types.Message):
         await message.answer("⛔ У вас нет прав доступа к панели управления.")
         return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=16"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=17"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\n\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -478,7 +514,6 @@ async def handle_webapp_data(message: types.Message):
             hookahs, hookah_type, drinks, comment, total_price, total_num, cashback
         ))
 
-        # Сохранение слотов в таблице table_schedules
         time_slots = [
             '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
             '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
@@ -637,6 +672,7 @@ async def handle_booking_callback(call: types.CallbackQuery):
     # 4. ФИНАЛЬНЫЙ РАСЧЕТ И ОСВОБОЖДЕНИЕ СТОЛА
     elif action == "finish":
         cursor.execute("UPDATE bookings SET status = 'completed' WHERE id = ?", (booking_id,))
+        cursor.execute("DELETE FROM table_schedules WHERE booking_id = ?", (booking_id,))
         if clean_phone:
             cursor.execute("""
                 UPDATE loyalty_clients
@@ -710,7 +746,7 @@ async def main():
         await bot.set_chat_menu_button(
             menu_button=MenuButtonWebApp(
                 text="💨 Забронировать",
-                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=16")
+                web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=17")
             )
         )
     except Exception:
