@@ -225,17 +225,40 @@
     .tbl-node:hover .tbl-body { stroke: var(--accent); fill: #1c1e29; }
     .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; filter: drop-shadow(0 0 10px var(--accent-glow)); }
 
-    /* Busy Table State */
+    .sofa-red { fill: #d62839; transition: 0.2s; }
+
+    /* ВИЗУАЛЬНАЯ ПОДСВЕТКА ЗАНЯТОГО СТОЛА */
     .tbl-node.is-busy {
-      opacity: 0.32 !important;
       cursor: not-allowed !important;
     }
-    .tbl-node.is-busy .tbl-body, .tbl-node.is-busy .tbl-zone {
-      fill: #1a1a1f !important;
-      stroke: #333540 !important;
+    .tbl-node.is-busy .tbl-body, 
+    .tbl-node.is-busy .tbl-zone {
+      fill: #14151a !important;
+      stroke: #22242e !important;
       filter: none !important;
+      opacity: 0.45;
     }
-    .tbl-node.is-busy text { fill: #666 !important; }
+    .tbl-node.is-busy .sofa-red,
+    .tbl-node.is-busy .tbl-chair {
+      fill: #2d2f38 !important;
+      opacity: 0.4;
+    }
+    .tbl-node.is-busy text { 
+      fill: #555866 !important; 
+    }
+    .busy-tag-text {
+      display: none;
+      font-size: 7px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      fill: #e74c3c;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .tbl-node.is-busy .busy-tag-text {
+      display: block !important;
+    }
 
     .tbl-chair { fill: var(--chair); rx: 2px; }
     .tbl-bar { fill: #101116; stroke: #242732; stroke-width: 1.5; rx: 8px; }
@@ -631,59 +654,66 @@
         <!-- VIP 1 -->
         <g id="node-vip1" class="tbl-node" onclick="selectItem('vip1', 'VIP 1 Малая (до 4 чел)', 'PlayStation 5 • ТВ • Приватная шторка', true)">
           <rect x="14" y="50" width="82" height="74" class="tbl-zone" />
-          <text x="55" y="80" class="svg-text-bold">VIP 1</text>
-          <text x="55" y="96" class="svg-text-sub">PS5 • 4 чел</text>
+          <text x="55" y="78" class="svg-text-bold">VIP 1</text>
+          <text x="55" y="93" class="svg-text-sub">PS5 • 4 чел</text>
+          <text x="55" y="107" class="busy-tag-text">ЗАНЯТО</text>
         </g>
 
         <!-- VIP 2 -->
         <g id="node-vip2" class="tbl-node" onclick="selectItem('vip2', 'VIP 2 Большая (до 8 чел)', 'PlayStation 5 • Большой ТВ 65&quot; • Шторка', true)">
           <rect x="14" y="136" width="82" height="106" class="tbl-zone" />
-          <text x="55" y="182" class="svg-text-bold">VIP 2</text>
-          <text x="55" y="198" class="svg-text-sub">PS5 • 8 чел</text>
+          <text x="55" y="180" class="svg-text-bold">VIP 2</text>
+          <text x="55" y="195" class="svg-text-sub">PS5 • 8 чел</text>
+          <text x="55" y="210" class="busy-tag-text">ЗАНЯТО</text>
         </g>
-
-        <!-- Диван слева -->
-        <rect x="108" y="50" width="6" height="192" rx="3" fill="#d62839" />
 
         <!-- Стол 1 -->
         <g id="node-t1" class="tbl-node active" onclick="selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false)">
+          <rect x="108" y="50" width="6" height="50" rx="3" class="sofa-red" />
           <rect x="122" y="56" width="46" height="30" class="tbl-body" />
           <text x="145" y="72" class="svg-text-num">1</text>
+          <text x="145" y="72" class="busy-tag-text">ЗАНЯТ</text>
           <rect x="176" y="58" width="4" height="11" class="tbl-chair" />
           <rect x="176" y="73" width="4" height="11" class="tbl-chair" />
         </g>
 
         <!-- Стол 2 -->
         <g id="node-t2" class="tbl-node" onclick="selectItem('t2', 'Стол №2 (Красный диван)', 'Центр зала • Красный диван + 2 стула', false)">
+          <rect x="108" y="121" width="6" height="50" rx="3" class="sofa-red" />
           <rect x="122" y="131" width="46" height="30" class="tbl-body" />
           <text x="145" y="147" class="svg-text-num">2</text>
+          <text x="145" y="147" class="busy-tag-text">ЗАНЯТ</text>
           <rect x="176" y="133" width="4" height="11" class="tbl-chair" />
           <rect x="176" y="148" width="4" height="11" class="tbl-chair" />
         </g>
 
         <!-- Стол 3 -->
         <g id="node-t3" class="tbl-node" onclick="selectItem('t3', 'Стол №3 (Красный диван)', 'Уютный угол зала • Красный диван + 2 стула', false)">
+          <rect x="108" y="196" width="6" height="50" rx="3" class="sofa-red" />
           <rect x="122" y="206" width="46" height="30" class="tbl-body" />
           <text x="145" y="222" class="svg-text-num">3</text>
+          <text x="145" y="222" class="busy-tag-text">ЗАНЯТ</text>
           <rect x="176" y="208" width="4" height="11" class="tbl-chair" />
           <rect x="176" y="223" width="4" height="11" class="tbl-chair" />
         </g>
 
-        <!-- Стол 4 -->
-        <rect x="220" y="48" width="62" height="6" rx="3" fill="#d62839" />
+        <!-- Стол 4 (все диваны теперь внутри node-t4 для моментальной смены цвета) -->
         <g id="node-t4" class="tbl-node" onclick="selectItem('t4', 'Стол №4 (Перед экраном)', 'Идеальный обзор экрана • Двухсторонние диваны', false)">
+          <rect x="220" y="48" width="62" height="6" rx="3" class="sofa-red" />
           <rect x="223" y="60" width="56" height="32" class="tbl-body" />
           <text x="251" y="77" class="svg-text-num">4</text>
+          <text x="251" y="77" class="busy-tag-text">ЗАНЯТ</text>
+          <rect x="220" y="98" width="62" height="6" rx="3" class="sofa-red" />
         </g>
-        <rect x="220" y="98" width="62" height="6" rx="3" fill="#d62839" />
 
         <!-- Стол 5 -->
-        <rect x="220" y="123" width="62" height="6" rx="3" fill="#d62839" />
         <g id="node-t5" class="tbl-node" onclick="selectItem('t5', 'Стол №5 (Центр зала)', 'Большой стол с мягкими диванами', false)">
+          <rect x="220" y="123" width="62" height="6" rx="3" class="sofa-red" />
           <rect x="223" y="135" width="56" height="32" class="tbl-body" />
           <text x="251" y="152" class="svg-text-num">5</text>
+          <text x="251" y="152" class="busy-tag-text">ЗАНЯТ</text>
+          <rect x="220" y="173" width="62" height="6" rx="3" class="sofa-red" />
         </g>
-        <rect x="220" y="173" width="62" height="6" rx="3" fill="#d62839" />
 
         <!-- Стол 6 -->
         <g id="node-t6" class="tbl-node" onclick="selectItem('t6', 'Стол №6 (У бара)', '2 стула + боковой диван', false)">
@@ -691,7 +721,8 @@
           <rect x="211" y="227" width="4" height="11" class="tbl-chair" />
           <rect x="223" y="210" width="56" height="32" class="tbl-body" />
           <text x="251" y="227" class="svg-text-num">6</text>
-          <rect x="287" y="204" width="6" height="44" rx="3" fill="#d62839" />
+          <text x="251" y="227" class="busy-tag-text">ЗАНЯТ</text>
+          <rect x="287" y="204" width="6" height="44" rx="3" class="sofa-red" />
         </g>
 
         <!-- Бар -->
@@ -990,7 +1021,6 @@
         if (stored && typeof stored === 'object') {
           const now = Date.now();
           let pending = Number(stored.pendingCashback) || 0;
-          // Сбрасываем плашку ожидания через 3 минуты
           if (stored.lastBookingAt && (now - stored.lastBookingAt > 180000)) {
             pending = 0;
           }
@@ -1092,7 +1122,6 @@
       document.getElementById('cardFlipper').classList.toggle('is-flipped');
     }
 
-    // Автомаска телефона и поиск по серверу
     const phoneInput = document.getElementById('guestPhoneInput');
     phoneInput.addEventListener('input', function(e) {
       this.classList.remove('input-error');
@@ -1261,19 +1290,30 @@
       syncChannel.postMessage({ type: 'table_state_changed', time: time });
     }
 
-    // 1.5 ЧАСОВАЯ СЕССИЯ (3 СЛОТА ПОДРЯД)
-    function getSessionSlots(startTime) {
-      const idx = rawTimes.indexOf(startTime);
-      if (idx === -1) return [startTime];
-      return rawTimes.slice(idx, Math.min(rawTimes.length, idx + 3));
-    }
-
+    // ДВУСТОРОННЯЯ ПРОВЕРКА 1.5-ЧАСОВОГО ПЕРЕСЕЧЕНИЯ
     function isTableBusyForSession(tableId, startTime) {
-      const sessionSlots = getSessionSlots(startTime);
-      for (let slot of sessionSlots) {
-        const state = getTableState(slot);
+      const currentIdx = rawTimes.indexOf(startTime);
+      if (currentIdx === -1) return false;
+
+      // 1. Проверяем слоты вперед: [T, T+30, T+60]
+      const forwardSlots = rawTimes.slice(currentIdx, Math.min(rawTimes.length, currentIdx + 3));
+      for (let s of forwardSlots) {
+        const state = getTableState(s);
         if (state[tableId] === 'busy') return true;
       }
+
+      // 2. Проверяем предыдущие слоты: если в T-30 или T-60 началась бронь, она еще идет!
+      if (currentIdx >= 1) {
+        const prevSlot1 = rawTimes[currentIdx - 1];
+        const state1 = getTableState(prevSlot1);
+        if (state1[tableId] === 'busy') return true;
+      }
+      if (currentIdx >= 2) {
+        const prevSlot2 = rawTimes[currentIdx - 2];
+        const state2 = getTableState(prevSlot2);
+        if (state2[tableId] === 'busy') return true;
+      }
+
       return false;
     }
 
@@ -1282,8 +1322,19 @@
         const node = document.getElementById('node-' + id);
         if (!node) return;
         const isBusy = isTableBusyForSession(id, selectedStartTime);
-        if (isBusy) node.classList.add('is-busy');
-        else node.classList.remove('is-busy');
+        if (isBusy) {
+          node.classList.add('is-busy');
+          if (currentTableId === id) {
+            // Если выбранный стол оказался занят — переключаем на свободный
+            const freeId = allTableIds.find(tId => !isTableBusyForSession(tId, selectedStartTime));
+            if (freeId) {
+              const freeNode = document.getElementById('node-' + freeId);
+              if (freeNode) freeNode.click();
+            }
+          }
+        } else {
+          node.classList.remove('is-busy');
+        }
       });
     }
 
@@ -1797,13 +1848,10 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // ЗАНИМАЕМ ВСЕ 3 СЛОТА СЕАНСА
-      const sessionSlots = getSessionSlots(selectedStartTime);
-      sessionSlots.forEach(slotTime => {
-        const slotState = getTableState(slotTime);
-        slotState[currentTableId] = 'busy';
-        setTableState(slotTime, slotState);
-      });
+      // ЗАНИМАЕМ СТОЛ В ЭТОМ СЛОТЕ
+      const slotState = getTableState(selectedStartTime);
+      slotState[currentTableId] = 'busy';
+      setTableState(selectedStartTime, slotState);
       updateTablesAvailability();
 
       const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
@@ -1861,7 +1909,6 @@
         }
       }
 
-      // Fallback модалка для обычного браузера
       const modal = document.getElementById('modal');
       const modalText = document.getElementById('modalText');
       const endStr = calculateEndTime(selectedStartTime);
