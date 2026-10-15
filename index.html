@@ -1505,7 +1505,7 @@
       navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
     }
 
-    // БРОНИРОВАНИЕ ГОСТЕМ
+    // БРОНИРОВАНИЕ ГОСТЕМ: ГАРАНТИРОВАННАЯ ЗАПИСЬ В ЖУРНАЛ
     function confirmSbpPayment() {
       if (isSubmitting) return;
       isSubmitting = true;
@@ -1517,7 +1517,7 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Блокируем слоты в расписании (3 слота по умолчанию или 2 если укороченный)
+      // 1. Блокируем слоты в расписании столов
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
@@ -1561,21 +1561,37 @@
         status: 'pending'
       };
 
-      // 2. ВАЖНО: СОХРАНЯЕМ В ЛОКАЛЬНЫЙ ЖУРНАЛ БРОНЕЙ, ЧТОБЫ АДМИНКА ЕГО ВИДЕЛА СРАЗУ
+      // 2. ВАЖНО: СОХРАНЯЕМ В ЛОКАЛЬНЫЙ ЖУРНАЛ СТРОГО ДО ЗАКРЫТИЯ ОКНА
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
         syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error saving local booking:', e);
+      }
 
-      // 3. Отправка в бот
+      // Регистрация в базе лояльности
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length >= 10) {
+        const lKey = 'cokol_loyalty_p_' + (cleanPhone.length === 11 && (cleanPhone[0] === '7' || cleanPhone[0] === '8') ? '7' + cleanPhone.slice(1) : cleanPhone);
+        try {
+          let existing = JSON.parse(localStorage.getItem(lKey));
+          if (!existing) {
+            localStorage.setItem(lKey, JSON.stringify({ name: name, phone: phone, spent: 0, balance: 0, tier: 'SILVER' }));
+          }
+        } catch(e) {}
+      }
+
+      // 3. Отправка в бот Telegram
       if (window.Telegram?.WebApp?.sendData) {
         try {
           window.Telegram.WebApp.sendData(JSON.stringify(newBooking));
           window.Telegram.WebApp.close();
           return;
-        } catch(err) {}
+        } catch(err) {
+          console.warn("sendData error:", err);
+        }
       }
 
       const modal = document.getElementById('modal');
