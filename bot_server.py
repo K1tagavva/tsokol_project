@@ -31,6 +31,11 @@ ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_RAW.split(",") if x.strip().isdig
 OWNER_ID_RAW = os.getenv("OWNER_ID", "").strip()
 OWNER_ID = int(OWNER_ID_RAW) if OWNER_ID_RAW.isdigit() else (ADMIN_IDS[0] if ADMIN_IDS else 0)
 
+# ГИБКИЙ ПЕРЕКЛЮЧАТЕЛЬ ДЕПОЗИТОВ:
+# True  = режим депозитов по СБП (требуется подтверждение админа / интернет-эквайринга)
+# False = свободная бронь (гости просто бронируют стол и оплачивают на терминале в баре)
+REQUIRE_SBP_DEPOSIT = True
+
 DB_NAME = "cokol.db"
 
 def init_db():
@@ -264,7 +269,7 @@ async def create_manual(req: ManualBookReq):
     idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
     slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
     for s in slots:
-        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date_iso, s, req.table_id, b_id))
+        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (req.date_iso, s, req.table_id, b_id))
     if clean:
         cur.execute("INSERT OR IGNORE INTO loyalty_clients VALUES (?, ?, ?, 0, 0, 'SILVER')", (clean, message.from_user.id, name))
     conn.commit()
@@ -337,11 +342,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckReq):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=45"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=50"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=45")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=50")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -364,7 +369,7 @@ async def cmd_start(message: types.Message):
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in ADMIN_IDS: return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=45"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=50"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -412,7 +417,10 @@ async def handle_webapp_data(message: types.Message):
         clean = "".join(filter(str.isdigit, phone))
         if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
 
-        # Включаем комментарий гостя в сообщение в чате
+        initial_status = 'pending' if REQUIRE_SBP_DEPOSIT else 'confirmed'
+
+        status_text = "🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*" if REQUIRE_SBP_DEPOSIT else "✅ *Бронь подтверждена! Оплата счёта при визите на баре через терминал.*"
+
         guest_msg_text = (
             f"⏳ **Заявка на бронирование передана в ЦОКОЛЬ Lounge!**\n\n"
             f"📍 **{table_name}**\n"
@@ -421,15 +429,15 @@ async def handle_webapp_data(message: types.Message):
             f"{f'🍵 Напитки: {drinks}\n' if drinks else ''}"
             f"{f'💬 Пожелания: «{comment}»\n' if comment else ''}"
             f"💳 Депозит брони: **{total_price}**\n\n"
-            f"🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*"
+            f"{status_text}"
         )
         sent = await message.answer(guest_msg_text, parse_mode="Markdown")
 
         conn = sqlite3.connect(DB_NAME)
         cur = conn.cursor()
         cur.execute("""
-            INSERT OR REPLACE INTO bookings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP)
-        """, (booking_id, message.chat.id, sent.message_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback))
+            INSERT OR REPLACE INTO bookings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """, (booking_id, message.chat.id, sent.message_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback, initial_status))
 
         idx = TIME_SLOTS.index(time_slot) if time_slot in TIME_SLOTS else -1
         slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [time_slot]
@@ -441,7 +449,7 @@ async def handle_webapp_data(message: types.Message):
         conn.close()
 
         admin_card = (
-            f"🔔 **НОВАЯ БРОНЬ СТОЛА (Ожидает СБП)**\n\n"
+            f"🔔 **НОВАЯ БРОНЬ СТОЛА ({'Ожидает СБП' if REQUIRE_SBP_DEPOSIT else 'Терминал / Без предоплаты'})**\n\n"
             f"👤 Гость: **{name}** (@{username})\n"
             f"📞 Телефон: `{phone}`\n"
             f"📍 Стол: **{table_name}**\n"
@@ -449,10 +457,10 @@ async def handle_webapp_data(message: types.Message):
             f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
             f"{f'🍵 Бар: {drinks}\n' if drinks else ''}"
             f"{f'💬 Комментарий: «{comment}»\n' if comment else ''}"
-            f"💰 Ожидаемый депозит СБП: **{total_price}**"
+            f"💰 Сумма: **{total_price}**"
         )
         admin_kb = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text="✅ Депозит поступил", callback_data=f"ok_{booking_id}"),
+            InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"ok_{booking_id}"),
             InlineKeyboardButton(text="❌ Отклонить", callback_data=f"no_{booking_id}")
         ]])
         for aid in ADMIN_IDS:
@@ -482,11 +490,11 @@ async def handle_admin_decision(call: types.CallbackQuery):
             try:
                 await bot.edit_message_text(
                     chat_id=chat_id, message_id=guest_msg_id,
-                    text=f"🎉 **Бронь подтверждена! Ждём вас в ЦОКОЛЬ Lounge**\n\n📍 **{table_name}**\n⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n💳 Депозит **{total_num:,.0f} ₽** успешно зачислен.",
+                    text=f"🎉 **Бронь подтверждена! Ждём вас в ЦОКОЛЬ Lounge**\n\n📍 **{table_name}**\n⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n💳 Бронь зафиксирована. Оплата счёта на баре при визите.",
                     parse_mode="Markdown"
                 )
             except Exception: pass
-        await call.message.edit_text(call.message.text + "\n\n🟢 **Депозит подтверждён.** Стол зафиксирован.", parse_mode="Markdown", reply_markup=None)
+        await call.message.edit_text(call.message.text + "\n\n🟢 **Бронь подтверждена.** Стол зафиксирован.", parse_mode="Markdown", reply_markup=None)
         await call.answer("Подтверждено!")
     else:
         cur.execute("UPDATE bookings SET status = 'rejected' WHERE id = ?", (booking_id,))
@@ -495,7 +503,7 @@ async def handle_admin_decision(call: types.CallbackQuery):
         conn.close()
         if chat_id and guest_msg_id:
             try:
-                await bot.edit_message_text(chat_id=chat_id, message_id=guest_msg_id, text="❌ **Бронирование отклонено:** Депозит не поступил.", parse_mode="Markdown")
+                await bot.edit_message_text(chat_id=chat_id, message_id=guest_msg_id, text="❌ **Бронирование отменено.**", parse_mode="Markdown")
             except Exception: pass
         await call.message.edit_text(call.message.text + "\n\n❌ **Бронь отклонена.** Стол свободен.", parse_mode="Markdown", reply_markup=None)
         await call.answer("Отклонено.")

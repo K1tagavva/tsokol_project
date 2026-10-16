@@ -9,7 +9,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -91,7 +91,7 @@
     .afisha-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .afisha-head h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #fff; }
     .afisha-head span { font-size: 11px; color: var(--accent); font-weight: 700; }
-    .afisha-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+    .afisha-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; flex: 1; -webkit-overflow-scrolling: touch; }
     .afisha-scroll::-webkit-scrollbar { display: none; }
     .movie-poster-card {
       min-width: 125px; width: 125px; height: 185px; border-radius: 14px;
@@ -121,7 +121,10 @@
     }
     .arrow-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
-    .dates-scroll, .times-scroll, .cat-track { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+    .dates-scroll, .times-scroll, .cat-track { 
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; flex: 1; 
+      -webkit-overflow-scrolling: touch;
+    }
     .dates-scroll::-webkit-scrollbar, .times-scroll::-webkit-scrollbar, .cat-track::-webkit-scrollbar { display: none; }
 
     .date-chip {
@@ -281,7 +284,7 @@
     .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
     .drink-card.active .drink-check { display: inline-block; }
 
-    /* Поля ввода с кнопкой быстрой очистки */
+    /* Поля ввода с естественным Backspace и кнопкой очистки */
     .form-group { margin-bottom: 12px; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
     .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
@@ -686,7 +689,7 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контакты с удобной очисткой -->
+    <!-- Контакты с естественным стиранием и кнопкой очистки -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
@@ -821,7 +824,24 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // Умная очистка полей
+    // Скрытие клавиатуры при тапе мимо или скролле
+    document.addEventListener('touchstart', function(e) {
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+        if (!e.target.closest('.input-wrapper, textarea, .clear-btn')) {
+          active.blur();
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('scroll', function() {
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+        active.blur();
+      }
+    }, { passive: true });
+
+    // Поле имени
     const nameInput = document.getElementById('guestNameInput');
     const nameClearBtn = document.getElementById('nameClearBtn');
     nameInput.addEventListener('input', function() {
@@ -833,50 +853,65 @@
       nameInput.focus();
     }
 
+    // Естественный ввод и стирание телефона
     const phoneInput = document.getElementById('guestPhoneInput');
     const phoneClearBtn = document.getElementById('phoneClearBtn');
-    
-    // Поддержка нормального Backspace
+
     phoneInput.addEventListener('keydown', function(e) {
       if (e.key === 'Backspace') {
-        let v = this.value;
-        if (v === '+7 ' || v === '+7 (' || v === '+7') {
-          this.value = '';
-          phoneClearBtn.style.display = 'none';
-          e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        if (start === end && start > 0) {
+          const charBefore = this.value[start - 1];
+          // Если стираем скобку, дефис или пробел — удаляем стоящую перед ней цифру
+          if (/\D/.test(charBefore)) {
+            e.preventDefault();
+            let digits = this.value.replace(/\D/g, '');
+            if (digits.startsWith('7') || digits.startsWith('8')) digits = digits.slice(1);
+            digits = digits.slice(0, -1);
+            applyPhoneMask(digits);
+          }
         }
       }
     });
 
-    phoneInput.addEventListener('input', function() {
-      this.classList.remove('input-error');
-      phoneClearBtn.style.display = this.value.length > 0 ? 'flex' : 'none';
+    phoneInput.addEventListener('input', function(e) {
+      let digits = this.value.replace(/\D/g, '');
+      if (digits.startsWith('7') || digits.startsWith('8')) digits = digits.slice(1);
+      applyPhoneMask(digits);
+    });
 
-      let val = this.value.replace(/\D/g, '');
-      if (!val) { this.value = ''; return; }
-      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
-      let res = '+7 ';
-      if (val.length > 0) res += '(' + val.substring(0, 3);
-      if (val.length >= 3) res += ') ' + val.substring(3, 6);
-      if (val.length >= 6) res += '-' + val.substring(6, 8);
-      if (val.length >= 8) res += '-' + val.substring(8, 10);
-      this.value = res;
+    function applyPhoneMask(digits) {
+      phoneInput.classList.remove('input-error');
+      phoneClearBtn.style.display = digits.length > 0 ? 'flex' : 'none';
 
-      const cleanDigits = this.value.replace(/\D/g, '');
-      if (cleanDigits.length === 11) {
-        activeUserPhone = cleanDigits;
-        localStorage.setItem('cokol_last_phone', cleanDigits);
+      if (!digits) {
+        phoneInput.value = '';
+        return;
+      }
+
+      let res = '+7 (';
+      if (digits.length > 0) res += digits.slice(0, 3);
+      if (digits.length >= 3) res += ') ' + digits.slice(3, 6);
+      if (digits.length >= 6) res += '-' + digits.slice(6, 8);
+      if (digits.length >= 8) res += '-' + digits.slice(8, 10);
+      phoneInput.value = res;
+
+      if (digits.length === 10) {
+        const clean = '7' + digits;
+        activeUserPhone = clean;
+        localStorage.setItem('cokol_last_phone', clean);
         fetch('/api/loyalty/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: cleanDigits, telegram_id: tgUserId })
+          body: JSON.stringify({ phone: clean, telegram_id: tgUserId })
         })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
           if (data?.found) {
             localStorage.setItem(getLoyaltyKey(), JSON.stringify({ spent: data.spent || 0, balance: data.balance || 0 }));
             if (data.name) {
-              document.getElementById('guestNameInput').value = data.name;
+              nameInput.value = data.name;
               document.getElementById('cardGuestName').innerText = data.name;
               nameClearBtn.style.display = 'flex';
             }
@@ -885,7 +920,7 @@
         })
         .catch(() => updateLoyaltyUI());
       }
-    });
+    }
 
     function clearPhoneInput() {
       phoneInput.value = '';
@@ -948,7 +983,6 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
-    // Полное актуальное меню
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -1194,15 +1228,24 @@
       document.getElementById('hallPhotoModal').style.display = 'none';
     }
 
+    // Автоматический скролл даты и времени при клике на афишу
     function selectMovieSession(isoDate, time) {
       haptic('selection');
-      const targetCard = document.querySelector(`.date-chip[data-date="${isoDate}"]`);
-      if (targetCard) targetCard.click();
+      const targetDateCard = document.querySelector(`.date-chip[data-date="${isoDate}"]`);
+      if (targetDateCard) {
+        targetDateCard.click();
+        targetDateCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
 
       selectedStartTime = time;
-      document.querySelectorAll('.time-chip').forEach(chip => {
-        if (chip.innerText.includes(time)) chip.click();
-      });
+      setTimeout(() => {
+        document.querySelectorAll('.time-chip').forEach(chip => {
+          if (chip.innerText.includes(time)) {
+            chip.click();
+            chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        });
+      }, 50);
 
       selectItem('t4', 'Стол №4 (Перед экраном)', 'Идеальный прямой обзор экрана • Двухсторонние диваны', false);
       document.getElementById('step2Anchor').scrollIntoView({ behavior: 'smooth' });
@@ -1449,7 +1492,6 @@
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
       document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
       document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
-      document.getElementById('hookahRateText').innerText = `Кальянов (${baseHookahRate} ₽/шт)`;
     }
 
     function selectItem(id, title, desc, isVip) {
@@ -1611,7 +1653,6 @@
         status: 'pending'
       };
 
-      // Сохраняем в локальный журнал до отправки в Telegram
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
@@ -1638,7 +1679,7 @@
         ${comment ? '💬 Пожелания: <strong>«' + comment + '»</strong><br>' : ''}
         ${isCurrentSessionShort ? '<span style="color:#f1c40f;">⚠️ Внимание: в ' + endStr + ' стол забронирован следующими гостями.</span><br>' : ''}
         Депозит: <strong>${newBooking.total}</strong><br><br>
-        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор проверяет СБП.</span>
+        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор сверяет платёж СБП.</span>
       `;
       modal.style.display = 'flex';
       setTimeout(() => { isSubmitting = false; }, 3000);
