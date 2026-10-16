@@ -120,7 +120,6 @@ TIME_SLOTS = [
 class ExtendReq(BaseModel):
     booking_id: str
     extra_minutes: int = 90
-    extra_amount: float = 1500.0
 
 class CloseReq(BaseModel):
     booking_id: str
@@ -225,17 +224,16 @@ async def close_visit(req: CloseReq):
 async def extend_booking(req: ExtendReq):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("SELECT table_id, end_time, date_iso, total_num, hookahs FROM bookings WHERE id = ?", (req.booking_id,))
+    cur.execute("SELECT table_id, end_time, date_iso FROM bookings WHERE id = ?", (req.booking_id,))
     row = cur.fetchone()
     if not row:
         conn.close()
         return {"status": "error"}
-    table_id, end_time, date_iso, total_num, hookahs = row
+    table_id, end_time, date_iso = row
     h, m = map(int, end_time.split(':'))
     new_tot = h * 60 + m + req.extra_minutes
     new_end = f"{((new_tot // 60) % 24):02d}:{(new_tot % 60):02d}"
-    new_sum = (total_num or 0) + req.extra_amount
-    cur.execute("UPDATE bookings SET end_time = ?, total_num = ?, total_price = ?, hookahs = ? WHERE id = ?", (new_end, new_sum, f"{new_sum:,.0f} ₽", (hookahs or 1) + 1, req.booking_id))
+    cur.execute("UPDATE bookings SET end_time = ? WHERE id = ?", (new_end, req.booking_id))
     conn.commit()
     conn.close()
     return {"status": "ok", "new_end_time": new_end}
@@ -266,9 +264,9 @@ async def create_manual(req: ManualBookReq):
     idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
     slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
     for s in slots:
-        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (req.date_iso, s, req.table_id, b_id))
+        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date_iso, s, req.table_id, b_id))
     if clean:
-        cur.execute("INSERT OR IGNORE INTO loyalty_clients VALUES (?, ?, ?, 0, 0, 'SILVER')", (clean, req.name))
+        cur.execute("INSERT OR IGNORE INTO loyalty_clients VALUES (?, ?, ?, 0, 0, 'SILVER')", (clean, message.from_user.id, name))
     conn.commit()
     conn.close()
     return {"status": "ok"}
@@ -339,11 +337,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckReq):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=40"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=45"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=40")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=45")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -366,7 +364,7 @@ async def cmd_start(message: types.Message):
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in ADMIN_IDS: return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=40"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=45"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -414,16 +412,18 @@ async def handle_webapp_data(message: types.Message):
         clean = "".join(filter(str.isdigit, phone))
         if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
 
-        sent = await message.answer(
+        # Включаем комментарий гостя в сообщение в чате
+        guest_msg_text = (
             f"⏳ **Заявка на бронирование передана в ЦОКОЛЬ Lounge!**\n\n"
             f"📍 **{table_name}**\n"
             f"⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n"
             f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
             f"{f'🍵 Напитки: {drinks}\n' if drinks else ''}"
+            f"{f'💬 Пожелания: «{comment}»\n' if comment else ''}"
             f"💳 Депозит брони: **{total_price}**\n\n"
-            f"🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*",
-            parse_mode="Markdown"
+            f"🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*"
         )
+        sent = await message.answer(guest_msg_text, parse_mode="Markdown")
 
         conn = sqlite3.connect(DB_NAME)
         cur = conn.cursor()

@@ -9,7 +9,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -281,10 +281,20 @@
     .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
     .drink-card.active .drink-check { display: inline-block; }
 
-    .form-group { margin-bottom: 10px; }
-    .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 600; text-transform: uppercase; }
-    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
-    .form-group input.input-error { border-color: var(--accent) !important; background: rgba(214, 40, 57, 0.08) !important; }
+    /* Поля ввода с кнопкой быстрой очистки */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+    .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
+    .input-wrapper input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      padding: 11px 36px 11px 12px; border-radius: 8px; color: #fff; font-size: 15px; outline: none;
+    }
+    .input-wrapper input.input-error { border-color: var(--accent) !important; background: rgba(214, 40, 57, 0.08) !important; }
+    .clear-btn {
+      position: absolute; right: 10px; width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12); color: #ccc; border: none; font-size: 11px; font-weight: 800;
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+    }
 
     .legal-disclaimer {
       font-size: 10px; color: #5a5f6e; line-height: 1.5;
@@ -653,7 +663,7 @@
 
       <div style="margin-top: 10px;">
         <div class="card-section-title" style="margin-bottom: 4px;">Пожелания к забивке</div>
-        <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса..."></textarea>
+        <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса, цитрусовый микс..."></textarea>
       </div>
     </div>
 
@@ -676,15 +686,21 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контакты -->
+    <!-- Контакты с удобной очисткой -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
-        <input type="text" id="guestNameInput" value="" placeholder="Ваше имя">
+        <div class="input-wrapper">
+          <input type="text" id="guestNameInput" value="" placeholder="Ваше имя">
+          <button type="button" class="clear-btn" id="nameClearBtn" onclick="clearNameInput()">✕</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Телефон для подтверждения и лояльности *</label>
-        <input type="tel" id="guestPhoneInput" value="" placeholder="+7 (9XX) XXX-XX-XX" maxlength="18">
+        <div class="input-wrapper">
+          <input type="tel" id="guestPhoneInput" value="" placeholder="+7 (9XX) XXX-XX-XX" maxlength="18">
+          <button type="button" class="clear-btn" id="phoneClearBtn" onclick="clearPhoneInput()">✕</button>
+        </div>
       </div>
     </div>
 
@@ -782,6 +798,7 @@
           const userName = tg.initDataUnsafe.user.first_name;
           document.getElementById('guestNameInput').value = userName;
           document.getElementById('cardGuestName').innerText = userName;
+          document.getElementById('nameClearBtn').style.display = 'flex';
         }
       } catch (e) {}
     }
@@ -802,6 +819,78 @@
       haptic('impact');
       localStorage.setItem('cokol_age_confirmed', 'true');
       document.getElementById('ageModal').style.display = 'none';
+    }
+
+    // Умная очистка полей
+    const nameInput = document.getElementById('guestNameInput');
+    const nameClearBtn = document.getElementById('nameClearBtn');
+    nameInput.addEventListener('input', function() {
+      nameClearBtn.style.display = this.value.length > 0 ? 'flex' : 'none';
+    });
+    function clearNameInput() {
+      nameInput.value = '';
+      nameClearBtn.style.display = 'none';
+      nameInput.focus();
+    }
+
+    const phoneInput = document.getElementById('guestPhoneInput');
+    const phoneClearBtn = document.getElementById('phoneClearBtn');
+    
+    // Поддержка нормального Backspace
+    phoneInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace') {
+        let v = this.value;
+        if (v === '+7 ' || v === '+7 (' || v === '+7') {
+          this.value = '';
+          phoneClearBtn.style.display = 'none';
+          e.preventDefault();
+        }
+      }
+    });
+
+    phoneInput.addEventListener('input', function() {
+      this.classList.remove('input-error');
+      phoneClearBtn.style.display = this.value.length > 0 ? 'flex' : 'none';
+
+      let val = this.value.replace(/\D/g, '');
+      if (!val) { this.value = ''; return; }
+      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
+      let res = '+7 ';
+      if (val.length > 0) res += '(' + val.substring(0, 3);
+      if (val.length >= 3) res += ') ' + val.substring(3, 6);
+      if (val.length >= 6) res += '-' + val.substring(6, 8);
+      if (val.length >= 8) res += '-' + val.substring(8, 10);
+      this.value = res;
+
+      const cleanDigits = this.value.replace(/\D/g, '');
+      if (cleanDigits.length === 11) {
+        activeUserPhone = cleanDigits;
+        localStorage.setItem('cokol_last_phone', cleanDigits);
+        fetch('/api/loyalty/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: cleanDigits, telegram_id: tgUserId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data?.found) {
+            localStorage.setItem(getLoyaltyKey(), JSON.stringify({ spent: data.spent || 0, balance: data.balance || 0 }));
+            if (data.name) {
+              document.getElementById('guestNameInput').value = data.name;
+              document.getElementById('cardGuestName').innerText = data.name;
+              nameClearBtn.style.display = 'flex';
+            }
+          }
+          updateLoyaltyUI();
+        })
+        .catch(() => updateLoyaltyUI());
+      }
+    });
+
+    function clearPhoneInput() {
+      phoneInput.value = '';
+      phoneClearBtn.style.display = 'none';
+      phoneInput.focus();
     }
 
     // Лояльность
@@ -835,43 +924,6 @@
       document.getElementById('cardFlipper').classList.toggle('is-flipped');
     }
 
-    const phoneInput = document.getElementById('guestPhoneInput');
-    phoneInput.addEventListener('input', function() {
-      this.classList.remove('input-error');
-      let val = this.value.replace(/\D/g, '');
-      if (!val) { this.value = ''; return; }
-      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
-      let res = '+7 ';
-      if (val.length > 0) res += '(' + val.substring(0, 3);
-      if (val.length >= 3) res += ') ' + val.substring(3, 6);
-      if (val.length >= 6) res += '-' + val.substring(6, 8);
-      if (val.length >= 8) res += '-' + val.substring(8, 10);
-      this.value = res;
-
-      const cleanDigits = this.value.replace(/\D/g, '');
-      if (cleanDigits.length === 11) {
-        activeUserPhone = cleanDigits;
-        localStorage.setItem('cokol_last_phone', cleanDigits);
-        fetch('/api/loyalty/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: cleanDigits, telegram_id: tgUserId })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data?.found) {
-            localStorage.setItem(getLoyaltyKey(), JSON.stringify({ spent: data.spent || 0, balance: data.balance || 0 }));
-            if (data.name) {
-              document.getElementById('guestNameInput').value = data.name;
-              document.getElementById('cardGuestName').innerText = data.name;
-            }
-          }
-          updateLoyaltyUI();
-        })
-        .catch(() => updateLoyaltyUI());
-      }
-    });
-
     const CINEMA_EVENTS = [
       { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
       { date: "2026-10-11", time: "20:00", img: "img/sun2.jpg", fallback: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=400&q=80" },
@@ -896,7 +948,7 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
-    // ОБНОВЛЕННОЕ МЕНЮ
+    // Полное актуальное меню
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -948,7 +1000,7 @@
         { id: 'c2_big', name: "Латте (350 мл)", desc: "Большой молочный латте", price: 250 },
         { id: 'c3', name: "Флэт Уайт", desc: "Двойной эспрессо с молоком • 250 мл", price: 250 },
         { id: 'c_water', name: "Вода минеральная", desc: "Без газа / с газом • 500 мл", price: 150 },
-        { id: 'c6', name: "Кола", desc: "Классическая • 330 мл", price: 200 },
+        { id: 'c6', name: "Кола", desc: "330 мл", price: 200 },
         { id: 'c7', name: "Энергетик", desc: "250 мл", price: 250 }
       ]
     };
@@ -1015,7 +1067,6 @@
       return 'free';
     }
 
-    // БЕЗОПАСНАЯ ПРОВЕРКА БЕЗ БЕСКОНЕЧНОЙ РЕКУРСИИ
     function updateTablesAvailability() {
       allTableIds.forEach(id => {
         const node = document.getElementById('node-' + id);
@@ -1157,7 +1208,6 @@
       document.getElementById('step2Anchor').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ПОЛНЫЙ КАЛЕНДАРЬ НА 30 ДНЕЙ БЕЗ СБОЕВ
     function buildCalendar() {
       const slider = document.getElementById('dateSlider');
       slider.innerHTML = '';
@@ -1194,7 +1244,6 @@
         slider.appendChild(card);
       }
 
-      // Активируем первый день один раз после завершения цикла
       const first = slider.querySelector('.date-chip');
       if (first) {
         selectedDateIso = first.dataset.date;
@@ -1203,7 +1252,6 @@
       }
     }
 
-    // СЕТКА СЛОТОВ ВРЕМЕНИ
     function renderTimeSlots(isoDate) {
       const container = document.getElementById('timeSlotsContainer');
       container.innerHTML = '';
@@ -1401,6 +1449,7 @@
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
       document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
       document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
+      document.getElementById('hookahRateText').innerText = `Кальянов (${baseHookahRate} ₽/шт)`;
     }
 
     function selectItem(id, title, desc, isVip) {
@@ -1459,12 +1508,10 @@
     }
 
     function openSbpModal() {
-      const nameInput = document.getElementById('guestNameInput');
-      const phoneInput = document.getElementById('guestPhoneInput');
-      const nameVal = nameInput.value.trim();
+      const name = nameInput.value.trim();
       const phoneDigits = phoneInput.value.replace(/\D/g, '');
 
-      if (!nameVal || nameVal.length < 2) {
+      if (!name || name.length < 2) {
         haptic('notification');
         nameInput.classList.add('input-error');
         nameInput.focus();
@@ -1510,7 +1557,6 @@
       navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
     }
 
-    // БРОНИРОВАНИЕ ГОСТЕМ
     function confirmSbpPayment() {
       if (isSubmitting) return;
       isSubmitting = true;
@@ -1518,8 +1564,8 @@
       haptic('notification');
       closeSbpModal();
 
-      const name = document.getElementById('guestNameInput').value.trim() || 'Гость';
-      const phone = document.getElementById('guestPhoneInput').value.trim();
+      const name = nameInput.value.trim() || 'Гость';
+      const phone = phoneInput.value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
       const sched = getDaySchedule(selectedDateIso);
@@ -1565,7 +1611,7 @@
         status: 'pending'
       };
 
-      // Сохраняем бронь в локальный журнал до отправки
+      // Сохраняем в локальный журнал до отправки в Telegram
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
@@ -1589,6 +1635,7 @@
         📅 Дата: <strong>${selectedDateLabel}</strong><br>
         ⏰ Время: <strong>${selectedStartTime} – ${endStr} (${isCurrentSessionShort ? '1 час' : '1.5 ч'})</strong><br>
         📍 Локация: <strong>${currentTableName}</strong><br>
+        ${comment ? '💬 Пожелания: <strong>«' + comment + '»</strong><br>' : ''}
         ${isCurrentSessionShort ? '<span style="color:#f1c40f;">⚠️ Внимание: в ' + endStr + ' стол забронирован следующими гостями.</span><br>' : ''}
         Депозит: <strong>${newBooking.total}</strong><br><br>
         <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор проверяет СБП.</span>

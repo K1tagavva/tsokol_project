@@ -7,7 +7,7 @@
 
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -32,7 +32,6 @@
     body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
     .container { max-width: 520px; margin: 0 auto; padding: 18px 16px; }
 
-    /* Пароль */
     .pin-overlay {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
@@ -82,7 +81,6 @@
     }
     .date-pill.active, .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
-    /* Таблицы столов */
     .tables-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .table-admin-card {
       background: var(--surface); border: 1px solid var(--border);
@@ -114,7 +112,6 @@
       text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 12px var(--accent-glow);
     }
 
-    /* Карточки броней */
     .bookings-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .booking-feed-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
@@ -145,7 +142,6 @@
     .bf-btn-finish { border-color: rgba(46, 204, 113, 0.6); color: var(--green); }
     .bf-btn-cancel { border-color: rgba(214, 40, 57, 0.4); color: var(--accent); }
 
-    /* Поиск гостя */
     .loyalty-search-box {
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
       padding: 14px; margin-bottom: 24px;
@@ -170,7 +166,6 @@
       padding: 7px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
     }
 
-    /* Модалки */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: none; align-items: center; justify-content: center;
@@ -194,7 +189,6 @@
 </head>
 <body>
 
-  <!-- Вход -->
   <div class="pin-overlay" id="pinOverlay">
     <div class="pin-card">
       <div style="font-size: 26px; margin-bottom: 10px;">🔒</div>
@@ -219,33 +213,28 @@
       </div>
     </div>
 
-    <!-- Быстрое действие -->
     <div class="action-bar">
       <button class="action-btn-main" onclick="openManualBookingModal()">➕ Записать гостя по звонку</button>
     </div>
 
-    <!-- Выбор дня -->
     <div class="section-title">
       <span>1. Дата календаря</span>
       <span id="currentDateLabel" style="color: var(--accent); font-weight: 800;">Сегодня</span>
     </div>
     <div class="dates-scroll" id="adminDatesContainer"></div>
 
-    <!-- Выбор времени -->
     <div class="section-title">
       <span>2. Слот времени (1.5 ч)</span>
       <span id="currentSlotLabel" style="color: var(--accent); font-weight: 800;">18:00</span>
     </div>
     <div class="slots-scroll" id="slotsContainer"></div>
 
-    <!-- Сетка столов -->
     <div class="section-title">
       <span>3. Состояние столов на слот</span>
       <span style="font-size: 10px; color: var(--text-muted);">Клик для смены 1.5 ч</span>
     </div>
     <div class="tables-grid" id="tablesContainer"></div>
 
-    <!-- Журнал смены -->
     <div class="section-title">
       <span>4. Журнал броней на день</span>
       <span id="bookingsCountBadge" style="color: var(--gold); font-size: 11px; font-weight: 700;">0 броней</span>
@@ -254,7 +243,6 @@
       <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">Записей нет</div>
     </div>
 
-    <!-- Поиск лояльности -->
     <div class="section-title">
       <span>5. Поиск гостя по базе лояльности</span>
     </div>
@@ -280,7 +268,7 @@
     </div>
   </div>
 
-  <!-- Модалка ручной брони по звонку -->
+  <!-- Модалка ручной брони -->
   <div class="modal-overlay" id="manualBookingModal">
     <div class="modal-box">
       <h3>Запись гостя (по звонку)</h3>
@@ -465,20 +453,24 @@
       syncChannel.postMessage({ type: 'table_state_changed', date: dateIso });
     }
 
+    // Умная проверка статуса для админа (с учетом буфера 30 мин)
     function getAdminTableStatus(tableId, dateIso, time) {
       const sched = getLocalSchedule(dateIso);
       const idx = timeSlots.indexOf(time);
       if (idx === -1) return { state: 'free', label: '🟢 СВОБОДЕН' };
 
+      // 1. Слот занят прямо сейчас
       if (sched[time]?.[tableId] === 'busy') {
         return { state: 'busy', label: '🔴 ЗАНЯТ' };
       }
 
+      // 2. Следующий слот (через 30 мин) занят
       const next30 = timeSlots[idx + 1];
       if (next30 && sched[next30]?.[tableId] === 'busy') {
         return { state: 'buffer', label: '🔴 ЗАНЯТ (окно 30м)' };
       }
 
+      // 3. Через 60 минут занят
       const next60 = timeSlots[idx + 2];
       if (next60 && sched[next60]?.[tableId] === 'busy') {
         return { state: 'short', label: '🟡 СВОБОДЕН (1 ч)' };
@@ -592,7 +584,7 @@
       syncEverything();
     }
 
-    // ПРОДЛЕНИЕ СТОЛА (+1.5 ЧАСА)
+    // ПРОДЛЕНИЕ СТОЛА (+1.5 ЧАСА) БЕЗ АВТОМАТИЧЕСКИХ НАЦЕНОК
     async function extendBooking(bookingId) {
       let booking = null;
       try {
@@ -627,7 +619,7 @@
       }
 
       const nextEndSlot = timeSlots[startExtIdx + 3] || '01:00';
-      if (!confirm(`Продлить сеанс за столом ${tableName} ещё на 1.5 часа (до ${nextEndSlot})?\nК счёту добавится перезабивка (+1 500 ₽).`)) {
+      if (!confirm(`Продлить сеанс за столом ${tableName} ещё на 1.5 часа (до ${nextEndSlot})?\n(Сумма счёта не изменится, итоговый чек укажете при закрытии счёта)`)) {
         return;
       }
 
@@ -640,8 +632,6 @@
       const [h, m] = currentEndTime.split(':').map(Number);
       const newEndTotalM = h * 60 + m + 90;
       const newEndTime = `${String(Math.floor(newEndTotalM / 60) % 24).padStart(2, '0')}:${String(newEndTotalM % 60).padStart(2, '0')}`;
-      const newTotalNum = Number(booking.totalNum || booking.total_num || 1500) + 1500;
-      const newHookahs = Number(booking.hookahs || 1) + 1;
 
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
@@ -649,11 +639,6 @@
           if (b.id === bookingId) {
             b.endTime = newEndTime;
             b.end_time = newEndTime;
-            b.totalNum = newTotalNum;
-            b.total_num = newTotalNum;
-            b.total = `${newTotalNum.toLocaleString('ru-RU')} ₽`;
-            b.total_price = `${newTotalNum.toLocaleString('ru-RU')} ₽`;
-            b.hookahs = newHookahs;
           }
         });
         localStorage.setItem('cokol_bookings', JSON.stringify(local));
@@ -663,12 +648,12 @@
         await fetch(`${API_BASE}/api/bookings/extend`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ booking_id: bookingId, extra_minutes: 90, extra_amount: 1500.0 })
+          body: JSON.stringify({ booking_id: bookingId, extra_minutes: 90 })
         });
       } catch (e) {}
 
       syncEverything();
-      alert(`🎉 Сеанс за столом ${tableName} успешно продлен до ${newEndTime}!\nНовая сумма счёта: ${newTotalNum.toLocaleString('ru-RU')} ₽.`);
+      alert(`🎉 Сеанс за столом ${tableName} успешно продлен до ${newEndTime}!`);
     }
 
     // КАЛЬКУЛЯТОР ФАКТИЧЕСКОГО ЧЕКА
@@ -689,7 +674,7 @@
 
       document.getElementById('closeVisitGuestDesc').innerHTML = `
         Гость: <strong>${gName}</strong> (${gPhone})<br>
-        Стол: <strong>${gTable}</strong> • Текущий депозит/заказ: <strong>${currentBill.toLocaleString('ru-RU')} ₽</strong>
+        Стол: <strong>${gTable}</strong> • Текущий депозит: <strong>${currentBill.toLocaleString('ru-RU')} ₽</strong>
       `;
       document.getElementById('closeVisitTotalInput').value = currentBill;
       updateCloseVisitCashbackPreview();
@@ -839,7 +824,6 @@
         if (res.ok) bookings = await res.json();
       } catch (e) {}
 
-      // Объединяем с локальными бронями
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         const localForDay = local.filter(b => {
