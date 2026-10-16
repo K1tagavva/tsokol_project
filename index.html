@@ -1103,7 +1103,6 @@
       document.getElementById('hookahRateText').innerText = `Кальянов (${baseRate} ₽/шт)`;
     }
 
-    // Phone formatter
     const pInput = document.getElementById('guestPhoneInput');
     pInput.addEventListener('input', function() {
       let val = this.value.replace(/\D/g, '');
@@ -1148,7 +1147,6 @@
       const end = h * 60 + m + dur;
       const endStr = `${String(Math.floor(end/60)%24).padStart(2,'0')}:${String(end%60).padStart(2,'0')}`;
 
-      // Блокируем слоты в расписании
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
@@ -1180,7 +1178,6 @@
         status: 'pending'
       };
 
-      // ГАРАНТИРОВАННАЯ ЗАПИСЬ В ЖУРНАЛ СМЕНЫ
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);

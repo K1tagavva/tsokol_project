@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ЦОКОЛЬ Lounge | Шахматка зала</title>
+  <title>ЦОКОЛЬ Lounge | Шахматка зала & Управление</title>
 
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,6 +18,7 @@
       --border-light: rgba(255, 255, 255, 0.14);
       --accent: #d62839;
       --accent-soft: rgba(214, 40, 57, 0.15);
+      --accent-glow: rgba(214, 40, 57, 0.3);
       --green: #2ecc71;
       --green-soft: rgba(46, 204, 113, 0.15);
       --gold: #d4af37;
@@ -29,9 +30,10 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
     html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 50px; -webkit-font-smoothing: antialiased; }
     .container { width: 100%; max-width: 500px; margin: 0 auto; padding: 14px 14px 40px; }
 
+    /* Пароль */
     .pin-overlay {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
@@ -82,6 +84,7 @@
     }
     .date-pill.active, .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
+    /* Таблицы столов */
     .tables-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
     .table-admin-card {
       background: var(--surface); border: 1px solid var(--border);
@@ -142,6 +145,31 @@
     .bf-btn-finish { border-color: rgba(46, 204, 113, 0.6); color: var(--green); }
     .bf-btn-cancel { border-color: rgba(214, 40, 57, 0.4); color: var(--accent); }
 
+    /* Поиск гостя */
+    .loyalty-search-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px; margin-bottom: 24px;
+    }
+    .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .search-row input {
+      flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; color: #fff; font-size: 14px; outline: none;
+    }
+    .search-row button {
+      background: var(--surface); border: 1px solid var(--border-light); color: #fff;
+      padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .loyalty-result-card {
+      background: var(--bg); border: 1px solid var(--border-light); border-radius: 10px;
+      padding: 12px; display: none;
+    }
+    .lrc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .lrc-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .lrc-btn {
+      flex: 1; background: var(--surface); border: 1px solid var(--border-light); color: #fff;
+      padding: 7px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+
     /* Модалки */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -159,12 +187,14 @@
       width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
       padding: 11px 12px; color: #fff; font-size: 14px; outline: none;
     }
+    .tariff-hint-text { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 4px; display: block; }
     .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
     .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
 
+  <!-- Вход -->
   <div class="pin-overlay" id="pinOverlay">
     <div class="pin-card">
       <div style="font-size: 26px; margin-bottom: 10px;">🔒</div>
@@ -215,6 +245,31 @@
     <div class="bookings-box" id="bookingsFeed">
       <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">Записей нет</div>
     </div>
+
+    <!-- Поиск лояльности -->
+    <div class="section-title">
+      <span>5. Поиск гостя по базе лояльности</span>
+    </div>
+    <div class="loyalty-search-box">
+      <div class="search-row">
+        <input type="tel" id="loyaltySearchInput" placeholder="+7 (9XX) XXX-XX-XX">
+        <button onclick="searchLoyaltyGuest()">Найти</button>
+      </div>
+      <div class="loyalty-result-card" id="loyaltyResultCard">
+        <div class="lrc-head">
+          <strong id="lrcName">Иван</strong>
+          <span id="lrcTier" class="b-badge badge-confirmed">SILVER • 3%</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted);">
+          Баланс: <strong id="lrcBalance" style="color:#fff;">0 ₽</strong> • Потрачено всего: <span id="lrcSpent">0 ₽</span>
+        </div>
+        <div class="lrc-actions">
+          <button class="lrc-btn" onclick="adjustGuestBonus(100)">+100 баллов</button>
+          <button class="lrc-btn" onclick="adjustGuestBonus(300)">+300 баллов</button>
+          <button class="lrc-btn" style="color:var(--accent);" onclick="adjustGuestBonus(-100)">-100 баллов</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Модалка ручной брони -->
@@ -226,16 +281,29 @@
         <input type="text" id="manName" placeholder="Иван">
       </div>
       <div class="form-group">
-        <label>Телефон *</label>
+        <label>Телефон * (для связи и лояльности)</label>
         <input type="tel" id="manPhone" placeholder="+7 9XX XXX-XX-XX">
       </div>
       <div class="form-group">
         <label>Стол</label>
-        <select id="manTable"></select>
+        <select id="manTable" onchange="updateManualPricingView()"></select>
       </div>
       <div class="form-group">
         <label>Время начала</label>
-        <select id="manTime"></select>
+        <select id="manTime" onchange="updateManualPricingView()"></select>
+      </div>
+      <div class="form-group">
+        <label>Количество кальянов</label>
+        <select id="manHookahs" onchange="updateManualPricingView()">
+          <option value="1">1 кальян</option>
+          <option value="2">2 кальяна</option>
+          <option value="3">3 кальяна</option>
+        </select>
+        <span class="tariff-hint-text" id="manTariffHint">Стандарт: 1 500 ₽</span>
+      </div>
+      <div class="form-group">
+        <label>Пожелания</label>
+        <input type="text" id="manComment" placeholder="Цитрус, покрепче, без мяты">
       </div>
       <div class="modal-actions">
         <button style="background: var(--surface); color: var(--text-muted);" onclick="document.getElementById('manualBookingModal').style.display='none'">Отмена</button>
@@ -250,8 +318,11 @@
       <h3>Расчёт и закрытие счёта</h3>
       <p id="closeVisitGuestDesc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></p>
       <div class="form-group">
-        <label>Сумма чека к оплате (₽) *</label>
-        <input type="number" id="closeVisitTotalInput" placeholder="1500">
+        <label>Итоговая сумма чека (₽) *</label>
+        <input type="number" id="closeVisitTotalInput" placeholder="1500" oninput="updateCloseVisitCashbackPreview()">
+      </div>
+      <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+        <strong id="closeVisitCashbackPreview" style="font-size: 13px; color: var(--green);">Кэшбэк: +45 ₽ (3%)</strong>
       </div>
       <div class="modal-actions">
         <button style="background: var(--surface); color: var(--text-muted);" onclick="document.getElementById('closeVisitModal').style.display='none'">Отмена</button>
@@ -265,14 +336,14 @@
     const API_BASE = "http://localhost:8000";
 
     const tableDefs = [
-      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 чел' },
-      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 чел' },
-      { id: 't1', name: 'Стол №1', desc: 'Красный диван + 2 стула' },
-      { id: 't2', name: 'Стол №2', desc: 'Центр зала' },
-      { id: 't3', name: 'Стол №3', desc: 'Уютный угол' },
-      { id: 't4', name: 'Стол №4', desc: 'Перед экраном' },
-      { id: 't5', name: 'Стол №5', desc: 'Большой стол' },
-      { id: 't6', name: 'Стол №6', desc: 'Зона у бара' }
+      { id: 'vip1', name: 'VIP 1 Малая', desc: 'PS5 • До 4 чел', isVip: true },
+      { id: 'vip2', name: 'VIP 2 Большая', desc: 'PS5 • До 8 чел', isVip: true },
+      { id: 't1', name: 'Стол №1', desc: 'Красный диван + 2 стула', isVip: false },
+      { id: 't2', name: 'Стол №2', desc: 'Центр зала', isVip: false },
+      { id: 't3', name: 'Стол №3', desc: 'Уютный угол', isVip: false },
+      { id: 't4', name: 'Стол №4', desc: 'Перед экраном', isVip: false },
+      { id: 't5', name: 'Стол №5', desc: 'Большой стол', isVip: false },
+      { id: 't6', name: 'Стол №6', desc: 'Зона у бара', isVip: false }
     ];
 
     const timeSlots = [
@@ -285,6 +356,7 @@
 
     let currentSelectedDateIso = '';
     let currentSelectedSlot = '18:00';
+    let activeSearchedPhone = '';
     let activeClosingBooking = null;
 
     function checkPin() {
@@ -354,6 +426,12 @@
       });
     }
 
+    function cleanDigitsPhone(p) {
+      let c = (p || '').replace(/\D/g, '');
+      if (c.length === 11 && (c[0] === '7' || c[0] === '8')) c = '7' + c.slice(1);
+      return c;
+    }
+
     function getLocalSchedule(dateIso) {
       try { return JSON.parse(localStorage.getItem('cokol_sched_' + dateIso)) || {}; }
       catch (e) { return {}; }
@@ -416,7 +494,9 @@
       
       const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
       local.forEach(b => {
-        if (b.tableId === tableId && b.dateIso === currentSelectedDateIso) b.status = 'completed';
+        if ((b.tableId === tableId || b.table_id === tableId) && b.dateIso === currentSelectedDateIso) {
+          b.status = 'completed';
+        }
       });
       localStorage.setItem('cokol_bookings', JSON.stringify(local));
       syncEverything();
@@ -443,9 +523,9 @@
         card.innerHTML = `
           <div class="bfc-head">
             <span>${b.tableName || b.table_name} • ${b.time} – ${b.endTime || b.end_time || '1.5 ч'}</span>
-            <span class="b-badge ${b.status === 'confirmed' ? 'badge-confirmed' : (b.status === 'completed' ? 'badge-completed' : 'badge-pending')}">${b.status}</span>
+            <span class="b-badge ${b.status === 'confirmed' ? 'badge-confirmed' : (b.status === 'completed' ? 'badge-completed' : (b.status === 'seated' ? 'badge-seated' : 'badge-pending'))}">${b.status}</span>
           </div>
-          <div class="bfc-sub">👤 <strong>${b.name}</strong> (${b.phone})<br>💨 ${b.hookahs || 1} кальян [${b.hookahType || 'Классика'}]</div>
+          <div class="bfc-sub">👤 <strong>${b.name}</strong> (${b.phone})<br>💨 ${b.hookahs || 1} кальян [${b.hookahType || b.hookah_type || 'Классика'}]</div>
           <div class="bfc-foot"><span>Чек: <strong>${b.total || b.total_price}</strong></span></div>
           <div class="bfc-actions-bar">
             <button class="bf-act-btn bf-btn-seat" onclick="setBookingStatus('${b.id}', 'seated')">🛋 В зал</button>
@@ -469,14 +549,50 @@
       const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
       const b = local.find(x => x.id === id);
       if (!b) return;
-      const [h, m] = (b.endTime || '18:30').split(':').map(Number);
+
+      const tableId = b.tableId || b.table_id;
+      const currentEndTime = b.endTime || b.end_time || '18:30';
+      const dateIso = b.dateIso || currentSelectedDateIso;
+
+      const startExtIdx = timeSlots.indexOf(currentEndTime);
+      if (startExtIdx === -1 || startExtIdx + 3 > timeSlots.length) {
+        alert("⚠️ Продление невозможно: заведение закрывается!");
+        return;
+      }
+
+      const sched = getLocalSchedule(dateIso);
+      const extSlots = timeSlots.slice(startExtIdx, startExtIdx + 3);
+
+      for (let s of extSlots) {
+        if (sched[s] && sched[s][tableId] === 'busy') {
+          alert(`⚠️ Нельзя продлить стол: на слот ${s} этот стол уже занят другой бронью!`);
+          return;
+        }
+      }
+
+      const nextEndSlot = timeSlots[startExtIdx + 3] || '01:00';
+      if (!confirm(`Продлить сеанс за столом ещё на 1.5 часа (до ${nextEndSlot})?\nК счёту добавится перезабивка (+1 500 ₽).`)) {
+        return;
+      }
+
+      extSlots.forEach(s => {
+        sched[s] = sched[s] || {};
+        sched[s][tableId] = 'busy';
+      });
+      localStorage.setItem('cokol_sched_' + dateIso, JSON.stringify(sched));
+
+      const [h, m] = currentEndTime.split(':').map(Number);
       const newEnd = `${String(Math.floor((h*60+m+90)/60)%24).padStart(2,'0')}:${String((h*60+m+90)%60).padStart(2,'0')}`;
       b.endTime = newEnd;
-      b.totalNum = (b.totalNum || 1500) + 1500;
+      b.end_time = newEnd;
+      b.totalNum = (b.totalNum || b.total_num || 1500) + 1500;
+      b.total_num = b.totalNum;
       b.total = `${b.totalNum} ₽`;
+      b.total_price = `${b.totalNum} ₽`;
       b.hookahs = (b.hookahs || 1) + 1;
       localStorage.setItem('cokol_bookings', JSON.stringify(local));
-      alert(`Стол продлен до ${newEnd}!`);
+
+      alert(`Стол продлен до ${newEnd}! Новый счёт: ${b.total}`);
       syncEverything();
     }
 
@@ -485,8 +601,23 @@
       activeClosingBooking = local.find(x => x.id === id);
       if (!activeClosingBooking) return;
       document.getElementById('closeVisitGuestDesc').innerHTML = `Гость: <strong>${activeClosingBooking.name}</strong> (${activeClosingBooking.phone})`;
-      document.getElementById('closeVisitTotalInput').value = activeClosingBooking.totalNum || 1500;
+      document.getElementById('closeVisitTotalInput').value = activeClosingBooking.totalNum || activeClosingBooking.total_num || 1500;
+      updateCloseVisitCashbackPreview();
       document.getElementById('closeVisitModal').style.display = 'flex';
+    }
+
+    function updateCloseVisitCashbackPreview() {
+      if (!activeClosingBooking) return;
+      const val = parseFloat(document.getElementById('closeVisitTotalInput').value) || 0;
+      const clean = cleanDigitsPhone(activeClosingBooking.phone);
+      let spent = 0;
+      try {
+        const stored = JSON.parse(localStorage.getItem('cokol_loyalty_p_' + clean));
+        if (stored) spent = stored.spent || 0;
+      } catch(e) {}
+      const rate = spent >= 50000 ? 0.07 : (spent >= 25000 ? 0.05 : 0.03);
+      const earned = Math.round(val * rate);
+      document.getElementById('closeVisitCashbackPreview').innerText = `Кэшбэк: +${earned} ₽ (${Math.round(rate * 100)}%)`;
     }
 
     function submitCloseVisit() {
@@ -497,12 +628,43 @@
         if (b.id === activeClosingBooking.id) {
           b.status = 'completed';
           b.totalNum = val;
+          b.total_num = val;
           b.total = `${val} ₽`;
+          b.total_price = `${val} ₽`;
         }
       });
       localStorage.setItem('cokol_bookings', JSON.stringify(local));
+
+      // Начисление кэшбэка
+      const clean = cleanDigitsPhone(activeClosingBooking.phone);
+      if (clean) {
+        const key = 'cokol_loyalty_p_' + clean;
+        let profile = { name: activeClosingBooking.name, spent: 0, balance: 0, tier: 'SILVER' };
+        try {
+          const stored = JSON.parse(localStorage.getItem(key));
+          if (stored) profile = stored;
+        } catch(e) {}
+        const rate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
+        const earned = Math.round(val * rate);
+        profile.spent = (Number(profile.spent) || 0) + val;
+        profile.balance = (Number(profile.balance) || 0) + earned;
+        profile.tier = profile.spent >= 50000 ? 'PLATINUM' : (profile.spent >= 25000 ? 'GOLD' : 'SILVER');
+        localStorage.setItem(key, JSON.stringify(profile));
+      }
+
+      // Освобождаем стол в расписании
+      const tid = activeClosingBooking.tableId || activeClosingBooking.table_id;
+      const sched = getLocalSchedule(activeClosingBooking.dateIso || currentSelectedDateIso);
+      const idx = timeSlots.indexOf(activeClosingBooking.time);
+      if (idx !== -1) {
+        timeSlots.slice(idx).forEach(s => {
+          if (sched[s]) delete sched[s][tid];
+        });
+        localStorage.setItem('cokol_sched_' + (activeClosingBooking.dateIso || currentSelectedDateIso), JSON.stringify(sched));
+      }
+
       document.getElementById('closeVisitModal').style.display = 'none';
-      alert(`Счёт на ${val} ₽ закрыт, кэшбэк начислен!`);
+      alert(`Счёт на ${val} ₽ закрыт, бонусы начислены!`);
       syncEverything();
     }
 
@@ -511,12 +673,41 @@
       const sSel = document.getElementById('manTime');
       tSel.innerHTML = '';
       sSel.innerHTML = '';
-      tableDefs.forEach(t => tSel.innerHTML += `<option value="${t.id}">${t.name}</option>`);
+      tableDefs.forEach(t => tSel.innerHTML += `<option value="${t.id}">${t.name} (${t.desc})</option>`);
       timeSlots.forEach(s => sSel.innerHTML += `<option value="${s}" ${s==='18:00'?'selected':''}>${s}</option>`);
+      updateManualPricingView();
+    }
+
+    function updateManualPricingView() {
+      const time = document.getElementById('manTime').value || '18:00';
+      const tableId = document.getElementById('manTable').value;
+      const hookahs = parseInt(document.getElementById('manHookahs').value) || 1;
+      const hint = document.getElementById('manTariffHint');
+
+      const [h] = time.split(':').map(Number);
+      const isLunch = (h >= 12 && h < 17);
+      const tbl = tableDefs.find(t => t.id === tableId);
+      const isVip = tbl ? tbl.isVip : false;
+
+      const baseRate = isLunch ? 1000 : 1500;
+      let total = baseRate * hookahs;
+      if (isVip) total = Math.max(2000, total);
+
+      if (isVip) {
+        hint.innerText = `VIP-тариф: депозит ${total.toLocaleString('ru-RU')} ₽ (PS5 бесплатно, бар в счёт)`;
+        hint.style.color = 'var(--gold)';
+      } else if (isLunch) {
+        hint.innerText = `Обед до 17:00: ${total.toLocaleString('ru-RU')} ₽ (${hookahs} шт по 1 000 ₽)`;
+        hint.style.color = 'var(--green)';
+      } else {
+        hint.innerText = `Стандарт: ${total.toLocaleString('ru-RU')} ₽ (${hookahs} шт по 1 500 ₽)`;
+        hint.style.color = 'var(--text-muted)';
+      }
     }
 
     function openManualBookingModal() {
       document.getElementById('manualBookingModal').style.display = 'flex';
+      updateManualPricingView();
     }
 
     function submitManualBooking() {
@@ -524,10 +715,17 @@
       const phone = document.getElementById('manPhone').value.trim();
       const tid = document.getElementById('manTable').value;
       const time = document.getElementById('manTime').value;
+      const hookahs = parseInt(document.getElementById('manHookahs').value) || 1;
+      const comment = document.getElementById('manComment').value.trim();
+
       if (!name || !phone) { alert("Заполните имя и телефон!"); return; }
 
       const tbl = tableDefs.find(t => t.id === tid);
       const [h, m] = time.split(':').map(Number);
+      const isLunch = (h >= 12 && h < 17);
+      let sum = (isLunch ? 1000 : 1500) * hookahs;
+      if (tbl?.isVip) sum = Math.max(2000, sum);
+
       const end = `${String(Math.floor((h*60+m+90)/60)%24).padStart(2,'0')}:${String((h*60+m+90)%60).padStart(2,'0')}`;
 
       const rec = {
@@ -540,16 +738,26 @@
         endTime: end,
         date: document.getElementById('currentDateLabel').innerText,
         dateIso: currentSelectedDateIso,
-        hookahs: 1,
-        hookahType: 'Классика',
-        total: '1 500 ₽',
-        totalNum: 1500,
+        hookahs: hookahs,
+        hookahType: isLunch ? 'Обед (1 000 ₽)' : 'Классика',
+        comment: comment,
+        total: `${sum.toLocaleString('ru-RU')} ₽`,
+        totalNum: sum,
         status: 'confirmed'
       };
 
       const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
       local.unshift(rec);
       localStorage.setItem('cokol_bookings', JSON.stringify(local));
+
+      // Лояльность
+      const clean = cleanDigitsPhone(phone);
+      if (clean) {
+        const key = 'cokol_loyalty_p_' + clean;
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, JSON.stringify({ name: name, phone: phone, spent: 0, balance: 0, tier: 'SILVER' }));
+        }
+      }
 
       const sched = getLocalSchedule(currentSelectedDateIso);
       const idx = timeSlots.indexOf(time);
@@ -560,8 +768,58 @@
       localStorage.setItem('cokol_sched_' + currentSelectedDateIso, JSON.stringify(sched));
 
       document.getElementById('manualBookingModal').style.display = 'none';
+      document.getElementById('manName').value = '';
+      document.getElementById('manPhone').value = '';
+      document.getElementById('manComment').value = '';
+
       syncEverything();
       alert("Бронь по звонку добавлена!");
+    }
+
+    function searchLoyaltyGuest() {
+      const query = document.getElementById('loyaltySearchInput').value.trim();
+      if (!query) return;
+      activeSearchedPhone = query;
+      const clean = cleanDigitsPhone(query);
+      let guestData = null;
+
+      try {
+        const stored = JSON.parse(localStorage.getItem('cokol_loyalty_p_' + clean));
+        if (stored) {
+          guestData = { 
+            name: stored.name || "Гость", 
+            phone: query, 
+            spent: stored.spent || 0, 
+            balance: stored.balance || 0, 
+            tier: stored.tier || 'SILVER' 
+          };
+        }
+      } catch(e) {}
+
+      const card = document.getElementById('loyaltyResultCard');
+      if (guestData) {
+        document.getElementById('lrcName').innerText = `${guestData.name} (${guestData.phone})`;
+        document.getElementById('lrcTier').innerText = `${guestData.tier} • ${guestData.tier === 'PLATINUM' ? '7%' : (guestData.tier === 'GOLD' ? '5%' : '3%')}`;
+        document.getElementById('lrcBalance').innerText = `${Number(guestData.balance).toLocaleString('ru-RU')} ₽`;
+        document.getElementById('lrcSpent').innerText = `${Number(guestData.spent).toLocaleString('ru-RU')} ₽`;
+        card.style.display = 'block';
+      } else {
+        alert("Гость с таким номером ещё не зарегистрирован.");
+        card.style.display = 'none';
+      }
+    }
+
+    function adjustGuestBonus(delta) {
+      if (!activeSearchedPhone) return;
+      const clean = cleanDigitsPhone(activeSearchedPhone);
+      const key = 'cokol_loyalty_p_' + clean;
+      try {
+        const stored = JSON.parse(localStorage.getItem(key)) || { spent: 0, balance: 0, tier: 'SILVER' };
+        stored.balance = Math.max(0, (stored.balance || 0) + delta);
+        localStorage.setItem(key, JSON.stringify(stored));
+        document.getElementById('lrcBalance').innerText = `${Number(stored.balance).toLocaleString('ru-RU')} ₽`;
+        alert(`Баланс изменен: ${delta > 0 ? '+' : ''}${delta} ₽`);
+      } catch(e) {}
     }
 
     function clearLegacyTests() {
