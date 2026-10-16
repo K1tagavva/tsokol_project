@@ -284,7 +284,7 @@
     .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
     .drink-card.active .drink-check { display: inline-block; }
 
-    /* Поля ввода с естественным вводом/стиранием и кнопкой быстрой очистки */
+    /* Поля ввода с кнопкой быстрой очистки */
     .form-group { margin-bottom: 12px; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
     .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
@@ -689,7 +689,7 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контакты с естественным вводом/стиранием и кнопкой очистки -->
+    <!-- Контакты -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
@@ -824,25 +824,15 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // Скрытие клавиатуры только при физическом тапе вне инпутов
+    // Закрытие клавиатуры только при физическом тапе вне инпутов
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('input, textarea, label, .input-wrapper, .clear-btn, button')) {
+      if (!e.target.closest('input, textarea, label, .input-wrapper, .clear-btn, button, .pill-btn, .drink-card, .tbl-node')) {
         const active = document.activeElement;
         if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
           active.blur();
         }
       }
     });
-
-    // Скрытие клавиатуры при физическом скролле страницы пальцем
-    window.addEventListener('touchmove', function(e) {
-      if (!e.target.closest('input, textarea, .input-wrapper')) {
-        const active = document.activeElement;
-        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-          active.blur();
-        }
-      }
-    }, { passive: true });
 
     // Поле имени
     const nameInput = document.getElementById('guestNameInput');
@@ -929,6 +919,17 @@
       phoneClearBtn.style.display = 'none';
       phoneInput.focus();
     }
+
+    // Автодоводка полей в зону видимости при фокусе (без сброса клавиатуры)
+    [nameInput, phoneInput, document.getElementById('hookahComment')].forEach(input => {
+      if (input) {
+        input.addEventListener('focus', function() {
+          setTimeout(() => {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 350);
+        });
+      }
+    });
 
     // Лояльность
     let activeUserPhone = localStorage.getItem('cokol_last_phone') || '';
@@ -1230,7 +1231,6 @@
       document.getElementById('hallPhotoModal').style.display = 'none';
     }
 
-    // Автоматический скролл даты и времени при клике на афишу
     function selectMovieSession(isoDate, time) {
       haptic('selection');
       const targetDateCard = document.querySelector(`.date-chip[data-date="${isoDate}"]`);
@@ -1682,7 +1682,7 @@
         ${comment ? '💬 Пожелания: <strong>«' + comment + '»</strong><br>' : ''}
         ${isCurrentSessionShort ? '<span style="color:#f1c40f;">⚠️ Внимание: в ' + endStr + ' стол забронирован следующими гостями.</span><br>' : ''}
         Депозит: <strong>${newBooking.total}</strong><br><br>
-        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор проверяет СБП.</span>
+        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор сверяет платёж СБП.</span>
       `;
       modal.style.display = 'flex';
       setTimeout(() => { isSubmitting = false; }, 3000);
