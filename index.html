@@ -180,7 +180,7 @@
     .tbl-node.active .tbl-body { fill: var(--accent); stroke: #ff5e6f; stroke-width: 2; }
     .sofa-red { fill: #d62839; }
 
-    .tbl-node.is-busy { cursor: not-allowed !important; }
+    .tbl-node.is-busy { cursor: not-allowed !important; pointer-events: none; }
     .tbl-node.is-busy .tbl-body, .tbl-node.is-busy .tbl-zone { fill: #121318 !important; stroke: #1f2129 !important; opacity: 0.4; }
     .tbl-node.is-busy .sofa-red, .tbl-node.is-busy .tbl-chair { fill: #242630 !important; opacity: 0.35; }
     .tbl-node.is-busy text { fill: #525666 !important; }
@@ -566,7 +566,7 @@
     <!-- Фото стола -->
     <div class="table-live-card">
       <div class="table-photo-wrap" onclick="openHallPhotoModal()">
-        <img id="tablePhotoImg" src="img/hall.jpg" alt="Интерьер ЦОКОЛЬ Lounge" onerror="this.src='https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80'">
+        <img id="tablePhotoImg" src="img/hall.jpg" alt="Интерьер ЦОКОЛЬ Lounge" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80'">
         <div class="table-photo-gradient"></div>
         <div class="click-zoom-hint" id="photoZoomHint">🔍 Фото зала</div>
         <div class="table-photo-badges" id="tableBadgesBox"></div>
@@ -657,7 +657,7 @@
       </div>
     </div>
 
-    <!-- Чайная карта -->
+    <!-- Чайная карта & Напитки -->
     <div class="unified-card">
       <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
       <div class="slider-row" style="margin-bottom: 6px;">
@@ -668,8 +668,8 @@
           <button type="button" class="cat-pill" onclick="changeCategory('balance', this)">Баланс</button>
           <button type="button" class="cat-pill" onclick="changeCategory('gaba', this)">Особый эффект</button>
           <button type="button" class="cat-pill" onclick="changeCategory('mood', this)">Под настроение</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Лимонады</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе & Напитки</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Крафт лимонады</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе & Бар</button>
         </div>
         <button type="button" class="arrow-btn" onclick="slideCats(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
       </div>
@@ -896,6 +896,7 @@
       t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
     };
 
+    // ОБНОВЛЕННОЕ МЕНЮ
     const menuData = {
       energy: [
         { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
@@ -934,14 +935,20 @@
         { id: 'l3', name: "Миндаль шафран", desc: "Крафтовый лимонад • 500 мл", price: 250 },
         { id: 'l4', name: "Малина пан", desc: "Крафтовый лимонад • 500 мл", price: 250 },
         { id: 'l5', name: "Черника лаванда", desc: "Крафтовый лимонад • 500 мл", price: 250 },
-        { id: 'l6', name: "Кактус ранет", desc: "Крафтовый лимонад • 500 мл", price: 250 }
+        { id: 'l6', name: "Кактус ранет", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l7', name: "Абрикос солод", desc: "Крафтовый лимонад • 500 мл", price: 250 },
+        { id: 'l8', name: "Ладан кокос", desc: "Крафтовый лимонад • 500 мл", price: 250 }
       ],
       coffee: [
-        { id: 'c1', name: "Капучино", desc: "Кофе • 250/350 мл", price: 200 },
-        { id: 'c2', name: "Латте", desc: "Кофе • 250/350 мл", price: 200 },
-        { id: 'c3', name: "Флэт Уайт", desc: "Кофе • 250 мл", price: 250 },
-        { id: 'c4', name: "Американо", desc: "Кофе • 250 мл", price: 200 },
-        { id: 'c6', name: "Кола", desc: "330 мл", price: 200 },
+        { id: 'c0', name: "Эспрессо", desc: "Классический шот • 60 мл", price: 150 },
+        { id: 'c4', name: "Американо", desc: "Черный кофе • 250 мл", price: 200 },
+        { id: 'c1', name: "Капучино (250 мл)", desc: "Кофе на нежном молоке", price: 200 },
+        { id: 'c1_big', name: "Капучино (350 мл)", desc: "Большая порция капучино", price: 250 },
+        { id: 'c2', name: "Латте (250 мл)", desc: "Мягкий молочный кофе", price: 200 },
+        { id: 'c2_big', name: "Латте (350 мл)", desc: "Большой молочный латте", price: 250 },
+        { id: 'c3', name: "Флэт Уайт", desc: "Двойной эспрессо с молоком • 250 мл", price: 250 },
+        { id: 'c_water', name: "Вода минеральная", desc: "Без газа / с газом • 500 мл", price: 150 },
+        { id: 'c6', name: "Кола", desc: "Классическая • 330 мл", price: 200 },
         { id: 'c7', name: "Энергетик", desc: "250 мл", price: 250 }
       ]
     };
@@ -1008,21 +1015,14 @@
       return 'free';
     }
 
+    // БЕЗОПАСНАЯ ПРОВЕРКА БЕЗ БЕСКОНЕЧНОЙ РЕКУРСИИ
     function updateTablesAvailability() {
       allTableIds.forEach(id => {
         const node = document.getElementById('node-' + id);
         if (!node) return;
         const status = checkTableAvailability(id, selectedDateIso, selectedStartTime);
-        
         if (status === 'busy') {
           node.classList.add('is-busy');
-          if (currentTableId === id) {
-            const freeId = allTableIds.find(tId => checkTableAvailability(tId, selectedDateIso, selectedStartTime) !== 'busy');
-            if (freeId) {
-              const freeNode = document.getElementById('node-' + freeId);
-              if (freeNode) freeNode.click();
-            }
-          }
         } else {
           node.classList.remove('is-busy');
         }
@@ -1089,7 +1089,7 @@
 
         card.innerHTML = `
           <div class="movie-date-tag">${dateDisplay}</div>
-          <img src="${event.img}" alt="Постер" onerror="this.src='${event.fallback}'">
+          <img src="${event.img}" alt="Постер" onerror="this.onerror=null;this.src='${event.fallback}';">
         `;
         container.appendChild(card);
       });
@@ -1157,6 +1157,7 @@
       document.getElementById('step2Anchor').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ПОЛНЫЙ КАЛЕНДАРЬ НА 30 ДНЕЙ БЕЗ СБОЕВ
     function buildCalendar() {
       const slider = document.getElementById('dateSlider');
       slider.innerHTML = '';
@@ -1173,7 +1174,7 @@
         card.dataset.date = iso;
 
         const isEventDay = CINEMA_EVENTS.some(ev => ev.date === iso);
-        const wDay = i === 0 ? 'СЕГОДНЯ' : daysWeekShort[d.getDay()];
+        const wDay = (i === 0) ? 'СЕГОДНЯ' : daysWeekShort[d.getDay()];
         const fullDateStr = `${wDay}, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
 
         card.onclick = () => {
@@ -1191,15 +1192,18 @@
           ${isEventDay ? '<div class="d-tag">КИНО</div>' : ''}
         `;
         slider.appendChild(card);
+      }
 
-        if (i === 0) {
-          selectedDateIso = iso;
-          selectedDateLabel = fullDateStr;
-          renderTimeSlots(iso);
-        }
+      // Активируем первый день один раз после завершения цикла
+      const first = slider.querySelector('.date-chip');
+      if (first) {
+        selectedDateIso = first.dataset.date;
+        selectedDateLabel = 'Сегодня';
+        renderTimeSlots(selectedDateIso);
       }
     }
 
+    // СЕТКА СЛОТОВ ВРЕМЕНИ
     function renderTimeSlots(isoDate) {
       const container = document.getElementById('timeSlotsContainer');
       container.innerHTML = '';
@@ -1397,12 +1401,10 @@
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
       document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
       document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
-      document.getElementById('hookahRateText').innerText = `Кальянов (${baseRate} ₽/шт)`;
     }
 
     function selectItem(id, title, desc, isVip) {
-      const status = checkTableAvailability(id, selectedDateIso, selectedStartTime);
-      if (status === 'busy') {
+      if (checkTableAvailability(id, selectedDateIso, selectedStartTime) === 'busy') {
         haptic('notification');
         alert(`⚠️ ${title} ЗАНЯТ на ${selectedStartTime}! Пожалуйста, выберите другой свободный стол.`);
         return;
@@ -1508,7 +1510,7 @@
       navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
     }
 
-    // БРОНИРОВАНИЕ ГОСТЕМ: ГАРАНТИРОВАННОЕ СОХРАНЕНИЕ
+    // БРОНИРОВАНИЕ ГОСТЕМ
     function confirmSbpPayment() {
       if (isSubmitting) return;
       isSubmitting = true;
@@ -1520,7 +1522,6 @@
       const phone = document.getElementById('guestPhoneInput').value.trim();
       const comment = document.getElementById('hookahComment').value.trim();
 
-      // 1. Блокируем слоты в расписании
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
@@ -1564,7 +1565,7 @@
         status: 'pending'
       };
 
-      // 2. СОХРАНЯЕМ В ЛОКАЛЬНЫЙ ЖУРНАЛ СТРОГО ДО ВЫЗОВА ТЕЛЕГРАМА
+      // Сохраняем бронь в локальный журнал до отправки
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
@@ -1572,7 +1573,6 @@
         syncChannel.postMessage({ type: 'new_booking', booking: newBooking });
       } catch (e) {}
 
-      // 3. Отправка в бот
       if (window.Telegram?.WebApp?.sendData) {
         try {
           window.Telegram.WebApp.sendData(JSON.stringify(newBooking));

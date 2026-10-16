@@ -465,24 +465,20 @@
       syncChannel.postMessage({ type: 'table_state_changed', date: dateIso });
     }
 
-    // УМНАЯ ПРОВЕРКА СТАТУСА ДЛЯ АДМИНИСТРАТОРА (С УЧЕТОМ БУФЕРА 30 МИНУТ)
     function getAdminTableStatus(tableId, dateIso, time) {
       const sched = getLocalSchedule(dateIso);
       const idx = timeSlots.indexOf(time);
       if (idx === -1) return { state: 'free', label: '🟢 СВОБОДЕН' };
 
-      // 1. Слот занят прямо сейчас
       if (sched[time]?.[tableId] === 'busy') {
         return { state: 'busy', label: '🔴 ЗАНЯТ' };
       }
 
-      // 2. Следующий слот (через 30 мин) занят — значит сейчас окно 30 мин, куда сесть нельзя!
       const next30 = timeSlots[idx + 1];
       if (next30 && sched[next30]?.[tableId] === 'busy') {
         return { state: 'buffer', label: '🔴 ЗАНЯТ (окно 30м)' };
       }
 
-      // 3. Через 60 минут занят — доступно окно ровно на 1 час
       const next60 = timeSlots[idx + 2];
       if (next60 && sched[next60]?.[tableId] === 'busy') {
         return { state: 'short', label: '🟡 СВОБОДЕН (1 ч)' };
@@ -643,7 +639,7 @@
 
       const [h, m] = currentEndTime.split(':').map(Number);
       const newEndTotalM = h * 60 + m + 90;
-      const newEndTime = `${String(Math.floor(newEndTotalM / 60) % 24).padStart(2, '0')}:${String(endTotalM = newEndTotalM % 60).padStart(2, '0')}`;
+      const newEndTime = `${String(Math.floor(newEndTotalM / 60) % 24).padStart(2, '0')}:${String(newEndTotalM % 60).padStart(2, '0')}`;
       const newTotalNum = Number(booking.totalNum || booking.total_num || 1500) + 1500;
       const newHookahs = Number(booking.hookahs || 1) + 1;
 
