@@ -31,7 +31,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; max-width: 100vw; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
     body { 
       background: var(--bg); color: var(--text); 
       padding-bottom: calc(115px + env(safe-area-inset-bottom, 16px)); 
@@ -138,7 +138,6 @@
     }
     .time-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
     .time-chip.lunch { border-color: rgba(46, 204, 113, 0.35); color: var(--green); }
-    .time-chip.cinema-slot { border-color: var(--accent); color: #fff; background: rgba(214, 40, 57, 0.15); }
 
     .session-window-banner {
       background: var(--surface); border: 1px dashed var(--border-light);
@@ -405,7 +404,7 @@
       </div>
     </div>
 
-    <!-- Шаг 1 -->
+    <!-- Шаг 1: Дата и время -->
     <div class="step-label" id="step1Anchor">1. Дата и сеанс <span>Шаг 1 из 3</span></div>
 
     <div class="slider-row">
@@ -641,7 +640,7 @@
     </div>
   </div>
 
-  <!-- Checkout Bar -->
+  <!-- Fixed Checkout Bar -->
   <div class="checkout-bar">
     <div class="checkout-content">
       <div class="checkout-amount">
@@ -1147,6 +1146,7 @@
       const end = h * 60 + m + dur;
       const endStr = `${String(Math.floor(end/60)%24).padStart(2,'0')}:${String(end%60).padStart(2,'0')}`;
 
+      // Блокируем слоты в расписании
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
@@ -1178,6 +1178,7 @@
         status: 'pending'
       };
 
+      // ГАРАНТИРОВАННАЯ ЗАПИСЬ В ЖУРНАЛ СМЕНЫ
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
