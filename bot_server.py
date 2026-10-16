@@ -130,6 +130,73 @@ class StatusReq(BaseModel):
     booking_id: str
     status: str
 
+class ToggleTableReq(BaseModel):
+    date_iso: str
+    time: str
+    table_id: str
+    busy: bool
+
+class TableRelReq(BaseModel):
+    date_iso: str
+    table_id: str
+    from_time: str
+
+class ManualBookReq(BaseModel):
+    date_iso: str
+    date_label: str
+    time: str
+    end_time: str
+    table_id: str
+    table_name: str
+    name: str
+    phone: str
+    hookahs: int = 1
+    hookah_type: str = "Классика"
+    comment: str = ""
+    total_num: float = 1500.0
+
+class LoyaltyAdjustReq(BaseModel):
+    phone: str
+    delta: float
+
+class LoyaltyCheckReq(BaseModel):
+    phone: str = ""
+    telegram_id: str | None = None
+
+@app.get("/api/schedule")
+async def get_schedule(date: str):
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("SELECT time_slot, table_id, id FROM bookings WHERE (date_iso = ? OR booking_date LIKE ?) AND status IN ('confirmed', 'seated')", (date, f"%{date[-2:]}%"))
+    for t_slot, t_id, b_id in cur.fetchall():
+        if t_id and t_slot in TIME_SLOTS:
+            idx = TIME_SLOTS.index(t_slot)
+            for s in TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)]:
+                cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date, s, t_id, b_id))
+    conn.commit()
+
+    cur.execute("SELECT time_slot, table_id, status FROM table_schedules WHERE date_iso = ?", (date,))
+    sched = {}
+    for ts, tid, st in cur.fetchall():
+        sched.setdefault(ts, {})[tid] = st
+    conn.close()
+    return sched
+
+@app.post("/api/schedule/toggle")
+async def toggle_table(req: ToggleTableReq):
+    idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
+    slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    for s in slots:
+        if req.busy:
+            cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', 'manual')", (req.date_iso, s, req.table_id))
+        else:
+            cur.execute("DELETE FROM table_schedules WHERE date_iso = ? AND time_slot = ? AND table_id = ?", (req.date_iso, s, req.table_id))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
 @app.get("/api/bookings")
 async def get_bookings(date: str):
     conn = sqlite3.connect(DB_NAME)
@@ -143,6 +210,16 @@ async def get_bookings(date: str):
         "drinks": r[9], "comment": r[10], "total": r[11], "total_num": r[12],
         "cashback": r[13], "status": r[14], "created_at": r[15]
     } for r in rows]
+
+@app.post("/api/bookings/close_visit")
+async def close_visit(req: CloseReq):
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE bookings SET status = 'completed', total_num = ?, total_price = ? WHERE id = ?", (req.final_total, f"{req.final_total:,.0f} ₽", req.booking_id))
+    cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
 
 @app.post("/api/bookings/extend")
 async def extend_booking(req: ExtendReq):
@@ -163,16 +240,6 @@ async def extend_booking(req: ExtendReq):
     conn.close()
     return {"status": "ok", "new_end_time": new_end}
 
-@app.post("/api/bookings/close_visit")
-async def close_visit(req: CloseReq):
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("UPDATE bookings SET status = 'completed', total_num = ?, total_price = ? WHERE id = ?", (req.final_total, f"{req.final_total:,.0f} ₽", req.booking_id))
-    cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
-
 @app.post("/api/bookings/update_status")
 async def update_status(req: StatusReq):
     conn = sqlite3.connect(DB_NAME)
@@ -180,6 +247,41 @@ async def update_status(req: StatusReq):
     cur.execute("UPDATE bookings SET status = ? WHERE id = ?", (req.status, req.booking_id))
     if req.status in ("completed", "rejected"):
         cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/api/bookings/manual")
+async def create_manual(req: ManualBookReq):
+    b_id = f"b_man_{int(datetime.now().timestamp())}"
+    clean = "".join(filter(str.isdigit, req.phone))
+    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO bookings (id, chat_id, guest_msg_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback, status)
+        VALUES (?, NULL, NULL, ?, 'звонок', ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?, 0, 'confirmed')
+    """, (b_id, req.name, req.phone, req.table_id, req.table_name, req.time, req.end_time, req.date_label, req.date_iso, req.hookahs, req.hookah_type, req.comment, f"{req.total_num:,.0f} ₽", req.total_num))
+
+    idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
+    slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
+    for s in slots:
+        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (req.date_iso, s, req.table_id, b_id))
+    if clean:
+        cur.execute("INSERT OR IGNORE INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier) VALUES (?, NULL, ?, 0, 0, 'SILVER')", (clean, req.name))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/api/bookings/release")
+async def release_table(req: TableRelReq):
+    idx = TIME_SLOTS.index(req.from_time) if req.from_time in TIME_SLOTS else -1
+    slots = TIME_SLOTS[idx:] if idx != -1 else [req.from_time]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    for s in slots:
+        cur.execute("DELETE FROM table_schedules WHERE date_iso = ? AND table_id = ? AND time_slot = ?", (req.date_iso, req.table_id, s))
+    cur.execute("UPDATE bookings SET status = 'completed' WHERE (date_iso = ? OR booking_date LIKE ?) AND table_id = ? AND status IN ('confirmed', 'seated', 'pending')", (req.date_iso, f"%{req.date_iso[-2:]}%", req.table_id))
     conn.commit()
     conn.close()
     return {"status": "ok"}
@@ -193,6 +295,47 @@ async def clear_tests():
     conn.commit()
     conn.close()
     return {"status": "ok"}
+
+@app.get("/api/loyalty/search")
+async def search_loyalty(phone: str):
+    clean = "".join(filter(str.isdigit, phone))
+    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("SELECT phone, name, spent, balance, tier FROM loyalty_clients WHERE phone = ?", (clean,))
+    row = cur.fetchone()
+    conn.close()
+    if row: return {"found": True, "phone": row[0], "name": row[1], "spent": row[2], "balance": row[3], "tier": row[4]}
+    return {"found": False}
+
+@app.post("/api/loyalty/adjust")
+async def adjust_loyalty(req: LoyaltyAdjustReq):
+    clean = "".join(filter(str.isdigit, req.phone))
+    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE loyalty_clients SET balance = MAX(0, balance + ?) WHERE phone = ?", (req.delta, clean))
+    conn.commit()
+    cur.execute("SELECT phone, name, balance FROM loyalty_clients WHERE phone = ?", (clean,))
+    row = cur.fetchone()
+    conn.close()
+    if row: return {"status": "ok", "new_balance": row[2]}
+    return {"status": "error"}
+
+@app.post("/api/loyalty/check")
+async def check_loyalty_endpoint(req: LoyaltyCheckReq):
+    clean = "".join(filter(str.isdigit, req.phone))
+    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("SELECT phone, name, spent, balance, tier FROM loyalty_clients WHERE phone = ?", (clean,))
+    row = cur.fetchone()
+    if row and req.telegram_id and req.telegram_id.isdigit():
+        cur.execute("UPDATE loyalty_clients SET telegram_id = ? WHERE phone = ?", (int(req.telegram_id), clean))
+        conn.commit()
+    conn.close()
+    if row: return {"found": True, "phone": row[0], "name": row[1], "spent": row[2], "balance": row[3], "tier": row[4]}
+    return {"found": False, "spent": 0, "balance": 0, "tier": "SILVER"}
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
@@ -210,11 +353,11 @@ async def cmd_start(message: types.Message):
     is_admin = message.from_user.id in ADMIN_IDS
     await message.answer(
         f"👋 Приветствуем в **ЦОКОЛЬ Lounge**, {message.from_user.first_name}!\n\n"
-        "💨 Лаунж-бар в Белгороде (ул. Королёва, 4Д)\n"
-        "🎮 Отдельные VIP-комнаты с PS5 (депозит 2 000 ₽)\n"
-        "🍵 Премиальный чай и крафтовые напитки\n"
-        "🎬 Воскресные кинопоказы на проекторе\n\n"
-        "Для бронирования нажмите кнопку меню внизу 👇",
+        "💨 Атмосферный лаунж-бар в Белгороде (ул. Королёва, 4Д)\n"
+        "🎮 Отдельные VIP-комнаты с PlayStation 5 (депозит 2 000 ₽ на покур и бар)\n"
+        "🍵 Премиальная китайская чайная карта и крафтовые лимонады\n"
+        "🎬 Воскресные кинопоказы на большом экране\n\n"
+        "Для выбора стола и бронирования нажмите кнопку ниже 👇",
         parse_mode="Markdown",
         reply_markup=get_main_keyboard(is_admin)
     )
@@ -225,7 +368,7 @@ async def cmd_admin(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=35"))]
     ])
-    await message.answer("🔐 **Панель управления ЦОКОЛЬ**\nПароль: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
+    await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
 @dp.message(F.text == "📊 Сводка смены")
 async def cmd_summary(message: types.Message):
@@ -238,11 +381,11 @@ async def cmd_summary(message: types.Message):
     p_count = cur.fetchone()[0] or 0
     conn.close()
     await message.answer(
-        f"📊 **Сводка смены (ЦОКОЛЬ Lounge)**\n\n"
+        f"📊 **Текущая сводка смены (ЦОКОЛЬ Lounge)**\n\n"
         f"✅ Принятых броней: **{c_count or 0}**\n"
-        f"💰 Оборот смены: **{(c_sum or 0):,.0f} ₽**\n"
-        f"⏳ Ожидают СБП: **{p_count}**\n\n"
-        f"📅 Отчёт: {datetime.now().strftime('%H:%M, %d.%m.%Y')}",
+        f"💰 Оборот депозитов/чеков: **{(c_sum or 0):,.0f} ₽**\n"
+        f"⏳ Ожидают проверки СБП: **{p_count}**\n\n"
+        f"📅 Отчёт сформирован: {datetime.now().strftime('%H:%M, %d.%m.%Y')}",
         parse_mode="Markdown"
     )
 
@@ -272,13 +415,13 @@ async def handle_webapp_data(message: types.Message):
         if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
 
         sent = await message.answer(
-            f"⏳ **Заявка передана в ЦОКОЛЬ Lounge!**\n\n"
+            f"⏳ **Заявка на бронирование передана в ЦОКОЛЬ Lounge!**\n\n"
             f"📍 **{table_name}**\n"
             f"⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n"
             f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
-            f"{f'🍵 Бар: {drinks}\n' if drinks else ''}"
-            f"💳 Депозит: **{total_price}**\n\n"
-            f"🔎 *Администратор сверяет платёж СБП.*",
+            f"{f'🍵 Напитки: {drinks}\n' if drinks else ''}"
+            f"💳 Депозит брони: **{total_price}**\n\n"
+            f"🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*",
             parse_mode="Markdown"
         )
 
@@ -306,7 +449,7 @@ async def handle_webapp_data(message: types.Message):
             f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
             f"{f'🍵 Бар: {drinks}\n' if drinks else ''}"
             f"{f'💬 Комментарий: «{comment}»\n' if comment else ''}"
-            f"💰 Депозит: **{total_price}**"
+            f"💰 Ожидаемый депозит СБП: **{total_price}**"
         )
         admin_kb = InlineKeyboardMarkup(inline_keyboard=[[
             InlineKeyboardButton(text="✅ Депозит поступил", callback_data=f"ok_{booking_id}"),
@@ -327,7 +470,7 @@ async def handle_admin_decision(call: types.CallbackQuery):
     row = cur.fetchone()
     if not row:
         conn.close()
-        await call.answer("Заявка не найдена")
+        await call.answer("Заявка не найдена в базе")
         return
     chat_id, guest_msg_id, name, phone, table_name, time_slot, end_time, booking_date, total_num = row
 
