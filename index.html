@@ -212,6 +212,20 @@
     .table-meta-row p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .table-meta-price { font-size: 17px; font-weight: 800; color: var(--accent); }
 
+    /* Переключатель: С заказом / На месте */
+    .order-mode-toggle {
+      display: flex; gap: 8px; margin-bottom: 14px;
+      background: var(--bg); padding: 4px; border-radius: 12px; border: 1px solid var(--border);
+    }
+    .order-mode-btn {
+      flex: 1; padding: 10px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;
+      color: var(--text-muted); background: transparent; border: none; cursor: pointer; text-align: center;
+      transition: 0.2s;
+    }
+    .order-mode-btn.active {
+      background: var(--surface-hover); color: #fff; border: 1px solid var(--border-light);
+    }
+
     .unified-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 16px; margin-bottom: 16px;
@@ -284,7 +298,7 @@
     .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
     .drink-card.active .drink-check { display: inline-block; }
 
-    /* Поля ввода с кнопкой быстрой очистки */
+    /* Поля ввода с кнопкой очистки */
     .form-group { margin-bottom: 12px; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
     .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
@@ -317,49 +331,15 @@
     .checkout-amount strong { font-size: 19px; font-weight: 800; color: #fff; }
     .checkout-amount small { font-size: 10px; color: var(--green); display: block; font-weight: 600; }
     .checkout-btn {
-      background: var(--accent); color: #fff; border: none; padding: 13px 20px;
-      border-radius: 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer;
+      background: var(--accent); color: #fff; border: none; padding: 13px 22px;
+      border-radius: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer;
     }
 
     /* Modals */
-    .poster-modal-backdrop, .hall-photo-modal-backdrop, .modal-backdrop, .age-modal-backdrop, .sbp-modal-backdrop {
+    .poster-modal-backdrop, .hall-photo-modal-backdrop, .modal-backdrop, .age-modal-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
       backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
     }
-    .sbp-modal-box {
-      background: #14161f; border: 1px solid var(--border-light);
-      border-radius: 20px; padding: 20px 18px; max-width: 360px; width: 100%; text-align: center;
-    }
-    .sbp-header-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(29, 113, 184, 0.12); border: 1px solid rgba(29, 113, 184, 0.35);
-      padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 12px;
-    }
-    .sbp-amount-box span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
-    .sbp-amount-box strong { font-size: 28px; font-weight: 800; color: #fff; display: block; margin-top: 2px; margin-bottom: 12px; }
-    .sbp-qr-wrapper {
-      background: #fff; border-radius: 14px; padding: 12px; width: 180px; height: 180px;
-      margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
-    }
-    .sbp-qr-wrapper img { width: 100%; height: 100%; object-fit: contain; }
-    .sbp-details-card {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 10px 12px; margin-bottom: 14px; text-align: left; font-size: 11px;
-    }
-    .sbp-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .sbp-detail-row:last-child { margin-bottom: 0; }
-    .sbp-detail-label { color: var(--text-muted); }
-    .sbp-detail-val { font-weight: 700; color: #fff; }
-    .copy-phone-btn {
-      background: var(--surface); border: 1px solid var(--border-light); color: var(--green);
-      font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;
-    }
-    .sbp-confirm-btn {
-      background: var(--green); color: #fff; border: none; padding: 13px;
-      border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; width: 100%; margin-bottom: 8px;
-    }
-    .sbp-cancel-btn { background: transparent; color: var(--text-muted); border: none; font-size: 11px; cursor: pointer; padding: 6px; width: 100%; }
-
     .age-modal-box, .success-modal-box, .poster-modal-box, .hall-photo-modal-box {
       background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
       padding: 24px 20px; max-width: 340px; width: 100%; text-align: center;
@@ -378,8 +358,8 @@
       border: 1px solid var(--green); color: var(--green); font-size: 24px; font-weight: 800;
       display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
     }
-    .success-modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; text-align: left; background: var(--bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
-    .success-modal-box button { background: var(--surface); color: #fff; border: 1px solid var(--border-light); padding: 11px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .success-modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; text-align: left; background: var(--bg); padding: 12px; border-radius: 10px; }
+    .success-modal-box button { background: var(--green); color: #fff; border: none; padding: 12px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -593,103 +573,111 @@
       </div>
     </div>
 
-    <!-- Шаг 3 -->
-    <div class="step-label">3. Параметры покура, напитки и контакты <span>Шаг 3 из 3</span></div>
+    <!-- Шаг 3: Выбор формата -->
+    <div class="step-label">3. Параметры визита <span>Шаг 3 из 3</span></div>
 
-    <div class="unified-card">
-      <div class="card-section-title">Гости и кальяны <span>Регламент 1:3</span></div>
-      <div class="stepper-row">
-        <div class="stepper-label">
-          <h6>Персоны за столом</h6>
-          <p>Размер вашей компании</p>
-        </div>
-        <div class="stepper-controls">
-          <div class="step-btn" onclick="changeGuests(-1)">−</div>
-          <div class="step-val" id="guestsCount">2</div>
-          <div class="step-btn" onclick="changeGuests(1)">+</div>
-        </div>
-      </div>
+    <!-- Переключатель режима: Заказать сразу / На месте -->
+    <div class="order-mode-toggle">
+      <button type="button" class="order-mode-btn active" id="modePreorderBtn" onclick="setOrderMode('preorder')">💨 Заказать кальян & бар</button>
+      <button type="button" class="order-mode-btn" id="modeOnsiteBtn" onclick="setOrderMode('onsite')">🛋 Выберу на месте в баре</button>
+    </div>
 
-      <div class="stepper-row">
-        <div class="stepper-label">
-          <h6>Количество кальянов</h6>
-          <p id="hookahRateText">1 кальян на 1–3 гостя</p>
+    <div id="preorderBlock">
+      <div class="unified-card">
+        <div class="card-section-title">Гости и кальяны <span>Регламент 1:3</span></div>
+        <div class="stepper-row">
+          <div class="stepper-label">
+            <h6>Персоны за столом</h6>
+            <p>Размер вашей компании</p>
+          </div>
+          <div class="stepper-controls">
+            <div class="step-btn" onclick="changeGuests(-1)">−</div>
+            <div class="step-val" id="guestsCount">2</div>
+            <div class="step-btn" onclick="changeGuests(1)">+</div>
+          </div>
         </div>
-        <div class="stepper-controls">
-          <div class="step-btn" onclick="changeHookahs(-1)">−</div>
-          <div class="step-val" id="hookahsCount">1</div>
-          <div class="step-btn" onclick="changeHookahs(1)">+</div>
+
+        <div class="stepper-row">
+          <div class="stepper-label">
+            <h6>Количество кальянов</h6>
+            <p id="hookahRateText">1 кальян на 1–3 гостя</p>
+          </div>
+          <div class="stepper-controls">
+            <div class="step-btn" onclick="changeHookahs(-1)">−</div>
+            <div class="step-val" id="hookahsCount">1</div>
+            <div class="step-btn" onclick="changeHookahs(1)">+</div>
+          </div>
         </div>
-      </div>
 
-      <div class="hint-box" id="ratioNotice"><strong>Регламент зала:</strong> 1 кальян на 1–3 гостя. Для 2 персон достаточно 1 кальяна.</div>
+        <div class="hint-box" id="ratioNotice"><strong>Регламент зала:</strong> 1 кальян на 1–3 гостя. Для 2 персон достаточно 1 кальяна.</div>
 
-      <div id="lunchBadge" style="display:none; background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.25); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--green); margin-bottom: 12px;">
-        <strong>Обеденный тариф активен:</strong> сеанс до 17:00 — цена кальяна всего <strong>1 000 ₽</strong>!
-      </div>
-
-      <div class="card-section-title" style="margin-top: 14px;">Линейка табака <span>Выбор смеси</span></div>
-      <div class="tier-grid">
-        <div class="tier-card active" id="tierClassic" onclick="setTobaccoTier('classic')">
-          <h6>Классика</h6>
-          <span id="classicPriceDesc">1 500 ₽ / шт</span>
+        <div id="lunchBadge" style="display:none; background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.25); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--green); margin-bottom: 12px;">
+          <strong>Обеденный тариф активен:</strong> сеанс до 17:00 — цена кальяна всего <strong>1 000 ₽</strong>!
         </div>
-        <div class="tier-card" id="tierPremium" onclick="setTobaccoTier('premium')">
-          <h6>PREMIUM</h6>
-          <span id="premiumPriceDesc">+500 ₽ / шт</span>
-        </div>
-      </div>
 
-      <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
-        <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист:</div>
+        <div class="card-section-title" style="margin-top: 14px;">Линейка табака <span>Выбор смеси</span></div>
+        <div class="tier-grid">
+          <div class="tier-card active" id="tierClassic" onclick="setTobaccoTier('classic')">
+            <h6>Классика</h6>
+            <span id="classicPriceDesc">1 500 ₽ / шт</span>
+          </div>
+          <div class="tier-card" id="tierPremium" onclick="setTobaccoTier('premium')">
+            <h6>PREMIUM</h6>
+            <span id="premiumPriceDesc">+500 ₽ / шт</span>
+          </div>
+        </div>
+
+        <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
+          <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист:</div>
+          <div class="pill-group">
+            <div class="pill-btn gold" onclick="toggleBrand(this, 'Bonche')">Bonche (сигарный лист)</div>
+            <div class="pill-btn" onclick="toggleBrand(this, 'Satyr')">Satyr (крафт)</div>
+            <div class="pill-btn" onclick="toggleBrand(this, 'Tangiers')">Tangiers (USA)</div>
+          </div>
+        </div>
+
+        <div class="card-section-title">Крепость <span>1 вариант</span></div>
         <div class="pill-group">
-          <div class="pill-btn gold" onclick="toggleBrand(this, 'Bonche')">Bonche (сигарный лист)</div>
-          <div class="pill-btn" onclick="toggleBrand(this, 'Satyr')">Satyr (крафт)</div>
-          <div class="pill-btn" onclick="toggleBrand(this, 'Tangiers')">Tangiers (USA)</div>
+          <div class="pill-btn" onclick="selectStrength(this)">Мягкий</div>
+          <div class="pill-btn active" onclick="selectStrength(this)">Средний</div>
+          <div class="pill-btn" onclick="selectStrength(this)">Крепкий</div>
+        </div>
+
+        <div class="card-section-title">Вкусовой профиль <span>до 3 вариантов</span></div>
+        <div class="pill-group" id="flavorContainer">
+          <div class="pill-btn active" onclick="toggleFlavor(this)">Ягодный сбор</div>
+          <div class="pill-btn" onclick="toggleFlavor(this)">Цитрусовый микс</div>
+          <div class="pill-btn active" onclick="toggleFlavor(this)">Свежесть / Холод</div>
+          <div class="pill-btn" onclick="toggleFlavor(this)">Десерт / Выпечка</div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <div class="card-section-title" style="margin-bottom: 4px;">Пожелания к забивке</div>
+          <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса, цитрусовый микс..."></textarea>
         </div>
       </div>
 
-      <div class="card-section-title">Крепость <span>1 вариант</span></div>
-      <div class="pill-group">
-        <div class="pill-btn" onclick="selectStrength(this)">Мягкий</div>
-        <div class="pill-btn active" onclick="selectStrength(this)">Средний</div>
-        <div class="pill-btn" onclick="selectStrength(this)">Крепкий</div>
-      </div>
-
-      <div class="card-section-title">Вкусовой профиль <span>до 3 вариантов</span></div>
-      <div class="pill-group" id="flavorContainer">
-        <div class="pill-btn active" onclick="toggleFlavor(this)">Ягодный сбор</div>
-        <div class="pill-btn" onclick="toggleFlavor(this)">Цитрусовый микс</div>
-        <div class="pill-btn active" onclick="toggleFlavor(this)">Свежесть / Холод</div>
-        <div class="pill-btn" onclick="toggleFlavor(this)">Десерт / Выпечка</div>
-      </div>
-
-      <div style="margin-top: 10px;">
-        <div class="card-section-title" style="margin-bottom: 4px;">Пожелания к забивке</div>
-        <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса, цитрусовый микс..."></textarea>
-      </div>
-    </div>
-
-    <!-- Чайная карта & Напитки -->
-    <div class="unified-card">
-      <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
-      <div class="slider-row" style="margin-bottom: 6px;">
-        <button type="button" class="arrow-btn" onclick="slideCats(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-        <div class="cat-track" id="catSlider">
-          <button type="button" class="cat-pill active" onclick="changeCategory('energy', this)">Взбодриться</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('relax', this)">Расслабиться</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('balance', this)">Баланс</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('gaba', this)">Особый эффект</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('mood', this)">Под настроение</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Крафт лимонады</button>
-          <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе & Бар</button>
+      <!-- Чайная карта & Напитки -->
+      <div class="unified-card">
+        <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
+        <div class="slider-row" style="margin-bottom: 6px;">
+          <button type="button" class="arrow-btn" onclick="slideCats(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+          <div class="cat-track" id="catSlider">
+            <button type="button" class="cat-pill active" onclick="changeCategory('energy', this)">Взбодриться</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('relax', this)">Расслабиться</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('balance', this)">Баланс</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('gaba', this)">Особый эффект</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('mood', this)">Под настроение</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Крафт лимонады</button>
+            <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе & Бар</button>
+          </div>
+          <button type="button" class="arrow-btn" onclick="slideCats(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
         </div>
-        <button type="button" class="arrow-btn" onclick="slideCats(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+        <div class="menu-grid" id="drinksContainer"></div>
       </div>
-      <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контакты -->
+    <!-- Контакты с автозаполнением -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
@@ -712,55 +700,22 @@
     </div>
   </div>
 
-  <!-- Оплата бар -->
+  <!-- Фиксированный Checkout Bar (прямая бронь без предоплат) -->
   <div class="checkout-bar">
     <div class="checkout-content">
       <div class="checkout-amount">
-        <span>Депозит брони:</span>
+        <span id="pricePrefixLabel">Депозит брони:</span>
         <strong id="priceLabel">1 500 ₽</strong>
         <small id="cashbackLabel">+45 ₽ кэшбэком</small>
       </div>
-      <button class="checkout-btn" onclick="openSbpModal()">Оплатить СБП</button>
-    </div>
-  </div>
-
-  <!-- SBP Modal -->
-  <div class="sbp-modal-backdrop" id="sbpModal">
-    <div class="sbp-modal-box">
-      <div class="sbp-header-badge">СИСТЕМА БЫСТРЫХ ПЛАТЕЖЕЙ</div>
-      <div class="sbp-amount-box">
-        <span>Сумма депозита к переводу:</span>
-        <strong id="sbpModalAmount">1 500 ₽</strong>
-      </div>
-      <div class="sbp-qr-wrapper">
-        <img id="sbpQrImage" src="" alt="QR-код СБП">
-      </div>
-      <div class="sbp-details-card">
-        <div class="sbp-detail-row">
-          <span class="sbp-detail-label">Получатель:</span>
-          <span class="sbp-detail-val" id="sbpRecipientName">ЦОКОЛЬ Lounge</span>
-        </div>
-        <div class="sbp-detail-row">
-          <span class="sbp-detail-label">Банк:</span>
-          <span class="sbp-detail-val" id="sbpBankName">Т-Банк / Сбер</span>
-        </div>
-        <div class="sbp-detail-row" style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border);">
-          <span class="sbp-detail-label">Номер для СБП:</span>
-          <div>
-            <strong id="sbpPhoneText" style="color: #fff; font-size: 11px; margin-right: 6px;">+7 (980) 123-45-67</strong>
-            <button class="copy-phone-btn" onclick="copySbpPhone()">Скопировать</button>
-          </div>
-        </div>
-      </div>
-      <button class="sbp-confirm-btn" id="sbpConfirmActionBtn" onclick="confirmSbpPayment()">Я оплатил(а) депозит</button>
-      <button class="sbp-cancel-btn" onclick="closeSbpModal()">Вернуться к заказу</button>
+      <button class="checkout-btn" onclick="submitDirectBooking()">Забронировать</button>
     </div>
   </div>
 
   <div class="modal-backdrop" id="modal">
     <div class="success-modal-box">
       <div class="success-icon-badge">✓</div>
-      <h3 style="margin-bottom: 8px;">Бронь принята в обработку!</h3>
+      <h3 style="margin-bottom: 8px;">Бронь принята!</h3>
       <p id="modalText"></p>
       <button onclick="closeModal()">Отлично</button>
     </div>
@@ -782,13 +737,8 @@
   </div>
 
   <script>
-    const SBP_CONFIG = {
-      phone: "+7 (980) 123-45-67",
-      bank: "Т-Банк (Тинькофф) / Сбер",
-      recipient: "ЦОКОЛЬ Lounge"
-    };
-
     let isSubmitting = false;
+    let orderMode = 'preorder'; // 'preorder' | 'onsite'
     const tg = window.Telegram?.WebApp;
     const tgUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : 'guest';
 
@@ -824,7 +774,27 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // Закрытие клавиатуры только при физическом тапе вне инпутов
+    // Режим заказа
+    function setOrderMode(mode) {
+      haptic('selection');
+      orderMode = mode;
+      const preBtn = document.getElementById('modePreorderBtn');
+      const onBtn = document.getElementById('modeOnsiteBtn');
+      const preBlock = document.getElementById('preorderBlock');
+
+      if (mode === 'onsite') {
+        preBtn.classList.remove('active');
+        onBtn.classList.add('active');
+        preBlock.style.display = 'none';
+      } else {
+        onBtn.classList.remove('active');
+        preBtn.classList.add('active');
+        preBlock.style.display = 'block';
+      }
+      updateTotal();
+    }
+
+    // Закрытие клавиатуры только при физическом клике в пустое место
     document.addEventListener('click', function(e) {
       if (!e.target.closest('input, textarea, label, .input-wrapper, .clear-btn, button, .pill-btn, .drink-card, .tbl-node')) {
         const active = document.activeElement;
@@ -834,7 +804,6 @@
       }
     });
 
-    // Поле имени
     const nameInput = document.getElementById('guestNameInput');
     const nameClearBtn = document.getElementById('nameClearBtn');
     nameInput.addEventListener('input', function() {
@@ -846,7 +815,6 @@
       nameInput.focus();
     }
 
-    // Поле телефона с поддержкой Backspace
     const phoneInput = document.getElementById('guestPhoneInput');
     const phoneClearBtn = document.getElementById('phoneClearBtn');
 
@@ -920,16 +888,23 @@
       phoneInput.focus();
     }
 
-    // Автодоводка полей в зону видимости при фокусе (без сброса клавиатуры)
-    [nameInput, phoneInput, document.getElementById('hookahComment')].forEach(input => {
-      if (input) {
-        input.addEventListener('focus', function() {
-          setTimeout(() => {
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 350);
-        });
+    // Автоподстановка сохранённых контактов
+    function initSavedGuestProfile() {
+      const savedPhone = localStorage.getItem('cokol_last_phone');
+      const savedName = localStorage.getItem('cokol_last_name');
+
+      if (savedName && !nameInput.value) {
+        nameInput.value = savedName;
+        document.getElementById('cardGuestName').innerText = savedName;
+        nameClearBtn.style.display = 'flex';
       }
-    });
+
+      if (savedPhone) {
+        let digits = savedPhone.replace(/\D/g, '');
+        if (digits.startsWith('7') || digits.startsWith('8')) digits = digits.slice(1);
+        applyPhoneMask(digits);
+      }
+    }
 
     // Лояльность
     let activeUserPhone = localStorage.getItem('cokol_last_phone') || '';
@@ -976,7 +951,7 @@
     const VIP_PHOTO_FALLBACK_2 = "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80";
 
     const tableBadgesData = {
-      vip1: ["PlayStation 5 (0 ₽)", "До 4 персон", "Депозит 2 000 ₽", "ТВ 55\""],
+      vip1: ["PlayStation 5 (0 ₽)", "До 4 персон", "Депозит 2 000 ₽"],
       vip2: ["Большая VIP", "PlayStation 5 (0 ₽)", "ТВ 65\"", "Депозит 2 000 ₽"],
       t1: ["Вид на проектор", "Красный диван", "2 мягких стула"],
       t2: ["Центр зала", "Красный диван", "Камерный свет"],
@@ -1475,6 +1450,19 @@
     }
 
     function updateTotal() {
+      const pricePrefix = document.getElementById('pricePrefixLabel');
+      const priceLabel = document.getElementById('priceLabel');
+      const cashbackLabel = document.getElementById('cashbackLabel');
+
+      if (orderMode === 'onsite') {
+        pricePrefix.innerText = "Формат визита:";
+        priceLabel.innerText = "По чеку на баре";
+        cashbackLabel.innerText = "+3% бонусами при оплате";
+        currentCalculatedTotal = isVipSelected ? 2000 : 0;
+        return;
+      }
+
+      pricePrefix.innerText = isVipSelected ? "Депозит VIP:" : "Предзаказ:";
       const baseHookahRate = isLunchTime ? 1000 : 1500;
       const premiumExtra = isPremium ? 500 : 0;
       const hookahsCost = (baseHookahRate + premiumExtra) * hookahs;
@@ -1490,9 +1478,9 @@
       const currentRate = profile.spent >= 50000 ? 0.07 : (profile.spent >= 25000 ? 0.05 : 0.03);
       const cashback = Math.round(finalDeposit * currentRate);
 
-      document.getElementById('priceLabel').innerText = finalDeposit.toLocaleString('ru-RU') + ' ₽';
+      priceLabel.innerText = finalDeposit.toLocaleString('ru-RU') + ' ₽';
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
-      document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
+      cashbackLabel.innerText = `+${cashback} ₽ кэшбэком`;
       document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
       document.getElementById('hookahRateText').innerText = `Кальянов (${baseHookahRate} ₽/шт)`;
     }
@@ -1552,7 +1540,8 @@
       el.classList.add('active');
     }
 
-    function openSbpModal() {
+    // Прямое бронирование на доверии (без СБП модалок)
+    function submitDirectBooking() {
       const name = nameInput.value.trim();
       const phoneDigits = phoneInput.value.replace(/\D/g, '');
 
@@ -1580,38 +1569,16 @@
         return;
       }
 
-      haptic('impact');
-      document.getElementById('sbpModalAmount').innerText = currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽';
-      document.getElementById('sbpPhoneText').innerText = SBP_CONFIG.phone;
-      document.getElementById('sbpBankName').innerText = SBP_CONFIG.bank;
-      document.getElementById('sbpRecipientName').innerText = SBP_CONFIG.recipient;
-
-      const qrPayload = `https://qr.nspk.ru/transfer?phone=${SBP_CONFIG.phone.replace(/[^0-9]/g, '')}&amount=${currentCalculatedTotal}`;
-      document.getElementById('sbpQrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}&margin=4`;
-
-      document.getElementById('sbpModal').style.display = 'flex';
-    }
-
-    function closeSbpModal() {
-      haptic('selection');
-      document.getElementById('sbpModal').style.display = 'none';
-    }
-
-    function copySbpPhone() {
-      haptic('notification');
-      navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
-    }
-
-    function confirmSbpPayment() {
       if (isSubmitting) return;
       isSubmitting = true;
-
       haptic('notification');
-      closeSbpModal();
 
-      const name = nameInput.value.trim() || 'Гость';
       const phone = phoneInput.value.trim();
-      const comment = document.getElementById('hookahComment').value.trim();
+      const comment = (orderMode === 'preorder') ? document.getElementById('hookahComment').value.trim() : 'Выбор на месте в баре';
+
+      // Сохраняем имя и телефон для автозаполнения в следующий раз
+      localStorage.setItem('cokol_last_name', name);
+      localStorage.setItem('cokol_last_phone', phone);
 
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
@@ -1626,13 +1593,17 @@
       updateTablesAvailability();
 
       let drinksNames = [];
-      selectedDrinks.forEach(item => drinksNames.push(item.name));
+      if (orderMode === 'preorder') {
+        selectedDrinks.forEach(item => drinksNames.push(item.name));
+      }
       const drinksSummary = drinksNames.join(', ');
 
       const [h, m] = selectedStartTime.split(':').map(Number);
       const durationMins = isCurrentSessionShort ? 60 : 90;
       const endTotalM = h * 60 + m + durationMins;
       const endStr = `${String(Math.floor(endTotalM / 60) % 24).padStart(2, '0')}:${String(endTotalM % 60).padStart(2, '0')}`;
+
+      const finalPriceStr = (orderMode === 'preorder') ? `${currentCalculatedTotal.toLocaleString('ru-RU')} ₽` : (isVipSelected ? 'Депозит 2 000 ₽' : 'Оплата на баре');
 
       const newBooking = {
         id: 'b_' + Date.now(),
@@ -1646,14 +1617,14 @@
         endTime: endStr,
         date: selectedDateLabel,
         dateIso: selectedDateIso,
-        hookahs: hookahs,
-        hookahType: isPremium ? `PREMIUM (${selectedBrandName})` : (isLunchTime ? 'Обед (1 000 ₽)' : 'Классика'),
+        hookahs: (orderMode === 'preorder') ? hookahs : 1,
+        hookahType: (orderMode === 'preorder') ? (isPremium ? `PREMIUM (${selectedBrandName})` : (isLunchTime ? 'Обед (1 000 ₽)' : 'Классика')) : 'На месте',
         drinks: drinksSummary,
         comment: comment,
-        total: currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽',
+        total: finalPriceStr,
         totalNum: currentCalculatedTotal,
         cashbackEarned: Math.round(currentCalculatedTotal * 0.03),
-        status: 'pending'
+        status: 'confirmed'
       };
 
       try {
@@ -1675,14 +1646,14 @@
       const modalText = document.getElementById('modalText');
 
       modalText.innerHTML = `
-        <strong>${name}</strong>, бронь принята в обработку!<br><br>
+        <strong>${name}</strong>, ваш стол забронирован!<br><br>
         📅 Дата: <strong>${selectedDateLabel}</strong><br>
-        ⏰ Время: <strong>${selectedStartTime} – ${endStr} (${isCurrentSessionShort ? '1 час' : '1.5 ч'})</strong><br>
+        ⏰ Сеанс: <strong>${selectedStartTime} – ${endStr} (${isCurrentSessionShort ? '1 час' : '1.5 ч'})</strong><br>
         📍 Локация: <strong>${currentTableName}</strong><br>
         ${comment ? '💬 Пожелания: <strong>«' + comment + '»</strong><br>' : ''}
         ${isCurrentSessionShort ? '<span style="color:#f1c40f;">⚠️ Внимание: в ' + endStr + ' стол забронирован следующими гостями.</span><br>' : ''}
-        Депозит: <strong>${newBooking.total}</strong><br><br>
-        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор сверяет платёж СБП.</span>
+        💳 Расчёт: <strong>Оплата счёта на баре при визите</strong><br><br>
+        <span style="font-size: 11px; color: var(--green);">Ждём вас в ЦОКОЛЬ Lounge!</span>
       `;
       modal.style.display = 'flex';
       setTimeout(() => { isSubmitting = false; }, 3000);
@@ -1698,6 +1669,7 @@
     buildAfisha();
     renderCategory('energy');
     selectItem('t1', 'Стол №1 (Красный диван)', 'У экрана • Красный диван + 2 стула', false);
+    initSavedGuestProfile();
     updateLoyaltyUI();
   </script>
 </body>

@@ -31,8 +31,6 @@ ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_RAW.split(",") if x.strip().isdig
 OWNER_ID_RAW = os.getenv("OWNER_ID", "").strip()
 OWNER_ID = int(OWNER_ID_RAW) if OWNER_ID_RAW.isdigit() else (ADMIN_IDS[0] if ADMIN_IDS else 0)
 
-REQUIRE_SBP_DEPOSIT = True
-
 DB_NAME = "cokol.db"
 
 def init_db():
@@ -339,11 +337,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckReq):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=60"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=70"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=60")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=70")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -354,7 +352,7 @@ async def cmd_start(message: types.Message):
     await message.answer(
         f"👋 Приветствуем в **ЦОКОЛЬ Lounge**, {message.from_user.first_name}!\n\n"
         "💨 Атмосферный лаунж-бар в Белгороде (ул. Королёва, 4Д)\n"
-        "🎮 Отдельные VIP-комнаты с PlayStation 5 (депозит 2 000 ₽ на покур и бар)\n"
+        "🎮 Отдельные VIP-комнаты с PlayStation 5\n"
         "🍵 Премиальная китайская чайная карта и крафтовые лимонады\n"
         "🎬 Воскресные кинопоказы на большом экране\n\n"
         "Для выбора стола и бронирования нажмите кнопку ниже 👇",
@@ -366,7 +364,7 @@ async def cmd_start(message: types.Message):
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in ADMIN_IDS: return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=60"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=70"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -377,14 +375,11 @@ async def cmd_summary(message: types.Message):
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*), SUM(total_num) FROM bookings WHERE status IN ('confirmed', 'seated', 'completed')")
     c_count, c_sum = cur.fetchone()
-    cur.execute("SELECT COUNT(*) FROM bookings WHERE status = 'pending'")
-    p_count = cur.fetchone()[0] or 0
     conn.close()
     await message.answer(
         f"📊 **Текущая сводка смены (ЦОКОЛЬ Lounge)**\n\n"
-        f"✅ Принятых броней: **{c_count or 0}**\n"
-        f"💰 Оборот депозитов/чеков: **{(c_sum or 0):,.0f} ₽**\n"
-        f"⏳ Ожидают проверки СБП: **{p_count}**\n\n"
+        f"✅ Подтверждённых броней: **{c_count or 0}**\n"
+        f"💰 Оборот смены: **{(c_sum or 0):,.0f} ₽**\n\n"
         f"📅 Отчёт сформирован: {datetime.now().strftime('%H:%M, %d.%m.%Y')}",
         parse_mode="Markdown"
     )
@@ -407,33 +402,35 @@ async def handle_webapp_data(message: types.Message):
         hookah_type = data.get("hookahType", "Классика")
         drinks = data.get("drinks", "")
         comment = data.get("comment", "")
-        total_price = data.get("total", "1 500 ₽")
-        total_num = float(data.get("totalNum", 1500))
-        cashback = float(data.get("cashbackEarned", 45))
+        total_price = data.get("total", "Оплата на баре")
+        total_num = float(data.get("totalNum", 0))
+        cashback = float(data.get("cashbackEarned", 0))
 
         clean = "".join(filter(str.isdigit, phone))
         if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
 
-        initial_status = 'pending' if REQUIRE_SBP_DEPOSIT else 'confirmed'
-        status_text = "🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*" if REQUIRE_SBP_DEPOSIT else "✅ *Бронь подтверждена! Оплата счёта при визите на баре через терминал.*"
+        # Кнопки для гостя в чате
+        guest_kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text="⏳ Опаздываю на 15 минут", callback_data=f"late15_{booking_id}"),
+            InlineKeyboardButton(text="❌ Отменить бронь", callback_data=f"cancel_{booking_id}")
+        ]])
 
         guest_msg_text = (
-            f"⏳ **Заявка на бронирование передана в ЦОКОЛЬ Lounge!**\n\n"
+            f"🎉 **Бронь подтверждена! Ждём вас в ЦОКОЛЬ Lounge**\n\n"
             f"📍 **{table_name}**\n"
             f"⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n"
-            f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
-            f"{f'🍵 Напитки: {drinks}\n' if drinks else ''}"
-            f"{f'💬 Пожелания: «{comment}»\n' if comment else ''}"
-            f"💳 Депозит брони: **{total_price}**\n\n"
-            f"{status_text}"
+            f"{f'💨 Кальяны: {hookahs} шт ({hookah_type})\n' if hookah_type != 'На месте' else '💨 Кальян: выбор на месте в баре\n'}"
+            f"{f'🍵 Бар: {drinks}\n' if drinks else ''}"
+            f"{f'💬 Пожелания: «{comment}»\n' if comment and comment != 'Выбор на месте в баре' else ''}"
+            f"💳 Оплата: **на баре через терминал при визите**"
         )
-        sent = await message.answer(guest_msg_text, parse_mode="Markdown")
+        sent = await message.answer(guest_msg_text, parse_mode="Markdown", reply_markup=guest_kb)
 
         conn = sqlite3.connect(DB_NAME)
         cur = conn.cursor()
         cur.execute("""
-            INSERT OR REPLACE INTO bookings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """, (booking_id, message.chat.id, sent.message_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback, initial_status))
+            INSERT OR REPLACE INTO bookings VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', CURRENT_TIMESTAMP)
+        """, (booking_id, message.chat.id, sent.message_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback))
 
         idx = TIME_SLOTS.index(time_slot) if time_slot in TIME_SLOTS else -1
         slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [time_slot]
@@ -444,65 +441,63 @@ async def handle_webapp_data(message: types.Message):
         conn.commit()
         conn.close()
 
+        # Уведомление администраторам
         admin_card = (
-            f"🔔 **НОВАЯ БРОНЬ СТОЛА ({'Ожидает СБП' if REQUIRE_SBP_DEPOSIT else 'Терминал / Без предоплаты'})**\n\n"
+            f"🔔 **НОВАЯ ОНЛАЙН-БРОНЬ СТОЛА**\n\n"
             f"👤 Гость: **{name}** (@{username})\n"
             f"📞 Телефон: `{phone}`\n"
             f"📍 Стол: **{table_name}**\n"
             f"⏰ Время: **{booking_date} в {time_slot} – {end_time}**\n"
-            f"💨 Кальяны: **{hookahs} шт ({hookah_type})**\n"
+            f"💨 Заказ: **{hookah_type}**\n"
             f"{f'🍵 Бар: {drinks}\n' if drinks else ''}"
-            f"{f'💬 Комментарий: «{comment}»\n' if comment else ''}"
-            f"💰 Сумма: **{total_price}**"
+            f"{f'💬 Комментарий: «{comment}»\n' if comment and comment != 'Выбор на месте в баре' else ''}"
+            f"💳 Расчёт: **через терминал на смене**"
         )
-        admin_kb = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"ok_{booking_id}"),
-            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"no_{booking_id}")
-        ]])
         for aid in ADMIN_IDS:
-            try: await bot.send_message(aid, admin_card, parse_mode="Markdown", reply_markup=admin_kb)
+            try: await bot.send_message(aid, admin_card, parse_mode="Markdown")
             except Exception: pass
     except Exception as e:
         print(f"Error webapp_data: {e}")
 
-@dp.callback_query(F.data.startswith(("ok_", "no_")))
-async def handle_admin_decision(call: types.CallbackQuery):
+# Обработка действий гостя: Опаздываю / Отмена
+@dp.callback_query(F.data.startswith(("late15_", "cancel_")))
+async def handle_guest_action(call: types.CallbackQuery):
     action, booking_id = call.data.split("_")[0], "_".join(call.data.split("_")[1:])
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("SELECT chat_id, guest_msg_id, name, phone, table_name, time_slot, end_time, booking_date, total_num FROM bookings WHERE id = ?", (booking_id,))
+    cur.execute("SELECT chat_id, guest_msg_id, name, phone, table_id, table_name, time_slot, date_iso FROM bookings WHERE id = ?", (booking_id,))
     row = cur.fetchone()
+
     if not row:
         conn.close()
-        await call.answer("Заявка не найдена в базе")
+        await call.answer("Бронь не найдена")
         return
-    chat_id, guest_msg_id, name, phone, table_name, time_slot, end_time, booking_date, total_num = row
 
-    if action == "ok":
-        cur.execute("UPDATE bookings SET status = 'confirmed' WHERE id = ?", (booking_id,))
-        conn.commit()
+    chat_id, guest_msg_id, name, phone, table_id, table_name, time_slot, date_iso = row
+
+    if action == "late15":
         conn.close()
-        if chat_id and guest_msg_id:
+        # Предупреждаем админов
+        for aid in ADMIN_IDS:
             try:
-                await bot.edit_message_text(
-                    chat_id=chat_id, message_id=guest_msg_id,
-                    text=f"🎉 **Бронь подтверждена! Ждём вас в ЦОКОЛЬ Lounge**\n\n📍 **{table_name}**\n⏰ Сеанс: **{booking_date} в {time_slot} – {end_time}**\n💳 Бронь зафиксирована. Оплата счёта на баре при визите.",
-                    parse_mode="Markdown"
-                )
+                await bot.send_message(aid, f"⏳ **Гость предупредил об опоздании!**\n\nГость **{name}** ({phone}) задерживается на **15 минут** (стол: {table_name}, {time_slot}). Стол держим!", parse_mode="Markdown")
             except Exception: pass
-        await call.message.edit_text(call.message.text + "\n\n🟢 **Бронь подтверждена.** Стол зафиксирован.", parse_mode="Markdown", reply_markup=None)
-        await call.answer("Подтверждено!")
-    else:
+
+        await call.answer("Спасибо! Администратор предупреждён, стол сохранён за вами.", show_alert=True)
+
+    elif action == "cancel":
         cur.execute("UPDATE bookings SET status = 'rejected' WHERE id = ?", (booking_id,))
         cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (booking_id,))
         conn.commit()
         conn.close()
-        if chat_id and guest_msg_id:
+
+        for aid in ADMIN_IDS:
             try:
-                await bot.edit_message_text(chat_id=chat_id, message_id=guest_msg_id, text="❌ **Бронирование отменено.**", parse_mode="Markdown")
+                await bot.send_message(aid, f"❌ **Гость отменил бронь!**\n\nГость **{name}** ({phone}) отменил бронь стола {table_name} на {time_slot}. Стол снова свободен в шахматке.", parse_mode="Markdown")
             except Exception: pass
-        await call.message.edit_text(call.message.text + "\n\n❌ **Бронь отклонена.** Стол свободен.", parse_mode="Markdown", reply_markup=None)
-        await call.answer("Отклонено.")
+
+        await call.message.edit_text(call.message.text + "\n\n❌ **Бронь отменена.** Стол освобождён.", parse_mode="Markdown", reply_markup=None)
+        await call.answer("Бронирование отменено.")
 
 async def main():
     print("🚀 Сервер ЦОКОЛЬ и Telegram-бот запущены!")
