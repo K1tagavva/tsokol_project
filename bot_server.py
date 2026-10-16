@@ -31,9 +31,6 @@ ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_RAW.split(",") if x.strip().isdig
 OWNER_ID_RAW = os.getenv("OWNER_ID", "").strip()
 OWNER_ID = int(OWNER_ID_RAW) if OWNER_ID_RAW.isdigit() else (ADMIN_IDS[0] if ADMIN_IDS else 0)
 
-# ГИБКИЙ ПЕРЕКЛЮЧАТЕЛЬ ДЕПОЗИТОВ:
-# True  = режим депозитов по СБП (требуется подтверждение админа / интернет-эквайринга)
-# False = свободная бронь (гости просто бронируют стол и оплачивают на терминале в баре)
 REQUIRE_SBP_DEPOSIT = True
 
 DB_NAME = "cokol.db"
@@ -269,7 +266,7 @@ async def create_manual(req: ManualBookReq):
     idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
     slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
     for s in slots:
-        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (req.date_iso, s, req.table_id, b_id))
+        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date_iso, s, req.table_id, b_id))
     if clean:
         cur.execute("INSERT OR IGNORE INTO loyalty_clients VALUES (?, ?, ?, 0, 0, 'SILVER')", (clean, message.from_user.id, name))
     conn.commit()
@@ -342,11 +339,11 @@ async def check_loyalty_endpoint(req: LoyaltyCheckReq):
 
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=50"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=55"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=50")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=55")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -369,7 +366,7 @@ async def cmd_start(message: types.Message):
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in ADMIN_IDS: return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=50"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=55"))]
     ])
     await message.answer("🔐 **Панель управления залом ЦОКОЛЬ**\nПароль администратора: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -418,7 +415,6 @@ async def handle_webapp_data(message: types.Message):
         if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
 
         initial_status = 'pending' if REQUIRE_SBP_DEPOSIT else 'confirmed'
-
         status_text = "🔎 *Администратор сверяет платёж СБП. Статус обновится здесь автоматически.*" if REQUIRE_SBP_DEPOSIT else "✅ *Бронь подтверждена! Оплата счёта при визите на баре через терминал.*"
 
         guest_msg_text = (
@@ -511,7 +507,6 @@ async def handle_admin_decision(call: types.CallbackQuery):
 async def main():
     print("🚀 Сервер ЦОКОЛЬ и Telegram-бот запущены!")
     try:
-        # УДАЛЯЕМ КНОПКУ МЕНЮ РЯДОМ СО СКРЕПКОЙ
         await bot.set_chat_menu_button(menu_button=MenuButtonDefault())
     except Exception:
         pass

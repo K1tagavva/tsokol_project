@@ -9,7 +9,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -284,7 +284,7 @@
     .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
     .drink-card.active .drink-check { display: inline-block; }
 
-    /* Поля ввода с естественным Backspace и кнопкой очистки */
+    /* Поля ввода с естественным вводом/стиранием и кнопкой быстрой очистки */
     .form-group { margin-bottom: 12px; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
     .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
@@ -689,7 +689,7 @@
       <div class="menu-grid" id="drinksContainer"></div>
     </div>
 
-    <!-- Контакты с естественным стиранием и кнопкой очистки -->
+    <!-- Контакты с естественным вводом/стиранием и кнопкой очистки -->
     <div class="unified-card">
       <div class="form-group">
         <label>Имя гостя *</label>
@@ -824,20 +824,23 @@
       document.getElementById('ageModal').style.display = 'none';
     }
 
-    // Скрытие клавиатуры при тапе мимо или скролле
-    document.addEventListener('touchstart', function(e) {
-      const active = document.activeElement;
-      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-        if (!e.target.closest('.input-wrapper, textarea, .clear-btn')) {
+    // Скрытие клавиатуры только при физическом тапе вне инпутов
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('input, textarea, label, .input-wrapper, .clear-btn, button')) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
           active.blur();
         }
       }
-    }, { passive: true });
+    });
 
-    window.addEventListener('scroll', function() {
-      const active = document.activeElement;
-      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-        active.blur();
+    // Скрытие клавиатуры при физическом скролле страницы пальцем
+    window.addEventListener('touchmove', function(e) {
+      if (!e.target.closest('input, textarea, .input-wrapper')) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+          active.blur();
+        }
       }
     }, { passive: true });
 
@@ -853,7 +856,7 @@
       nameInput.focus();
     }
 
-    // Естественный ввод и стирание телефона
+    // Поле телефона с поддержкой Backspace
     const phoneInput = document.getElementById('guestPhoneInput');
     const phoneClearBtn = document.getElementById('phoneClearBtn');
 
@@ -863,7 +866,6 @@
         const end = this.selectionEnd;
         if (start === end && start > 0) {
           const charBefore = this.value[start - 1];
-          // Если стираем скобку, дефис или пробел — удаляем стоящую перед ней цифру
           if (/\D/.test(charBefore)) {
             e.preventDefault();
             let digits = this.value.replace(/\D/g, '');
@@ -1492,6 +1494,7 @@
       document.getElementById('selPrice').innerText = (isVipSelected ? Math.max(2000, hookahsCost) : hookahsCost).toLocaleString('ru-RU') + ' ₽';
       document.getElementById('cashbackLabel').innerText = `+${cashback} ₽ кэшбэком`;
       document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
+      document.getElementById('hookahRateText').innerText = `Кальянов (${baseHookahRate} ₽/шт)`;
     }
 
     function selectItem(id, title, desc, isVip) {
@@ -1679,7 +1682,7 @@
         ${comment ? '💬 Пожелания: <strong>«' + comment + '»</strong><br>' : ''}
         ${isCurrentSessionShort ? '<span style="color:#f1c40f;">⚠️ Внимание: в ' + endStr + ' стол забронирован следующими гостями.</span><br>' : ''}
         Депозит: <strong>${newBooking.total}</strong><br><br>
-        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор сверяет платёж СБП.</span>
+        <span style="font-size: 11px; color: var(--green);">Стол зафиксирован. Администратор проверяет СБП.</span>
       `;
       modal.style.display = 'flex';
       setTimeout(() => { isSubmitting = false; }, 3000);
