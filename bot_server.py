@@ -117,85 +117,18 @@ TIME_SLOTS = [
     '00:00', '00:30', '01:00'
 ]
 
-class LoyaltyCheckReq(BaseModel):
-    phone: str = ""
-    telegram_id: str | None = None
-
-class LoyaltyAdjustReq(BaseModel):
-    phone: str
-    delta: float
-
-class ManualBookReq(BaseModel):
-    date_iso: str
-    date_label: str
-    time: str
-    end_time: str
-    table_id: str
-    table_name: str
-    name: str
-    phone: str
-    hookahs: int = 1
-    hookah_type: str = "Классика"
-    comment: str = ""
-    total_num: float = 1500.0
-
-class TableRelReq(BaseModel):
-    date_iso: str
-    table_id: str
-    from_time: str
-
-class ToggleTableReq(BaseModel):
-    date_iso: str
-    time: str
-    table_id: str
-    busy: bool
-
-class StatusReq(BaseModel):
-    booking_id: str
-    status: str
-
-class CloseReq(BaseModel):
-    booking_id: str
-    final_total: float
-
 class ExtendReq(BaseModel):
     booking_id: str
     extra_minutes: int = 90
     extra_amount: float = 1500.0
 
-@app.get("/api/schedule")
-async def get_schedule(date: str):
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT time_slot, table_id, id FROM bookings WHERE (date_iso = ? OR booking_date LIKE ?) AND status IN ('confirmed', 'seated')", (date, f"%{date[-2:]}%"))
-    for t_slot, t_id, b_id in cur.fetchall():
-        if t_id and t_slot in TIME_SLOTS:
-            idx = TIME_SLOTS.index(t_slot)
-            for s in TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)]:
-                cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date, s, t_id, b_id))
-    conn.commit()
+class CloseReq(BaseModel):
+    booking_id: str
+    final_total: float
 
-    cur.execute("SELECT time_slot, table_id, status FROM table_schedules WHERE date_iso = ?", (date,))
-    sched = {}
-    for ts, tid, st in cur.fetchall():
-        sched.setdefault(ts, {})[tid] = st
-    conn.close()
-    return sched
-
-@app.post("/api/schedule/toggle")
-async def toggle_table(req: ToggleTableReq):
-    idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
-    slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    for s in slots:
-        if req.busy:
-            cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', 'manual')", (req.date_iso, s, req.table_id))
-        else:
-            cur.execute("DELETE FROM table_schedules WHERE date_iso = ? AND time_slot = ? AND table_id = ?", (req.date_iso, s, req.table_id))
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
+class StatusReq(BaseModel):
+    booking_id: str
+    status: str
 
 @app.get("/api/bookings")
 async def get_bookings(date: str):
@@ -211,43 +144,6 @@ async def get_bookings(date: str):
         "cashback": r[13], "status": r[14], "created_at": r[15]
     } for r in rows]
 
-@app.post("/api/bookings/close_visit")
-async def close_visit(req: CloseReq):
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT name, phone, table_id, date_iso FROM bookings WHERE id = ?", (req.booking_id,))
-    row = cur.fetchone()
-    if not row:
-        conn.close()
-        return {"status": "error"}
-    name, phone, table_id, date_iso = row
-    clean = "".join(filter(str.isdigit, phone or ""))
-    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
-
-    spent = 0.0
-    if clean:
-        cur.execute("SELECT spent FROM loyalty_clients WHERE phone = ?", (clean,))
-        sp = cur.fetchone()
-        if sp: spent = sp[0] or 0.0
-    rate = 0.07 if spent >= 50000 else (0.05 if spent >= 25000 else 0.03)
-    cb = round(req.final_total * rate)
-
-    cur.execute("UPDATE bookings SET status = 'completed', total_num = ?, total_price = ?, cashback = ? WHERE id = ?", (req.final_total, f"{req.final_total:,.0f} ₽", cb, req.booking_id))
-    cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
-
-    if clean:
-        cur.execute("""
-            INSERT INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier)
-            VALUES (?, NULL, ?, ?, ?, 'SILVER')
-            ON CONFLICT(phone) DO UPDATE SET
-                spent = spent + excluded.spent,
-                balance = balance + excluded.balance,
-                tier = CASE WHEN (spent + excluded.spent) >= 50000 THEN 'PLATINUM' WHEN (spent + excluded.spent) >= 25000 THEN 'GOLD' ELSE 'SILVER' END
-        """, (clean, name, req.final_total, cb))
-    conn.commit()
-    conn.close()
-    return {"status": "ok", "cashback": cb}
-
 @app.post("/api/bookings/extend")
 async def extend_booking(req: ExtendReq):
     conn = sqlite3.connect(DB_NAME)
@@ -258,20 +154,6 @@ async def extend_booking(req: ExtendReq):
         conn.close()
         return {"status": "error"}
     table_id, end_time, date_iso, total_num, hookahs = row
-    idx = TIME_SLOTS.index(end_time) if end_time in TIME_SLOTS else -1
-    if idx == -1:
-        conn.close()
-        return {"status": "error"}
-    slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)]
-    for s in slots:
-        cur.execute("SELECT booking_id FROM table_schedules WHERE date_iso = ? AND time_slot = ? AND table_id = ?", (date_iso, s, table_id))
-        conf = cur.fetchone()
-        if conf and conf[0] != req.booking_id:
-            conn.close()
-            return {"status": "collision"}
-    for s in slots:
-        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (date_iso, s, table_id, req.booking_id))
-
     h, m = map(int, end_time.split(':'))
     new_tot = h * 60 + m + req.extra_minutes
     new_end = f"{((new_tot // 60) % 24):02d}:{(new_tot % 60):02d}"
@@ -281,6 +163,16 @@ async def extend_booking(req: ExtendReq):
     conn.close()
     return {"status": "ok", "new_end_time": new_end}
 
+@app.post("/api/bookings/close_visit")
+async def close_visit(req: CloseReq):
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE bookings SET status = 'completed', total_num = ?, total_price = ? WHERE id = ?", (req.final_total, f"{req.final_total:,.0f} ₽", req.booking_id))
+    cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
 @app.post("/api/bookings/update_status")
 async def update_status(req: StatusReq):
     conn = sqlite3.connect(DB_NAME)
@@ -288,41 +180,6 @@ async def update_status(req: StatusReq):
     cur.execute("UPDATE bookings SET status = ? WHERE id = ?", (req.status, req.booking_id))
     if req.status in ("completed", "rejected"):
         cur.execute("DELETE FROM table_schedules WHERE booking_id = ?", (req.booking_id,))
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
-
-@app.post("/api/bookings/manual")
-async def create_manual(req: ManualBookReq):
-    b_id = f"b_man_{int(datetime.now().timestamp())}"
-    clean = "".join(filter(str.isdigit, req.phone))
-    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO bookings (id, chat_id, guest_msg_id, name, username, phone, table_id, table_name, time_slot, end_time, booking_date, date_iso, hookahs, hookah_type, drinks, comment, total_price, total_num, cashback, status)
-        VALUES (?, NULL, NULL, ?, 'звонок', ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?, 0, 'confirmed')
-    """, (b_id, req.name, req.phone, req.table_id, req.table_name, req.time, req.end_time, req.date_label, req.date_iso, req.hookahs, req.hookah_type, req.comment, f"{req.total_num:,.0f} ₽", req.total_num))
-
-    idx = TIME_SLOTS.index(req.time) if req.time in TIME_SLOTS else -1
-    slots = TIME_SLOTS[idx:min(len(TIME_SLOTS), idx + 3)] if idx != -1 else [req.time]
-    for s in slots:
-        cur.execute("INSERT OR REPLACE INTO table_schedules VALUES (?, ?, ?, 'busy', ?)", (req.date_iso, s, req.table_id, b_id))
-    if clean:
-        cur.execute("INSERT OR IGNORE INTO loyalty_clients (phone, telegram_id, name, spent, balance, tier) VALUES (?, NULL, ?, 0, 0, 'SILVER')", (clean, req.name))
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
-
-@app.post("/api/bookings/release")
-async def release_table(req: TableRelReq):
-    idx = TIME_SLOTS.index(req.from_time) if req.from_time in TIME_SLOTS else -1
-    slots = TIME_SLOTS[idx:] if idx != -1 else [req.from_time]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    for s in slots:
-        cur.execute("DELETE FROM table_schedules WHERE date_iso = ? AND table_id = ? AND time_slot = ?", (req.date_iso, req.table_id, s))
-    cur.execute("UPDATE bookings SET status = 'completed' WHERE (date_iso = ? OR booking_date LIKE ?) AND table_id = ? AND status IN ('confirmed', 'seated', 'pending')", (req.date_iso, f"%{req.date_iso[-2:]}%", req.table_id))
     conn.commit()
     conn.close()
     return {"status": "ok"}
@@ -337,54 +194,13 @@ async def clear_tests():
     conn.close()
     return {"status": "ok"}
 
-@app.get("/api/loyalty/search")
-async def search_loyalty(phone: str):
-    clean = "".join(filter(str.isdigit, phone))
-    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT phone, name, spent, balance, tier FROM loyalty_clients WHERE phone = ?", (clean,))
-    row = cur.fetchone()
-    conn.close()
-    if row: return {"found": True, "phone": row[0], "name": row[1], "spent": row[2], "balance": row[3], "tier": row[4]}
-    return {"found": False}
-
-@app.post("/api/loyalty/adjust")
-async def adjust_loyalty(req: LoyaltyAdjustReq):
-    clean = "".join(filter(str.isdigit, req.phone))
-    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("UPDATE loyalty_clients SET balance = MAX(0, balance + ?) WHERE phone = ?", (req.delta, clean))
-    conn.commit()
-    cur.execute("SELECT phone, name, balance FROM loyalty_clients WHERE phone = ?", (clean,))
-    row = cur.fetchone()
-    conn.close()
-    if row: return {"status": "ok", "new_balance": row[2]}
-    return {"status": "error"}
-
-@app.post("/api/loyalty/check")
-async def check_loyalty_endpoint(req: LoyaltyCheckReq):
-    clean = "".join(filter(str.isdigit, req.phone))
-    if len(clean) == 11 and clean[0] in ('7', '8'): clean = "7" + clean[1:]
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT phone, name, spent, balance, tier FROM loyalty_clients WHERE phone = ?", (clean,))
-    row = cur.fetchone()
-    if row and req.telegram_id and req.telegram_id.isdigit():
-        cur.execute("UPDATE loyalty_clients SET telegram_id = ? WHERE phone = ?", (int(req.telegram_id), clean))
-        conn.commit()
-    conn.close()
-    if row: return {"found": True, "phone": row[0], "name": row[1], "spent": row[2], "balance": row[3], "tier": row[4]}
-    return {"found": False, "spent": 0, "balance": 0, "tier": "SILVER"}
-
 def get_main_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=25"))]
+        [KeyboardButton(text="💨 Забронировать стол", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/?v=30"))]
     ]
     if is_admin:
         keyboard.append([
-            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=25")),
+            KeyboardButton(text="🛋 Шахматка зала (Админ)", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=30")),
             KeyboardButton(text="📊 Сводка смены")
         ])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
@@ -396,8 +212,8 @@ async def cmd_start(message: types.Message):
         f"👋 Приветствуем в **ЦОКОЛЬ Lounge**, {message.from_user.first_name}!\n\n"
         "💨 Лаунж-бар в Белгороде (ул. Королёва, 4Д)\n"
         "🎮 Отдельные VIP-комнаты с PS5 (депозит 2 000 ₽)\n"
-        "🍵 Премиальный китайский чай и бар\n"
-        "🎬 Кинопоказы на большом экране\n\n"
+        "🍵 Премиальный чай и крафтовые напитки\n"
+        "🎬 Воскресные кинопоказы на проекторе\n\n"
         "Для бронирования нажмите кнопку меню внизу 👇",
         parse_mode="Markdown",
         reply_markup=get_main_keyboard(is_admin)
@@ -407,7 +223,7 @@ async def cmd_start(message: types.Message):
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in ADMIN_IDS: return
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=25"))]
+        [InlineKeyboardButton(text="🛋 Открыть шахматку столов", web_app=WebAppInfo(url="https://k1tagavva.github.io/tsokol_project/admin.html?v=30"))]
     ])
     await message.answer("🔐 **Панель управления ЦОКОЛЬ**\nПароль: `tcklbel723daqw`", parse_mode="Markdown", reply_markup=kb)
 
@@ -543,8 +359,8 @@ async def handle_admin_decision(call: types.CallbackQuery):
 
 async def main():
     print("🚀 Сервер ЦОКОЛЬ и Telegram-бот запущены!")
-    # ПОЛНОСТЬЮ УДАЛЯЕМ НАЗОЙЛИВУЮ КНОПКУ МЕНЮ ВОЗЛЕ СКРЕПКИ
     try:
+        # УДАЛЯЕМ КНОПКУ МЕНЮ РЯДОМ СО СКРЕПКОЙ
         await bot.set_chat_menu_button(menu_button=MenuButtonDefault())
     except Exception:
         pass

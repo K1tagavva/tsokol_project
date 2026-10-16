@@ -21,7 +21,7 @@
       --border-light: rgba(255, 255, 255, 0.15);
       --accent: #d62839;
       --accent-soft: rgba(214, 40, 57, 0.15);
-      --accent-glow: rgba(214, 40, 57, 0.3);
+      --accent-glow: rgba(214, 40, 57, 0.35);
       --gold: #d4af37;
       --green: #2ecc71;
       --chair: #b89355;
@@ -34,10 +34,10 @@
     html, body { width: 100%; max-width: 100vw; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
     body { 
       background: var(--bg); color: var(--text); 
-      padding-bottom: calc(105px + env(safe-area-inset-bottom, 16px)); 
+      padding-bottom: calc(115px + env(safe-area-inset-bottom, 16px)); 
       -webkit-font-smoothing: antialiased; 
     }
-    .container { width: 100%; max-width: 440px; margin: 0 auto; padding: 14px 14px 20px; }
+    .container { width: 100%; max-width: 440px; margin: 0 auto; padding: 14px 14px 24px; }
 
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .brand-group h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -50,16 +50,16 @@
     }
     .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
 
-    /* Loyalty Card */
+    /* 3D Loyalty Card */
     .card-perspective { perspective: 1000px; margin-bottom: 20px; }
     .card-flipper {
-      position: relative; width: 100%; min-height: 155px;
+      position: relative; width: 100%; min-height: 160px;
       transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d; cursor: pointer;
     }
     .card-flipper.is-flipped { transform: rotateY(180deg); }
     .card-side {
-      width: 100%; min-height: 155px; border-radius: 16px; padding: 16px 18px;
+      width: 100%; min-height: 160px; border-radius: 16px; padding: 16px 18px;
       border: 1px solid var(--border-light); box-shadow: 0 10px 24px rgba(0,0,0,0.45);
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
       display: flex; flex-direction: column; justify-content: space-between;
@@ -75,6 +75,30 @@
     .card-body span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: block; margin-bottom: 2px; }
     .card-body strong { font-size: 24px; font-weight: 800; color: #fff; }
     .card-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+    .card-flip-hint { font-size: 10px; font-weight: 600; color: var(--gold); }
+
+    /* Cinema Afisha */
+    .cinema-afisha-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px; margin-bottom: 20px;
+    }
+    .afisha-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .afisha-head h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #fff; }
+    .afisha-head span { font-size: 11px; color: var(--accent); font-weight: 700; }
+    .afisha-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; flex: 1; -webkit-overflow-scrolling: touch; }
+    .afisha-scroll::-webkit-scrollbar { display: none; }
+    .movie-poster-card {
+      min-width: 120px; width: 120px; height: 175px; border-radius: 12px;
+      overflow: hidden; background: #161820; border: 1px solid var(--border);
+      cursor: pointer; flex-shrink: 0; position: relative;
+    }
+    .movie-poster-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .movie-poster-card.past-movie { opacity: 0.35; }
+    .movie-date-tag {
+      position: absolute; top: 6px; left: 6px;
+      background: rgba(11, 12, 15, 0.88); border-radius: 6px;
+      font-size: 9px; font-weight: 800; padding: 3px 6px; color: #fff;
+    }
 
     /* Steps */
     .step-label {
@@ -85,7 +109,7 @@
 
     .slider-row { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
     .arrow-btn {
-      width: 34px; height: 38px; min-width: 34px; border-radius: 8px;
+      width: 32px; height: 38px; min-width: 32px; border-radius: 8px;
       background: var(--surface); border: 1px solid var(--border); color: #fff;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
@@ -99,7 +123,7 @@
 
     .date-chip {
       background: var(--surface); border: 1px solid var(--border);
-      min-width: 64px; padding: 8px 4px; border-radius: 12px; text-align: center;
+      min-width: 62px; padding: 8px 4px; border-radius: 12px; text-align: center;
       cursor: pointer; flex-shrink: 0;
     }
     .date-chip.active { border-color: var(--accent); background: var(--accent-soft); }
@@ -109,11 +133,12 @@
 
     .time-chip {
       background: var(--surface); border: 1px solid var(--border);
-      padding: 10px 14px; border-radius: 10px; font-size: 12px; font-weight: 600;
+      padding: 9px 13px; border-radius: 10px; font-size: 12px; font-weight: 600;
       color: var(--text-muted); white-space: nowrap; flex-shrink: 0; cursor: pointer;
     }
     .time-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
     .time-chip.lunch { border-color: rgba(46, 204, 113, 0.35); color: var(--green); }
+    .time-chip.cinema-slot { border-color: var(--accent); color: #fff; background: rgba(214, 40, 57, 0.15); }
 
     .session-window-banner {
       background: var(--surface); border: 1px dashed var(--border-light);
@@ -155,6 +180,23 @@
     .svg-text-sub { fill: var(--text-muted); font-size: 8px; text-anchor: middle; dominant-baseline: middle; }
     .svg-text-num { fill: #fff; font-size: 12px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
 
+    /* Live table photo */
+    .table-live-card {
+      background: var(--surface); border: 1px solid var(--border-light);
+      border-radius: 16px; overflow: hidden; margin-bottom: 20px;
+    }
+    .table-photo-wrap { width: 100%; height: 160px; position: relative; overflow: hidden; background: #161820; cursor: pointer; }
+    .table-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .table-photo-gradient { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(18,20,26,0.92) 100%); }
+    .table-photo-badges { position: absolute; bottom: 10px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; z-index: 2; }
+    .photo-tag { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+    .click-zoom-hint { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 3px 7px; font-size: 9px; font-weight: 700; color: #fff; z-index: 2; }
+    .table-meta-row { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .table-meta-row h4 { font-size: 14px; font-weight: 800; color: #fff; }
+    .table-meta-row p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .table-meta-price { font-size: 17px; font-weight: 800; color: var(--accent); }
+
+    /* Step 3 unified card */
     .unified-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 14px; margin-bottom: 14px;
@@ -170,13 +212,20 @@
       background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
       padding: 10px 12px; margin-bottom: 8px;
     }
+    .stepper-label h6 { font-size: 12px; font-weight: 700; color: #fff; }
+    .stepper-label p { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
     .stepper-controls { display: flex; align-items: center; gap: 8px; }
     .step-btn {
-      width: 34px; height: 34px; border-radius: 8px; background: var(--surface);
+      width: 32px; height: 32px; border-radius: 6px; background: var(--surface);
       border: 1px solid var(--border-light); color: #fff; font-size: 16px; font-weight: 700;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
-    .step-val { font-size: 15px; font-weight: 800; min-width: 24px; text-align: center; }
+    .step-val { font-size: 14px; font-weight: 800; min-width: 22px; text-align: center; }
+
+    .hint-box {
+      background: rgba(214, 40, 57, 0.06); border: 1px solid rgba(214, 40, 57, 0.18);
+      border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #f19fa7; line-height: 1.4; margin-bottom: 12px;
+    }
 
     .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
     .tier-card {
@@ -189,14 +238,40 @@
 
     .pill-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
     .pill-btn {
-      background: var(--bg); border: 1px solid var(--border); padding: 8px 12px;
+      background: var(--bg); border: 1px solid var(--border); padding: 7px 12px;
       border-radius: 16px; font-size: 11px; font-weight: 500; color: var(--text-muted); cursor: pointer;
     }
     .pill-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; font-weight: 600; }
+    .pill-btn.gold { border-color: var(--gold); background: rgba(197, 160, 89, 0.15); color: #f4d084; font-weight: 700; }
+
+    .textarea-box {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; color: #fff; font-size: 12px; outline: none; resize: vertical; min-height: 54px;
+    }
+
+    .cat-pill {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .cat-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .drink-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px;
+    }
+    .drink-card.active { border-color: var(--green); background: rgba(46, 204, 113, 0.08); }
+    .drink-card h5 { font-size: 11px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .drink-card p { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+    .drink-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .drink-price { font-size: 11px; font-weight: 800; color: var(--green); }
+    .drink-check { font-size: 10px; color: var(--green); font-weight: 700; display: none; }
+    .drink-card.active .drink-check { display: inline-block; }
 
     .form-group { margin-bottom: 10px; }
     .form-group label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 600; text-transform: uppercase; }
-    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; }
+    .form-group input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; }
 
     /* Fixed Checkout Bar */
     .checkout-bar {
@@ -215,18 +290,59 @@
       border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer;
     }
 
-    /* Modal */
-    .modal-backdrop {
+    /* Modals */
+    .poster-modal-backdrop, .hall-photo-modal-backdrop, .modal-backdrop, .sbp-modal-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
       backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 16px;
     }
-    .modal-box {
-      background: #14161f; border: 1px solid var(--border-light); border-radius: 16px;
-      padding: 20px; max-width: 340px; width: 100%; text-align: center;
+    .sbp-modal-box {
+      background: #14161f; border: 1px solid var(--border-light);
+      border-radius: 20px; padding: 20px 18px; max-width: 360px; width: 100%; text-align: center;
     }
-    .modal-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
-    .modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; text-align: left; background: var(--bg); padding: 10px; border-radius: 8px; }
-    .modal-box button { background: var(--green); color: #fff; border: none; padding: 12px; border-radius: 10px; width: 100%; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+    .sbp-header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(29, 113, 184, 0.12); border: 1px solid rgba(29, 113, 184, 0.35);
+      padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 12px;
+    }
+    .sbp-amount-box span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .sbp-amount-box strong { font-size: 28px; font-weight: 800; color: #fff; display: block; margin-top: 2px; margin-bottom: 12px; }
+    .sbp-qr-wrapper {
+      background: #fff; border-radius: 14px; padding: 12px; width: 175px; height: 175px;
+      margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+    }
+    .sbp-qr-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+    .sbp-details-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; margin-bottom: 14px; text-align: left; font-size: 11px;
+    }
+    .sbp-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .sbp-detail-row:last-child { margin-bottom: 0; }
+    .copy-phone-btn {
+      background: var(--surface); border: 1px solid var(--border-light); color: var(--green);
+      font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+    }
+    .sbp-confirm-btn {
+      background: var(--green); color: #fff; border: none; padding: 13px;
+      border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; width: 100%; margin-bottom: 8px;
+    }
+    .sbp-cancel-btn { background: transparent; color: var(--text-muted); border: none; font-size: 11px; cursor: pointer; padding: 6px; width: 100%; }
+
+    .success-modal-box, .poster-modal-box, .hall-photo-modal-box {
+      background: #14161c; border: 1px solid var(--border-light); border-radius: 16px;
+      padding: 24px 20px; max-width: 340px; width: 100%; text-align: center;
+    }
+    .poster-modal-img, .hall-photo-modal-img { width: 100%; max-height: 65vh; object-fit: contain; border-radius: 14px; }
+    .poster-modal-btn {
+      background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 10px;
+    }
+    .poster-modal-close { margin-top: 8px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); padding: 9px; border-radius: 8px; font-size: 11px; width: 100%; cursor: pointer; }
+    .success-icon-badge {
+      width: 48px; height: 48px; border-radius: 50%; background: rgba(46, 204, 113, 0.15);
+      border: 1px solid var(--green); color: var(--green); font-size: 24px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+    }
+    .success-modal-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; text-align: left; background: var(--bg); padding: 12px; border-radius: 10px; }
+    .success-modal-box button { background: var(--surface); color: #fff; border: 1px solid var(--border-light); padding: 11px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -240,7 +356,7 @@
       <div class="status-badge">12:00 – 02:00</div>
     </header>
 
-    <!-- Loyalty Card -->
+    <!-- 3D Flip Loyalty Card -->
     <div class="card-perspective">
       <div class="card-flipper" id="cardFlipper" onclick="document.getElementById('cardFlipper').classList.toggle('is-flipped')">
         <div class="card-side card-front">
@@ -254,25 +370,43 @@
           </div>
           <div class="card-foot">
             <span id="cardFootPhone">По номеру телефона</span>
-            <span style="color:var(--gold); font-weight:700;">Условия ↺</span>
+            <span class="card-flip-hint">Условия уровня ↺</span>
           </div>
         </div>
+
         <div class="card-side card-back">
           <div class="card-head">
-            <div style="font-size:11px; font-weight:700; color:var(--gold);">ПРОГРАММА ЛОЯЛЬНОСТИ</div>
-            <div class="card-badge" style="border-color:var(--gold); color:#ffd700;">GOLD • 5%</div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--gold);">Программа лояльности</div>
+            <div class="card-badge" style="border-color: var(--gold); color: #ffd700;">GOLD • 5%</div>
           </div>
-          <p style="font-size:11px; color:#ddd; line-height:1.4; margin:10px 0;">Кэшбэк со всех чеков. Оплата бонусами до 50% счёта при закрытии смены.</p>
+          <div style="font-size: 11px; color: #ddd; line-height: 1.4; margin: 8px 0;">
+            • Кэшбэк 3% со всех подтверждённых счетов<br>
+            • Списание бонусов до 50% суммы чека<br>
+            • Подарочный чай ко дню рождения
+          </div>
           <div class="card-foot">
-            <span style="font-size:10px;">Накопления по визитам</span>
-            <span style="color:var(--text-muted);">Баланс ↺</span>
+            <span style="font-size: 10px;">Накопления по визитам</span>
+            <span style="color: var(--text-muted);">Баланс ↺</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Шаг 1: Дата и Время -->
-    <div class="step-label">1. Дата и сеанс <span>Шаг 1 из 3</span></div>
+    <!-- Киноафиша -->
+    <div class="cinema-afisha-section">
+      <div class="afisha-head">
+        <h3>🎬 Киноафиша месяца</h3>
+        <span>Сеансы • 20:00</span>
+      </div>
+      <div class="slider-row" style="margin-bottom: 0;">
+        <button type="button" class="arrow-btn" onclick="document.getElementById('afishaContainer').scrollBy({left:-120,behavior:'smooth'})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+        <div class="afisha-scroll" id="afishaContainer"></div>
+        <button type="button" class="arrow-btn" onclick="document.getElementById('afishaContainer').scrollBy({left:120,behavior:'smooth'})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+      </div>
+    </div>
+
+    <!-- Шаг 1 -->
+    <div class="step-label" id="step1Anchor">1. Дата и сеанс <span>Шаг 1 из 3</span></div>
 
     <div class="slider-row">
       <button type="button" class="arrow-btn" onclick="document.getElementById('dateSlider').scrollBy({left:-120,behavior:'smooth'})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
@@ -287,16 +421,16 @@
     </div>
 
     <div class="session-window-banner">
-      <span>Время сеанса:</span>
+      <span>Время сеанса стола:</span>
       <strong id="sessionWindowText">18:00 – 19:30 (1.5 часа)</strong>
     </div>
 
     <div class="short-session-warning" id="shortSessionWarning">
-      ⚠️ <strong>Сеанс 1 час:</strong> стол забронирован следующими гостями на <span id="nextBookingAlertTime">18:00</span>.
+      ⚠️ <strong>Внимание (сеанс 1 час):</strong> следующий гость забронировал этот стол на <span id="nextBookingAlertTime">18:00</span>.
     </div>
 
     <!-- Шаг 2: Схема зала -->
-    <div class="step-label">2. Выбор места на схеме зала <span>Шаг 2 из 3</span></div>
+    <div class="step-label" id="step2Anchor">2. Выбор места на схеме зала <span>Шаг 2 из 3</span></div>
 
     <div class="map-container">
       <svg viewBox="0 0 380 430">
@@ -382,21 +516,45 @@
       </svg>
     </div>
 
-    <!-- Шаг 3: Параметры -->
-    <div class="step-label">3. Параметры заказа <span>Шаг 3 из 3</span></div>
+    <!-- Фото стола -->
+    <div class="table-live-card">
+      <div class="table-photo-wrap" onclick="openHallPhotoModal()">
+        <img id="tablePhotoImg" src="img/hall.jpg" alt="Интерьер" onerror="this.src='https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80'">
+        <div class="table-photo-gradient"></div>
+        <div class="click-zoom-hint" id="photoZoomHint">🔍 Фото зала</div>
+        <div class="table-photo-badges" id="tableBadgesBox"></div>
+      </div>
+      <div class="table-meta-row">
+        <div>
+          <h4 id="selTitle">Стол №1 (Красный диван)</h4>
+          <p id="selDesc">У экрана • Красный диван + 2 стула</p>
+        </div>
+        <div class="table-meta-price" id="selPrice">1 500 ₽</div>
+      </div>
+    </div>
+
+    <!-- Шаг 3: Параметры заказа -->
+    <div class="step-label">3. Параметры покура, напитки и контакты <span>Шаг 3 из 3</span></div>
 
     <div class="unified-card">
-      <div class="card-section-title">Гости и кальяны</div>
+      <div class="card-section-title">Гости и кальяны <span>Регламент 1:3</span></div>
       <div class="stepper-row">
-        <span style="font-size:12px; font-weight:700;">Гостей за столом</span>
+        <div class="stepper-label">
+          <h6>Персоны за столом</h6>
+          <p>Размер вашей компании</p>
+        </div>
         <div class="stepper-controls">
           <div class="step-btn" onclick="changeGuests(-1)">−</div>
           <div class="step-val" id="guestsCount">2</div>
           <div class="step-btn" onclick="changeGuests(1)">+</div>
         </div>
       </div>
+
       <div class="stepper-row">
-        <span style="font-size:12px; font-weight:700;" id="hookahRateText">Кальянов (1 500 ₽/шт)</span>
+        <div class="stepper-label">
+          <h6>Количество кальянов</h6>
+          <p id="hookahRateText">1 кальян на 1–3 гостя</p>
+        </div>
         <div class="stepper-controls">
           <div class="step-btn" onclick="changeHookahs(-1)">−</div>
           <div class="step-val" id="hookahsCount">1</div>
@@ -404,20 +562,81 @@
         </div>
       </div>
 
-      <div class="card-section-title" style="margin-top: 14px;">Крепость смеси</div>
+      <div class="hint-box" id="ratioNotice"><strong>Регламент зала:</strong> 1 кальян на 1–3 гостя. Для 2 персон достаточно 1 кальяна.</div>
+
+      <div id="lunchBadge" style="display:none; background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.25); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--green); margin-bottom: 12px;">
+        <strong>Обеденный тариф активен:</strong> сеанс до 17:00 — цена кальяна всего <strong>1 000 ₽</strong>!
+      </div>
+
+      <div class="card-section-title" style="margin-top: 14px;">Линейка табака <span>Выбор смеси</span></div>
+      <div class="tier-grid">
+        <div class="tier-card active" id="tierClassic" onclick="setTobaccoTier('classic')">
+          <h6>Классика</h6>
+          <span id="classicPriceDesc">1 500 ₽ / шт</span>
+        </div>
+        <div class="tier-card" id="tierPremium" onclick="setTobaccoTier('premium')">
+          <h6>PREMIUM</h6>
+          <span id="premiumPriceDesc">+500 ₽ / шт</span>
+        </div>
+      </div>
+
+      <div id="premiumBrandsBlock" style="display: none; margin-bottom: 10px;">
+        <div class="card-section-title" style="margin-bottom: 6px;">Премиальный лист:</div>
+        <div class="pill-group">
+          <div class="pill-btn gold" onclick="toggleBrand(this, 'Bonche')">Bonche (сигарный лист)</div>
+          <div class="pill-btn" onclick="toggleBrand(this, 'Satyr')">Satyr (крафт)</div>
+          <div class="pill-btn" onclick="toggleBrand(this, 'Tangiers')">Tangiers (USA)</div>
+        </div>
+      </div>
+
+      <div class="card-section-title">Крепость <span>1 вариант</span></div>
       <div class="pill-group">
         <div class="pill-btn" onclick="selectStrength(this)">Мягкий</div>
         <div class="pill-btn active" onclick="selectStrength(this)">Средний</div>
         <div class="pill-btn" onclick="selectStrength(this)">Крепкий</div>
       </div>
 
-      <div class="form-group" style="margin-top: 10px;">
+      <div class="card-section-title">Вкусовой профиль <span>до 3 вариантов</span></div>
+      <div class="pill-group" id="flavorContainer">
+        <div class="pill-btn active" onclick="toggleFlavor(this)">Ягодный сбор</div>
+        <div class="pill-btn" onclick="toggleFlavor(this)">Цитрусовый микс</div>
+        <div class="pill-btn active" onclick="toggleFlavor(this)">Свежесть / Холод</div>
+        <div class="pill-btn" onclick="toggleFlavor(this)">Десерт / Выпечка</div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="card-section-title" style="margin-bottom: 4px;">Пожелания к забивке</div>
+        <textarea class="textarea-box" id="hookahComment" placeholder="Например: покислее, без аниса, цитрусовый микс..."></textarea>
+      </div>
+    </div>
+
+    <!-- Чайная карта & Напитки -->
+    <div class="unified-card">
+      <div class="card-section-title">Чайная карта & Напитки <span id="teaCountBadge">0 шт</span></div>
+      <div class="slider-row" style="margin-bottom: 6px;">
+        <button type="button" class="arrow-btn" onclick="document.getElementById('catSlider').scrollBy({left:-120,behavior:'smooth'})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+        <div class="cat-track" id="catSlider">
+          <button type="button" class="cat-pill active" onclick="changeCategory('energy', this)">Взбодриться</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('relax', this)">Расслабиться</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('balance', this)">Баланс</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('gaba', this)">Особый эффект</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('lemonade', this)">Лимонады</button>
+          <button type="button" class="cat-pill" onclick="changeCategory('coffee', this)">Кофе</button>
+        </div>
+        <button type="button" class="arrow-btn" onclick="document.getElementById('catSlider').scrollBy({left:120,behavior:'smooth'})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+      </div>
+      <div class="menu-grid" id="drinksContainer"></div>
+    </div>
+
+    <!-- Контакты гостя -->
+    <div class="unified-card">
+      <div class="form-group">
         <label>Имя гостя *</label>
         <input type="text" id="guestNameInput" placeholder="Ваше имя">
       </div>
       <div class="form-group">
-        <label>Телефон * (для подтверждения СБП и бонусов)</label>
-        <input type="tel" id="guestPhoneInput" placeholder="+7 9XX XXX-XX-XX">
+        <label>Телефон для подтверждения и лояльности *</label>
+        <input type="tel" id="guestPhoneInput" placeholder="+7 (9XX) XXX-XX-XX" maxlength="18">
       </div>
     </div>
   </div>
@@ -430,25 +649,82 @@
         <strong id="priceLabel">1 500 ₽</strong>
         <small id="cashbackLabel">+45 ₽ кэшбэком</small>
       </div>
-      <button class="checkout-btn" onclick="confirmBooking()">Забронировать</button>
+      <button class="checkout-btn" onclick="openSbpModal()">Оплатить СБП</button>
     </div>
   </div>
 
+  <!-- SBP Modal -->
+  <div class="sbp-modal-backdrop" id="sbpModal">
+    <div class="sbp-modal-box">
+      <div class="sbp-header-badge">СИСТЕМА БЫСТРЫХ ПЛАТЕЖЕЙ</div>
+      <div class="sbp-amount-box">
+        <span>Сумма депозита к переводу:</span>
+        <strong id="sbpModalAmount">1 500 ₽</strong>
+      </div>
+      <div class="sbp-qr-wrapper">
+        <img id="sbpQrImage" src="" alt="QR-код СБП">
+      </div>
+      <div class="sbp-details-card">
+        <div class="sbp-detail-row">
+          <span style="color:var(--text-muted);">Получатель:</span>
+          <span style="font-weight:700; color:#fff;" id="sbpRecipientName">ЦОКОЛЬ Lounge</span>
+        </div>
+        <div class="sbp-detail-row">
+          <span style="color:var(--text-muted);">Банк:</span>
+          <span style="font-weight:700; color:#fff;" id="sbpBankName">Т-Банк / Сбер</span>
+        </div>
+        <div class="sbp-detail-row" style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border);">
+          <span style="color:var(--text-muted);">Номер для СБП:</span>
+          <div>
+            <strong id="sbpPhoneText" style="color: #fff; font-size: 11px; margin-right: 6px;">+7 (980) 123-45-67</strong>
+            <button class="copy-phone-btn" onclick="copySbpPhone()">Скопировать</button>
+          </div>
+        </div>
+      </div>
+      <button class="sbp-confirm-btn" id="sbpConfirmActionBtn" onclick="confirmSbpPayment()">Я оплатил(а) депозит</button>
+      <button class="sbp-cancel-btn" onclick="closeSbpModal()">Вернуться к заказу</button>
+    </div>
+  </div>
+
+  <!-- Modal Success -->
   <div class="modal-backdrop" id="modal">
-    <div class="modal-box">
-      <h3>Бронь принята!</h3>
+    <div class="success-modal-box">
+      <div class="success-icon-badge">✓</div>
+      <h3 style="margin-bottom: 8px;">Бронь передана в бар!</h3>
       <p id="modalText"></p>
-      <button onclick="document.getElementById('modal').style.display='none'">Понятно</button>
+      <button onclick="document.getElementById('modal').style.display='none'">Отлично</button>
+    </div>
+  </div>
+
+  <!-- Lightbox афиши -->
+  <div class="poster-modal-backdrop" id="posterModal" onclick="closePosterModal(event)">
+    <div class="poster-modal-box">
+      <img id="posterModalImg" class="poster-modal-img" src="" alt="Постер">
+      <button type="button" class="poster-modal-btn" id="posterModalActionBtn">Забронировать (20:00)</button>
+      <button type="button" class="poster-modal-close" onclick="document.getElementById('posterModal').style.display='none'">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Lightbox зала -->
+  <div class="hall-photo-modal-backdrop" id="hallPhotoModal" onclick="if(event.target.id==='hallPhotoModal')document.getElementById('hallPhotoModal').style.display='none'">
+    <div class="hall-photo-modal-box">
+      <img id="hallPhotoModalImg" class="hall-photo-modal-img" src="" alt="Интерьер">
+      <button type="button" class="poster-modal-close" style="margin-top: 10px;" onclick="document.getElementById('hallPhotoModal').style.display='none'">Закрыть</button>
     </div>
   </div>
 
   <script>
+    const SBP_CONFIG = {
+      phone: "+7 (980) 123-45-67",
+      bank: "Т-Банк (Тинькофф) / Сбер",
+      recipient: "ЦОКОЛЬ Lounge"
+    };
+
     const tg = window.Telegram?.WebApp;
     if (tg) {
       try {
         tg.ready();
         tg.expand();
-        // ЗАПРЕЩАЕМ СЛУЧАЙНЫЙ СВАЙП ВНИЗ ДЛЯ СВОРАЧИВАНИЯ
         if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
         if (tg.initDataUnsafe?.user?.first_name) {
           document.getElementById('guestNameInput').value = tg.initDataUnsafe.user.first_name;
@@ -456,6 +732,56 @@
         }
       } catch(e) {}
     }
+
+    const CINEMA_EVENTS = [
+      { date: "2026-10-04", time: "20:00", img: "img/sun1.jpg", fallback: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-11", time: "20:00", img: "img/sun2.jpg", fallback: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-18", time: "20:00", img: "img/sun3.jpg", fallback: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=400&q=80" },
+      { date: "2026-10-25", time: "20:00", img: "img/sun4.jpg", fallback: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    const tableBadgesData = {
+      vip1: ["PlayStation 5 (0 ₽)", "До 4 персон", "Депозит 2 000 ₽"],
+      vip2: ["Большая VIP", "PlayStation 5 (0 ₽)", "ТВ 65\"", "Депозит 2 000 ₽"],
+      t1: ["Вид на проектор", "Красный диван", "2 мягких стула"],
+      t2: ["Центр зала", "Красный диван", "Камерный свет"],
+      t3: ["Уютный угол", "Красный диван", "Приглушённый звук"],
+      t4: ["Лучший обзор экрана", "Двусторонние диваны", "Для кино"],
+      t5: ["Большой стол", "Мягкие диваны", "Для компании"],
+      t6: ["Зона у бара", "Быстрая подача", "Боковой диван"]
+    };
+
+    const menuData = {
+      energy: [
+        { id: 'e1', name: "Маофэн «ворсистые пики»", desc: "Мягко бодрит, освежает", price: 500 },
+        { id: 'e2', name: "Дянь Хун Медовый", desc: "Согревает, тонизирует", price: 500 },
+        { id: 'e3', name: "Сяо Цзинь Чжэнь", desc: "Собирает внимание", price: 500 }
+      ],
+      relax: [
+        { id: 'r1', name: "Тегуаньинь", desc: "Мягко расслабляет", price: 500 },
+        { id: 'r2', name: "Женьшень улун", desc: "Глубокое расслабление", price: 500 },
+        { id: 'r3', name: "Алишань улун Фенциху", desc: "Очень мягкий", price: 700 }
+      ],
+      balance: [
+        { id: 'b1', name: "Да Хун Пао", desc: "Согревает, собирает внимание", price: 500 },
+        { id: 'b2', name: "Алишань Лао Ча Ван", desc: "Баланс и ясность", price: 700 }
+      ],
+      gaba: [
+        { id: 'g1', name: "Шу пуэр", desc: "Глубокое чайное состояние", price: 500 },
+        { id: 'g2', name: "ГАБА Алишань", desc: "Снимает стресс", price: 500 },
+        { id: 'g3', name: "ГАБА Black Jack", desc: "Глубокий эффект", price: 700 }
+      ],
+      lemonade: [
+        { id: 'l1', name: "Фуджи сакура", desc: "Крафтовый лимонад 500 мл", price: 250 },
+        { id: 'l2', name: "Слива рислинг", desc: "Крафтовый лимонад 500 мл", price: 250 },
+        { id: 'l3', name: "Черника лаванда", desc: "Крафтовый лимонад 500 мл", price: 250 }
+      ],
+      coffee: [
+        { id: 'c1', name: "Капучино", desc: "Кофе 250/350 мл", price: 200 },
+        { id: 'c2', name: "Латте", desc: "Кофе 250/350 мл", price: 200 },
+        { id: 'c3', name: "Кола", desc: "330 мл", price: 200 }
+      ]
+    };
 
     const rawTimes = [
       '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
@@ -468,12 +794,18 @@
 
     let guests = 2;
     let hookahs = 1;
-    let isVip = false;
+    let isLunchTime = false;
+    let isVipSelected = false;
     let currentTableId = 't1';
     let currentTableName = 'Стол №1 (Красный диван)';
+    let isPremium = false;
+    let selectedBrandName = 'Bonche';
+    let selectedDrinks = new Map();
+    let currentCategory = 'energy';
     let selectedDateIso = '';
     let selectedDateLabel = 'Сегодня';
     let selectedStartTime = '18:00';
+    let currentCalculatedTotal = 1500;
     let isCurrentSessionShort = false;
 
     function getDaySchedule(dateIso) {
@@ -502,7 +834,10 @@
           node.classList.add('is-busy');
           if (currentTableId === id) {
             const free = allTableIds.find(t => checkTableAvailability(t, selectedDateIso, selectedStartTime) !== 'busy');
-            if (free) selectItem(free, 'Стол ' + free, free.startsWith('vip'));
+            if (free) {
+              const freeNode = document.getElementById('node-' + free);
+              if (freeNode) freeNode.click();
+            }
           }
         } else {
           node.classList.remove('is-busy');
@@ -532,18 +867,74 @@
       }
     }
 
+    function buildAfisha() {
+      const container = document.getElementById('afishaContainer');
+      container.innerHTML = '';
+      const dNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+      const mNames = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      CINEMA_EVENTS.forEach(ev => {
+        const parts = ev.date.split('-').map(Number);
+        const evDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        const isPast = evDate < today;
+        const dateDisplay = `${dNames[evDate.getDay()]}, ${evDate.getDate()} ${mNames[evDate.getMonth()]}`;
+
+        const card = document.createElement('div');
+        card.className = `movie-poster-card ${isPast ? 'past-movie' : ''}`;
+        card.innerHTML = `<div class="movie-date-tag">${dateDisplay}</div><img src="${ev.img}" alt="Постер" onerror="this.src='${ev.fallback}'">`;
+        card.onclick = () => {
+          const modal = document.getElementById('posterModal');
+          const img = document.getElementById('posterModalImg');
+          img.src = ev.img;
+          img.onerror = () => { img.src = ev.fallback; };
+          const btn = document.getElementById('posterModalActionBtn');
+          if (isPast) {
+            btn.innerText = "Сеанс прошёл";
+            btn.style.opacity = "0.5";
+            btn.onclick = null;
+          } else {
+            btn.innerText = `Забронировать ${dateDisplay} (20:00)`;
+            btn.style.opacity = "1";
+            btn.onclick = () => {
+              modal.style.display = 'none';
+              const target = document.querySelector(`.date-chip[data-date="${ev.date}"]`);
+              if (target) target.click();
+              selectItem('t4', 'Стол №4 (Перед экраном)', false);
+            };
+          }
+          modal.style.display = 'flex';
+        };
+        container.appendChild(card);
+      });
+    }
+
+    function closePosterModal(e) {
+      if (e.target.id === 'posterModal') document.getElementById('posterModal').style.display = 'none';
+    }
+
+    function openHallPhotoModal() {
+      const modal = document.getElementById('hallPhotoModal');
+      const img = document.getElementById('hallPhotoModalImg');
+      img.src = isVipSelected ? "img/vip1.jpg" : "img/hall.jpg";
+      img.onerror = () => { img.src = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80"; };
+      modal.style.display = 'flex';
+    }
+
     function buildCalendar() {
       const slider = document.getElementById('dateSlider');
       slider.innerHTML = '';
       const now = new Date();
       const dNames = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 24; i++) {
         const d = new Date();
         d.setDate(now.getDate() + i);
         const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const w = i === 0 ? 'СЕГОДНЯ' : dNames[d.getDay()];
         const card = document.createElement('div');
         card.className = `date-chip ${i === 0 ? 'active' : ''}`;
+        card.dataset.date = iso;
         card.innerHTML = `<div class="d-w">${w}</div><div class="d-n">${d.getDate()}</div>`;
         card.onclick = () => {
           document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
@@ -570,6 +961,7 @@
           document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           selectedStartTime = t;
+          isLunchTime = isLunch;
           updateTablesAvailability();
         };
         cont.appendChild(chip);
@@ -591,6 +983,70 @@
       updateTotal();
     }
 
+    function setTobaccoTier(tier) {
+      const classicCard = document.getElementById('tierClassic');
+      const premiumCard = document.getElementById('tierPremium');
+      const brandsBlock = document.getElementById('premiumBrandsBlock');
+      if (tier === 'premium') {
+        classicCard.classList.remove('active');
+        premiumCard.classList.add('active');
+        brandsBlock.style.display = 'block';
+        isPremium = true;
+      } else {
+        premiumCard.classList.remove('active');
+        classicCard.classList.add('active');
+        brandsBlock.style.display = 'none';
+        isPremium = false;
+      }
+      updateTotal();
+    }
+
+    function toggleBrand(el, bName) {
+      el.parentElement.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('gold'));
+      el.classList.add('gold');
+      selectedBrandName = bName;
+    }
+
+    function selectStrength(el) {
+      el.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function toggleFlavor(el) {
+      const act = document.querySelectorAll('#flavorContainer .pill-btn.active');
+      if (!el.classList.contains('active') && act.length >= 3) act[0].classList.remove('active');
+      el.classList.toggle('active');
+    }
+
+    function changeCategory(cat, btn) {
+      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = cat;
+      renderCategory(cat);
+    }
+
+    function renderCategory(cat) {
+      const container = document.getElementById('drinksContainer');
+      container.innerHTML = '';
+      const items = menuData[cat] || [];
+      items.forEach(item => {
+        const isSel = selectedDrinks.has(item.id);
+        const card = document.createElement('div');
+        card.className = `drink-card ${isSel ? 'active' : ''}`;
+        card.onclick = () => {
+          if (selectedDrinks.has(item.id)) selectedDrinks.delete(item.id);
+          else selectedDrinks.set(item.id, item);
+          renderCategory(cat);
+          updateTotal();
+        };
+        card.innerHTML = `
+          <div><h5>${item.name}</h5><p>${item.desc}</p></div>
+          <div class="drink-footer"><span class="drink-price">+${item.price} ₽</span><span class="drink-check">✓ В заказе</span></div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
     function selectItem(id, name, isVipTable) {
       if (checkTableAvailability(id, selectedDateIso, selectedStartTime) === 'busy') {
         alert("⚠️ Этот стол занят на выбранное время!");
@@ -601,53 +1057,109 @@
       if (n) n.classList.add('active');
       currentTableId = id;
       currentTableName = name;
-      isVip = isVipTable;
+      isVipSelected = isVipTable;
+
+      document.getElementById('selTitle').innerText = name;
+      document.getElementById('photoZoomHint').innerText = isVipTable ? "🔍 VIP-комната" : "🔍 Фото зала";
+      const img = document.getElementById('tablePhotoImg');
+      img.src = isVipTable ? (id === 'vip2' ? "img/vip2.jpg" : "img/vip1.jpg") : "img/hall.jpg";
+      img.onerror = () => { img.src = "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80"; };
+
+      const badges = tableBadgesData[id] || tableBadgesData.t1;
+      const bBox = document.getElementById('tableBadgesBox');
+      bBox.innerHTML = '';
+      badges.forEach(b => {
+        const span = document.createElement('span');
+        span.className = 'photo-tag';
+        span.innerText = b;
+        bBox.appendChild(span);
+      });
+
       updateSessionBanner();
       updateTotal();
     }
 
-    function selectStrength(el) {
-      el.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-    }
-
     function updateTotal() {
       const [h] = selectedStartTime.split(':').map(Number);
-      const isLunch = (h >= 12 && h < 17);
-      const base = isLunch ? 1000 : 1500;
-      let sum = base * hookahs;
-      if (isVip) sum = Math.max(2000, sum);
-      document.getElementById('priceLabel').innerText = sum.toLocaleString('ru-RU') + ' ₽';
-      document.getElementById('cashbackLabel').innerText = `+${Math.round(sum * 0.03)} ₽ кэшбэком`;
-      document.getElementById('hookahRateText').innerText = `Кальянов (${base} ₽/шт)`;
+      isLunchTime = (h >= 12 && h < 17);
+      document.getElementById('lunchBadge').style.display = isLunchTime ? 'block' : 'none';
+      document.getElementById('classicPriceDesc').innerText = isLunchTime ? "1 000 ₽ (Обед)" : "1 500 ₽ / шт";
+
+      const baseRate = isLunchTime ? 1000 : 1500;
+      const premiumExtra = isPremium ? 500 : 0;
+      let hookahsCost = (baseRate + premiumExtra) * hookahs;
+
+      let drinksTotal = 0;
+      selectedDrinks.forEach(d => drinksTotal += d.price);
+
+      let total = hookahsCost + drinksTotal;
+      if (isVipSelected) total = Math.max(2000, total);
+      currentCalculatedTotal = total;
+
+      document.getElementById('priceLabel').innerText = total.toLocaleString('ru-RU') + ' ₽';
+      document.getElementById('selPrice').innerText = total.toLocaleString('ru-RU') + ' ₽';
+      document.getElementById('cashbackLabel').innerText = `+${Math.round(total * 0.03)} ₽ кэшбэком`;
+      document.getElementById('teaCountBadge').innerText = `${selectedDrinks.size} шт`;
+      document.getElementById('hookahRateText').innerText = `Кальянов (${baseRate} ₽/шт)`;
     }
 
-    function confirmBooking() {
+    // Phone formatter
+    const pInput = document.getElementById('guestPhoneInput');
+    pInput.addEventListener('input', function() {
+      let val = this.value.replace(/\D/g, '');
+      if (!val) { this.value = ''; return; }
+      if (val[0] === '7' || val[0] === '8') val = val.substring(1);
+      let res = '+7 ';
+      if (val.length > 0) res += '(' + val.substring(0, 3);
+      if (val.length >= 3) res += ') ' + val.substring(3, 6);
+      if (val.length >= 6) res += '-' + val.substring(6, 8);
+      if (val.length >= 8) res += '-' + val.substring(8, 10);
+      this.value = res;
+    });
+
+    function openSbpModal() {
       const name = document.getElementById('guestNameInput').value.trim();
       const phone = document.getElementById('guestPhoneInput').value.trim();
       if (!name) { alert("Укажите ваше имя!"); return; }
-      if (!phone || phone.length < 6) { alert("Укажите номер телефона!"); return; }
+      if (phone.replace(/\D/g, '').length < 11) { alert("Укажите полный номер телефона (+7 9XX XXX-XX-XX)!"); return; }
+
+      document.getElementById('sbpModalAmount').innerText = currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽';
+      const qrPayload = `https://qr.nspk.ru/transfer?phone=${SBP_CONFIG.phone.replace(/[^0-9]/g, '')}&amount=${currentCalculatedTotal}`;
+      document.getElementById('sbpQrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}&margin=4`;
+      document.getElementById('sbpModal').style.display = 'flex';
+    }
+
+    function closeSbpModal() {
+      document.getElementById('sbpModal').style.display = 'none';
+    }
+
+    function copySbpPhone() {
+      navigator.clipboard.writeText(SBP_CONFIG.phone).then(() => alert("Номер скопирован: " + SBP_CONFIG.phone));
+    }
+
+    function confirmSbpPayment() {
+      closeSbpModal();
+      const name = document.getElementById('guestNameInput').value.trim();
+      const phone = document.getElementById('guestPhoneInput').value.trim();
+      const comment = document.getElementById('hookahComment').value.trim();
 
       const [h, m] = selectedStartTime.split(':').map(Number);
       const dur = isCurrentSessionShort ? 60 : 90;
       const end = h * 60 + m + dur;
       const endStr = `${String(Math.floor(end/60)%24).padStart(2,'0')}:${String(end%60).padStart(2,'0')}`;
 
-      const [h2] = selectedStartTime.split(':').map(Number);
-      const isLunch = (h2 >= 12 && h2 < 17);
-      let sum = (isLunch ? 1000 : 1500) * hookahs;
-      if (isVip) sum = Math.max(2000, sum);
-
       // Блокируем слоты в расписании
       const sched = getDaySchedule(selectedDateIso);
       const startIdx = rawTimes.indexOf(selectedStartTime);
       const slotsCount = isCurrentSessionShort ? 2 : 3;
       rawTimes.slice(startIdx, startIdx + slotsCount).forEach(s => {
-        sched.setdefault = sched[s] || {};
         sched[s] = sched[s] || {};
         sched[s][currentTableId] = 'busy';
       });
       localStorage.setItem('cokol_sched_' + selectedDateIso, JSON.stringify(sched));
+
+      let drinksNames = [];
+      selectedDrinks.forEach(d => drinksNames.push(d.name));
 
       const newBooking = {
         id: 'b_' + Date.now(),
@@ -660,13 +1172,15 @@
         date: selectedDateLabel,
         dateIso: selectedDateIso,
         hookahs: hookahs,
-        hookahType: isLunch ? 'Обед (1 000 ₽)' : 'Классика',
-        total: sum.toLocaleString('ru-RU') + ' ₽',
-        totalNum: sum,
+        hookahType: isPremium ? `PREMIUM (${selectedBrandName})` : (isLunchTime ? 'Обед (1 000 ₽)' : 'Классика'),
+        drinks: drinksNames.join(', '),
+        comment: comment,
+        total: currentCalculatedTotal.toLocaleString('ru-RU') + ' ₽',
+        totalNum: currentCalculatedTotal,
         status: 'pending'
       };
 
-      // ГАРАНТИРОВАННО СОХРАНЯЕМ В ЖУРНАЛ СМЕНЫ
+      // ГАРАНТИРОВАННАЯ ЗАПИСЬ В ЖУРНАЛ СМЕНЫ
       try {
         const local = JSON.parse(localStorage.getItem('cokol_bookings')) || [];
         local.unshift(newBooking);
@@ -684,15 +1198,18 @@
       document.getElementById('modalText').innerHTML = `
         Гость: <strong>${name}</strong><br>
         Стол: <strong>${currentTableName}</strong><br>
-        Время: <strong>${selectedDateLabel} в ${selectedStartTime} – ${endStr}</strong><br>
-        Депозит: <strong>${sum.toLocaleString('ru-RU')} ₽</strong>
+        Сеанс: <strong>${selectedDateLabel} в ${selectedStartTime} – ${endStr}</strong><br>
+        Депозит СБП: <strong>${newBooking.total}</strong><br><br>
+        <span style="color:var(--green); font-size:11px;">Администратор сверяет платёж СБП.</span>
       `;
       document.getElementById('modal').style.display = 'flex';
       updateTablesAvailability();
     }
 
     buildCalendar();
-    updateTotal();
+    buildAfisha();
+    renderCategory('energy');
+    selectItem('t1', 'Стол №1 (Красный диван)', false);
   </script>
 </body>
 </html>

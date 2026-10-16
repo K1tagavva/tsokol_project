@@ -32,7 +32,6 @@
     body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
     .container { width: 100%; max-width: 500px; margin: 0 auto; padding: 14px 14px 40px; }
 
-    /* Пароль */
     .pin-overlay {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
@@ -83,7 +82,6 @@
     }
     .date-pill.active, .slot-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
-    /* Таблицы столов */
     .tables-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
     .table-admin-card {
       background: var(--surface); border: 1px solid var(--border);
@@ -167,7 +165,6 @@
 </head>
 <body>
 
-  <!-- Вход -->
   <div class="pin-overlay" id="pinOverlay">
     <div class="pin-card">
       <div style="font-size: 26px; margin-bottom: 10px;">🔒</div>
@@ -194,27 +191,23 @@
 
     <button class="action-btn-main" onclick="openManualBookingModal()">➕ Записать гостя по звонку</button>
 
-    <!-- Выбор дня -->
     <div class="section-title">
       <span>1. Дата календаря</span>
       <span id="currentDateLabel" style="color: var(--accent); font-weight: 800;">Сегодня</span>
     </div>
     <div class="dates-scroll" id="adminDatesContainer"></div>
 
-    <!-- Выбор времени -->
     <div class="section-title">
       <span>2. Слот времени (1.5 ч)</span>
       <span id="currentSlotLabel" style="color: var(--accent); font-weight: 800;">18:00</span>
     </div>
     <div class="slots-scroll" id="slotsContainer"></div>
 
-    <!-- Сетка столов -->
     <div class="section-title">
       <span>3. Состояние столов на слот</span>
     </div>
     <div class="tables-grid" id="tablesContainer"></div>
 
-    <!-- Журнал смены -->
     <div class="section-title">
       <span>4. Журнал броней на день</span>
       <span id="bookingsCountBadge" style="color: var(--gold); font-size: 11px; font-weight: 700;">0 броней</span>
